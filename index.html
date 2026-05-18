@@ -509,7 +509,7 @@ footer a{color:var(--gold2);text-decoration:none}
 //  Agrega, edita o quita personal aquí
 // ══════════════════════════════════════
 const USERS = [
-  { user:'admin',     pass:'@dmin2026',  nombre:'Administrador Sistema', rol:'admin' },
+   { user:'admin',     pass:'@dmin2026',  nombre:'Administrador Sistema', rol:'admin' },
   { user:'j.perez',   pass:'cte2026',    nombre:'Juan Pérez',            rol:'user'  },
   { user:'m.torres',  pass:'cte2026',    nombre:'María Torres',          rol:'user'  },
   { user:'r.garcia',  pass:'cte2026',    nombre:'Roberto García',        rol:'user'  },
@@ -772,16 +772,29 @@ const TIPO_CSS   = { pdf:'file-type-pdf', word:'file-type-word', excel:'file-typ
 function getFiles(){ try{ return JSON.parse(localStorage.getItem('cte_files')||'[]'); }catch(e){ return []; } }
 function saveFiles(f){ localStorage.setItem('cte_files', JSON.stringify(f)); }
 
-// Convierte link de Drive a link de vista previa abierta
-function driveViewUrl(url){
-  // Soporta: /file/d/ID/view, /open?id=ID, /d/ID/edit, share links
-  let id = null;
-  const m1 = url.match(/\/d\/([a-zA-Z0-9_-]{10,})/);
-  const m2 = url.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
-  if(m1) id = m1[1];
-  else if(m2) id = m2[1];
-  if(id) return `https://drive.google.com/file/d/${id}/view`;
-  return url; // Si no reconoce el formato, devuelve tal cual
+// Extrae el ID de cualquier formato de link de Google Drive
+function extractDriveId(url){
+  const m1 = url.match(/\/d\/([a-zA-Z0-9_-]{15,})/);
+  const m2 = url.match(/[?&]id=([a-zA-Z0-9_-]{15,})/);
+  if(m1) return m1[1];
+  if(m2) return m2[1];
+  return null;
+}
+// URL para ABRIR segun tipo
+function driveViewUrl(url, tipo){
+  const id = extractDriveId(url);
+  if(!id) return url;
+  if(tipo === 'pdf' || tipo === 'img'){
+    return 'https://drive.google.com/file/d/' + id + '/view?usp=sharing';
+  }
+  // Word, Excel, otro: visor Google Docs
+  return 'https://docs.google.com/viewer?url=' + encodeURIComponent('https://drive.google.com/uc?id=' + id);
+}
+// URL para DESCARGAR
+function driveDownloadUrl(url){
+  const id = extractDriveId(url);
+  if(!id) return url;
+  return 'https://drive.google.com/uc?export=download&id=' + id;
 }
 
 function addFile(){
@@ -795,7 +808,7 @@ function addFile(){
   const files = getFiles();
   files.push({
     id: Date.now(),
-    nombre, seccion, url: driveViewUrl(url), tipo, desc,
+    nombre, seccion, urlOriginal: url, url: driveViewUrl(url, tipo), tipo, desc,
     fecha: new Date().toLocaleDateString('es-EC',{day:'2-digit',month:'2-digit',year:'numeric'}),
     subidoPor: currentUser.nombre
   });
@@ -853,8 +866,11 @@ function renderFilesGrid(el, files, seccion, isAdmin){
     </div>`;
     return;
   }
-  el.innerHTML = `<div class="files-grid">${files.map(f=>`
-    <div class="file-card">
+  el.innerHTML = `<div class="files-grid">${files.map(f=>{
+    const urlOrig = f.urlOriginal || f.url;
+    const viewUrl = driveViewUrl(urlOrig, f.tipo);
+    const dlUrl   = driveDownloadUrl(urlOrig);
+    return `<div class="file-card">
       <div class="file-card-top">
         <div class="file-type-icon ${TIPO_CSS[f.tipo]||TIPO_CSS.other}">${TIPO_ICONS[f.tipo]||'📎'}</div>
         <div>
@@ -863,13 +879,18 @@ function renderFilesGrid(el, files, seccion, isAdmin){
         </div>
       </div>
       <div class="file-card-actions">
-        <a class="file-card-btn file-card-btn-open" href="${esc(f.url)}" target="_blank">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          Abrir
+        <a class="file-card-btn file-card-btn-open" href="${viewUrl}" target="_blank" title="Ver archivo">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Ver
         </a>
-        ${isAdmin ? `<button class="file-card-btn file-card-btn-del" onclick="deleteFile(${f.id})">🗑</button>` : ''}
+        <a class="file-card-btn file-card-btn-open" href="${dlUrl}" target="_blank" title="Descargar" style="border-left:1px solid #f0f2f6">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Bajar
+        </a>
+        ${isAdmin ? `<button class="file-card-btn file-card-btn-del" onclick="deleteFile(${f.id})" style="border-left:1px solid #f0f2f6">🗑</button>` : ''}
       </div>
-    </div>`).join('')}</div>`;
+    </div>`;
+  }).join('')}</div>`;
 }
 
 function renderAllSectionFiles(){
@@ -891,8 +912,11 @@ function renderAdminFiles(){
       <div style="font-size:.78rem;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem">
         <span class="section-badge">${SECCIONES[s]||s}</span> ${bySection[s].length} archivo(s)
       </div>
-      <div class="files-grid">${bySection[s].map(f=>`
-        <div class="file-card">
+      <div class="files-grid">${bySection[s].map(f=>{
+        const urlOrig = f.urlOriginal || f.url;
+        const viewUrl = driveViewUrl(urlOrig, f.tipo);
+        const dlUrl   = driveDownloadUrl(urlOrig);
+        return `<div class="file-card">
           <div class="file-card-top">
             <div class="file-type-icon ${TIPO_CSS[f.tipo]||TIPO_CSS.other}">${TIPO_ICONS[f.tipo]||'📎'}</div>
             <div>
@@ -901,13 +925,18 @@ function renderAdminFiles(){
             </div>
           </div>
           <div class="file-card-actions">
-            <a class="file-card-btn file-card-btn-open" href="${esc(f.url)}" target="_blank">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-              Abrir
+            <a class="file-card-btn file-card-btn-open" href="${viewUrl}" target="_blank" title="Ver archivo">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              Ver
             </a>
-            <button class="file-card-btn file-card-btn-del" onclick="deleteFile(${f.id})">🗑</button>
+            <a class="file-card-btn file-card-btn-open" href="${dlUrl}" target="_blank" title="Descargar" style="border-left:1px solid #f0f2f6">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Bajar
+            </a>
+            <button class="file-card-btn file-card-btn-del" onclick="deleteFile(${f.id})" style="border-left:1px solid #f0f2f6">🗑</button>
           </div>
-        </div>`).join('')}
+        </div>`;
+      }).join('')}
       </div>
     </div>`).join('');
 }
