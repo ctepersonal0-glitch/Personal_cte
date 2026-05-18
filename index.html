@@ -42,23 +42,32 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--light);color:var(--
 .header-stripe{background:var(--gold);height:5px}
 header{background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 60%,#1a3060 100%);color:#fff;position:relative;overflow:hidden}
 header::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(200,168,75,.04) 40px,rgba(200,168,75,.04) 80px);pointer-events:none}
-.header-inner{position:relative;max-width:1060px;margin:0 auto;padding:1.8rem 2rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap}
-.escudo{width:70px;height:70px;flex-shrink:0;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:1.1rem;color:var(--navy);border:3px solid rgba(255,255,255,.25)}
-.header-text h1{font-family:'Oswald',sans-serif;font-weight:700;font-size:clamp(1.1rem,3vw,1.8rem);letter-spacing:.06em;text-transform:uppercase;line-height:1.2}
-.header-text p{margin-top:.3rem;font-size:.8rem;color:var(--gold2);font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+.header-inner{position:relative;max-width:1060px;margin:0 auto;padding:1.2rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.escudo{width:56px;height:56px;flex-shrink:0;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:1rem;color:var(--navy);border:3px solid rgba(255,255,255,.25)}
+.header-text{flex:1;min-width:0}
+.header-text h1{font-family:'Oswald',sans-serif;font-weight:700;font-size:clamp(.95rem,3vw,1.8rem);letter-spacing:.06em;text-transform:uppercase;line-height:1.2}
+.header-text p{margin-top:.2rem;font-size:.72rem;color:var(--gold2);font-weight:600;letter-spacing:.08em;text-transform:uppercase}
 .header-right{margin-left:auto;flex-shrink:0}
-.user-badge{display:flex;align-items:center;gap:.6rem;background:rgba(255,255,255,.08);border:1px solid rgba(200,168,75,.2);border-radius:6px;padding:.5rem .9rem}
-.user-badge span{font-size:.8rem;color:var(--silver)}
-.user-badge strong{font-size:.88rem;color:var(--gold2);font-family:'Oswald',sans-serif;letter-spacing:.05em}
-.btn-logout{background:transparent;border:1px solid rgba(200,168,75,.35);color:var(--gold2);font-family:'Oswald',sans-serif;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;padding:.35rem .8rem;border-radius:4px;cursor:pointer;margin-top:.4rem;transition:background .2s;display:block;width:100%}
+.user-badge{display:flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.08);border:1px solid rgba(200,168,75,.2);border-radius:6px;padding:.45rem .8rem;flex-wrap:wrap}
+.user-badge span{font-size:.75rem;color:var(--silver)}
+.user-badge strong{font-size:.82rem;color:var(--gold2);font-family:'Oswald',sans-serif;letter-spacing:.05em;word-break:break-word}
+.btn-logout{background:transparent;border:1px solid rgba(200,168,75,.35);color:var(--gold2);font-family:'Oswald',sans-serif;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;padding:.35rem .8rem;border-radius:4px;cursor:pointer;margin-top:.4rem;transition:background .2s;display:block;width:100%}
 .btn-logout:hover{background:rgba(200,168,75,.15)}
+@media(max-width:500px){
+  .header-inner{padding:1rem}
+  .escudo{width:44px;height:44px;font-size:.85rem}
+  .header-right{width:100%;margin-left:0}
+  .user-badge{width:100%}
+}
 
 nav{background:var(--navy2);border-bottom:2px solid var(--gold);position:sticky;top:0;z-index:100}
-.nav-inner{max-width:1060px;margin:0 auto;padding:0 2rem;display:flex;gap:0;overflow-x:auto}
-nav a{display:block;padding:.9rem 1.1rem;color:var(--silver);text-decoration:none;font-family:'Oswald',sans-serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;transition:color .2s,background .2s;border-bottom:3px solid transparent;cursor:pointer}
+.nav-inner{max-width:1060px;margin:0 auto;padding:0 2rem;display:flex;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.nav-inner::-webkit-scrollbar{display:none}
+nav a{display:block;padding:.9rem 1.1rem;color:var(--silver);text-decoration:none;font-family:'Oswald',sans-serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;transition:color .2s,background .2s;border-bottom:3px solid transparent;cursor:pointer;-webkit-tap-highlight-color:transparent}
 nav a:hover,nav a.active{color:var(--gold2);border-bottom-color:var(--gold);background:rgba(200,168,75,.08)}
 
 main{max-width:1060px;margin:0 auto;padding:2rem}
+@media(max-width:600px){main{padding:1rem}}
 .tab{display:none}.tab.active{display:block}
 
 /* STATS */
@@ -311,6 +320,7 @@ footer a{color:var(--gold2);text-decoration:none}
       </div>
 
       <div class="section-title">Registro de Accesos Recientes</div>
+      <div id="dashboard-bitacora" style="display:none">
       <div class="log-wrap">
         <div class="log-header">
           <h3>🔒 Bitácora de Ingresos</h3>
@@ -322,6 +332,10 @@ footer a{color:var(--gold2);text-decoration:none}
             <tbody id="log-tbody"></tbody>
           </table>
         </div>
+      </div>
+      </div>
+      <div id="dashboard-no-admin" style="display:none;background:var(--white);border:1px solid #dde0e8;border-radius:8px;padding:1.5rem;text-align:center;color:var(--muted);font-size:.88rem;margin-bottom:2rem">
+        🔒 La bitácora de accesos está disponible solo para administradores.
       </div>
     </div>
 
@@ -509,7 +523,7 @@ footer a{color:var(--gold2);text-decoration:none}
 //  Agrega, edita o quita personal aquí
 // ══════════════════════════════════════
 const USERS = [
-   { user:'admin',     pass:'@dmin2026',  nombre:'Administrador Sistema', rol:'admin' },
+  { user:'admin',     pass:'@dmin2026',  nombre:'Administrador Sistema', rol:'admin' },
   { user:'j.perez',   pass:'cte2026',    nombre:'Juan Pérez',            rol:'user'  },
   { user:'m.torres',  pass:'cte2026',    nombre:'María Torres',          rol:'user'  },
   { user:'r.garcia',  pass:'cte2026',    nombre:'Roberto García',        rol:'user'  },
@@ -633,17 +647,25 @@ function renderDashboard(){
   document.getElementById('stat-hoy').textContent   = hoyOk;
   document.getElementById('stat-fail').textContent  = hoyFail;
   if(last){ document.getElementById('stat-last').textContent=last.nombre.split(' ')[0]; document.getElementById('stat-last-time').textContent=last.fecha+' '+last.hora; }
-  const recent = [...logs].reverse().slice(0,15);
-  document.getElementById('log-count-label').textContent = logs.length+' registros totales';
-  const tbody = document.getElementById('log-tbody');
-  tbody.innerHTML = recent.map(l=>`
-    <tr>
-      <td><span class="dot" style="background:${l.estado==='ok'?'#1a7a4a':'#c0392b'}"></span>${esc(l.usuario)}</td>
-      <td>${esc(l.nombre)}</td>
-      <td>${l.fecha} ${l.hora}</td>
-      <td>${l.device}</td>
-      <td><span class="badge ${l.estado==='ok'?'badge-ok':'badge-fail'}">${l.estado==='ok'?'✓ Exitoso':'✗ Fallido'}</span></td>
-    </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1.5rem">Sin registros aún.</td></tr>';
+
+  // Bitácora: solo visible para admin
+  const isAdmin = currentUser && currentUser.rol === 'admin';
+  document.getElementById('dashboard-bitacora').style.display  = isAdmin ? 'block' : 'none';
+  document.getElementById('dashboard-no-admin').style.display  = isAdmin ? 'none'  : 'block';
+
+  if(isAdmin){
+    const recent = [...logs].reverse().slice(0,15);
+    document.getElementById('log-count-label').textContent = logs.length+' registros totales';
+    const tbody = document.getElementById('log-tbody');
+    tbody.innerHTML = recent.map(l=>`
+      <tr>
+        <td><span class="dot" style="background:${l.estado==='ok'?'#1a7a4a':'#c0392b'}"></span>${esc(l.usuario)}</td>
+        <td>${esc(l.nombre)}</td>
+        <td>${l.fecha} ${l.hora}</td>
+        <td>${l.device}</td>
+        <td><span class="badge ${l.estado==='ok'?'badge-ok':'badge-fail'}">${l.estado==='ok'?'✓ Exitoso':'✗ Fallido'}</span></td>
+      </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1.5rem">Sin registros aún.</td></tr>';
+  }
 }
 
 // ══ ADMIN ══
