@@ -454,6 +454,20 @@ footer a{color:var(--gold2);text-decoration:none}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Agregar Archivo al Sistema
           </button>
+
+          <!-- CÓDIGO GENERADO PARA PUBLICAR -->
+          <div id="af-code-box" style="display:none;margin-top:1.2rem;background:#0a1628;border-radius:7px;padding:1rem 1.2rem">
+            <div style="font-size:.75rem;font-weight:700;color:#e8c96a;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">
+              📋 Copia esta línea en el archivo HTML para que TODOS lo vean permanentemente
+            </div>
+            <code id="af-code-text" style="font-size:.78rem;color:#a8d8a8;display:block;word-break:break-all;line-height:1.6;white-space:pre-wrap"></code>
+            <button onclick="copiarCodigo()" style="margin-top:.7rem;background:var(--gold);color:var(--navy);font-family:'Oswald',sans-serif;font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.35rem .9rem;border:none;border-radius:4px;cursor:pointer">
+              📋 Copiar código
+            </button>
+            <div style="font-size:.72rem;color:#6a8a6a;margin-top:.5rem;line-height:1.5">
+              Pega esta línea dentro del array <strong style="color:#e8c96a">FILES_BASE</strong> en el código del HTML y republica en GitHub Pages. Así todos los usuarios lo verán sin importar el dispositivo.
+            </div>
+          </div>
         </div>
       </div>
 
@@ -533,7 +547,28 @@ const USERS = [
   { user:'m.suarez',  pass:'cte2026',    nombre:'Mario Suarez',          rol:'user'  },
 ];
 
-// ══ USUARIOS BLOQUEADOS ══
+// ══════════════════════════════════════════════════════════
+//  ARCHIVOS COMPARTIDOS DEL SISTEMA
+//  El admin agrega aquí los links de Drive y todos los
+//  usuarios los ven sin importar el dispositivo.
+//
+//  Para agregar un archivo:
+//  1. Sube el archivo a Google Drive
+//  2. Compártelo como "Cualquiera con el enlace puede ver"
+//  3. Agrega una línea con este formato:
+//     { id:NUMERO, nombre:'Nombre', seccion:'organico',
+//       tipo:'pdf', desc:'descripción', fecha:'DD/MM/AAAA',
+//       urlOriginal:'https://drive.google.com/file/d/ID/view' }
+//
+//  Secciones válidas: organico, orden, parametros, reportes, historia
+//  Tipos válidos:     pdf, word, excel, img, other
+// ══════════════════════════════════════════════════════════
+const FILES_BASE = [
+  // Ejemplo (borra esta línea y agrega los tuyos):
+  // { id:1, nombre:'Orgánico 2025', seccion:'organico', tipo:'pdf', desc:'Versión oficial', fecha:'01/01/2025', urlOriginal:'https://drive.google.com/file/d/AQUI_VA_EL_ID/view' },
+];
+
+
 function getBlocked(){ try{ return JSON.parse(localStorage.getItem('cte_blocked')||'[]'); }catch(e){ return []; } }
 function saveBlocked(b){ localStorage.setItem('cte_blocked', JSON.stringify(b)); }
 function isBlocked(user){ return getBlocked().includes(user); }
@@ -791,8 +826,21 @@ const SECCIONES = {
 const TIPO_ICONS = { pdf:'📄', word:'📝', excel:'📊', img:'🖼️', other:'📎' };
 const TIPO_CSS   = { pdf:'file-type-pdf', word:'file-type-word', excel:'file-type-excel', img:'file-type-img', other:'file-type-other' };
 
-function getFiles(){ try{ return JSON.parse(localStorage.getItem('cte_files')||'[]'); }catch(e){ return []; } }
-function saveFiles(f){ localStorage.setItem('cte_files', JSON.stringify(f)); }
+// Devuelve FILES_BASE (compartidos) + los agregados en sesión local
+function getFiles(){
+  try{
+    const local = JSON.parse(localStorage.getItem('cte_files')||'[]');
+    // Evitar duplicados: si un id de FILES_BASE ya existe en local, no repetir
+    const localIds = new Set(local.map(f=>f.id));
+    const base = FILES_BASE.filter(f=>!localIds.has(f.id));
+    return [...base, ...local];
+  }catch(e){ return FILES_BASE.slice(); }
+}
+function saveFiles(f){
+  // Solo guardar en localStorage los que NO son de FILES_BASE
+  const baseIds = new Set(FILES_BASE.map(x=>x.id));
+  localStorage.setItem('cte_files', JSON.stringify(f.filter(x=>!baseIds.has(x.id))));
+}
 
 // Extrae el ID de cualquier formato de link de Google Drive
 function extractDriveId(url){
@@ -827,19 +875,44 @@ function addFile(){
   const desc    = document.getElementById('af-desc').value.trim();
   if(!nombre){ alert('Ingresa el nombre del archivo.'); return; }
   if(!url){ alert('Pega el enlace de Google Drive.'); return; }
-  const files = getFiles();
-  files.push({
-    id: Date.now(),
+  const newId = Date.now();
+  const fecha = new Date().toLocaleDateString('es-EC',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const entry = {
+    id: newId,
     nombre, seccion, urlOriginal: url, url: driveViewUrl(url, tipo), tipo, desc,
-    fecha: new Date().toLocaleDateString('es-EC',{day:'2-digit',month:'2-digit',year:'numeric'}),
-    subidoPor: currentUser.nombre
-  });
+    fecha, subidoPor: currentUser.nombre
+  };
+  const files = getFiles();
+  files.push(entry);
   saveFiles(files);
-  // Limpiar
+  // Limpiar campos
   ['af-nombre','af-url','af-desc'].forEach(id=>document.getElementById(id).value='');
+  // Mostrar código para copiar en FILES_BASE
+  const linea = `  { id:${newId}, nombre:'${nombre.replace(/'/g,"\\'")}', seccion:'${seccion}', tipo:'${tipo}', desc:'${desc.replace(/'/g,"\\'")}', fecha:'${fecha}', urlOriginal:'${url}' },`;
+  document.getElementById('af-code-text').textContent = linea;
+  document.getElementById('af-code-box').style.display = 'block';
+  document.getElementById('af-code-box').scrollIntoView({behavior:'smooth', block:'nearest'});
   renderAdmin();
-  // Renderizar también la sección correspondiente
   renderSectionFiles(seccion);
+}
+
+function copiarCodigo(){
+  const txt = document.getElementById('af-code-text').textContent;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copiado!';
+    setTimeout(()=>btn.textContent=orig, 2000);
+  }).catch(()=>{
+    // Fallback para móviles
+    const ta = document.createElement('textarea');
+    ta.value = txt; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    const btn = event.target;
+    btn.textContent = '✓ Copiado!';
+    setTimeout(()=>btn.textContent='📋 Copiar código', 2000);
+  });
 }
 
 function deleteFile(id){
