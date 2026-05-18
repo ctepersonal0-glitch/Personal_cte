@@ -417,10 +417,8 @@ footer a{color:var(--gold2);text-decoration:none}
           </div>
           <div class="form-field">
             <label>Enlace de Google Drive</label>
-            <input type="text" id="af-url" placeholder="https://drive.google.com/file/d/..." oninput="validarLinkDrive(this.value)"/>
-            <div id="af-url-feedback" class="help-text" style="margin-top:.4rem">
-              📋 Pega aquí el enlace que copiaste de Google Drive al hacer clic en <strong>"Compartir"</strong>.
-            </div>
+            <input type="text" id="af-url" placeholder="https://drive.google.com/file/d/..."/>
+            <div class="help-text">⚠️ El archivo debe estar compartido como <strong>"Cualquiera con el enlace"</strong> en Drive.</div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
             <div class="form-field">
@@ -774,22 +772,16 @@ const TIPO_CSS   = { pdf:'file-type-pdf', word:'file-type-word', excel:'file-typ
 function getFiles(){ try{ return JSON.parse(localStorage.getItem('cte_files')||'[]'); }catch(e){ return []; } }
 function saveFiles(f){ localStorage.setItem('cte_files', JSON.stringify(f)); }
 
-// Convierte link de Drive al link correcto según tipo de archivo
-function driveViewUrl(url, tipo){
+// Convierte link de Drive a link de vista previa abierta
+function driveViewUrl(url){
+  // Soporta: /file/d/ID/view, /open?id=ID, /d/ID/edit, share links
   let id = null;
-  const m1 = url.match(/\/d\/([a-zA-Z0-9_-]{15,})/);
-  const m2 = url.match(/[?&]id=([a-zA-Z0-9_-]{15,})/);
+  const m1 = url.match(/\/d\/([a-zA-Z0-9_-]{10,})/);
+  const m2 = url.match(/[?&]id=([a-zA-Z0-9_-]{10,})/);
   if(m1) id = m1[1];
   else if(m2) id = m2[1];
-  if(!id) return url; // No reconoce el formato, devuelve tal cual
-
-  // Word y Excel: usar Google Docs Viewer para abrirlos sin necesidad de descarga
-  if(tipo === 'word' || tipo === 'excel'){
-    const directUrl = `https://drive.google.com/uc?export=download&id=${id}`;
-    return `https://docs.google.com/viewer?url=${encodeURIComponent(directUrl)}&embedded=false`;
-  }
-  // PDF e imágenes: abrir directo en Drive (funciona bien)
-  return `https://drive.google.com/file/d/${id}/view?usp=sharing`;
+  if(id) return `https://drive.google.com/file/d/${id}/view`;
+  return url; // Si no reconoce el formato, devuelve tal cual
 }
 
 function addFile(){
@@ -803,7 +795,7 @@ function addFile(){
   const files = getFiles();
   files.push({
     id: Date.now(),
-    nombre, seccion, url: driveViewUrl(url, tipo), tipo, desc,
+    nombre, seccion, url: driveViewUrl(url), tipo, desc,
     fecha: new Date().toLocaleDateString('es-EC',{day:'2-digit',month:'2-digit',year:'numeric'}),
     subidoPor: currentUser.nombre
   });
@@ -921,21 +913,7 @@ function renderAdminFiles(){
 }
 
 
-function validarLinkDrive(url){
-  const fb = document.getElementById('af-url-feedback');
-  if(!url){ fb.innerHTML = '📋 Pega aquí el enlace que copiaste de Google Drive al hacer clic en <strong>"Compartir"</strong>.'; fb.style.color=''; return; }
-  const m1 = url.match(/\/d\/([a-zA-Z0-9_-]{15,})/);
-  const m2 = url.match(/[?&]id=([a-zA-Z0-9_-]{15,})/);
-  if(m1||m2){
-    fb.innerHTML = '✅ <strong>Link válido.</strong> ID detectado correctamente. Asegúrate de que el archivo esté compartido como <strong>"Cualquiera con el enlace puede ver"</strong>.';
-    fb.style.color = '#1a7a4a';
-  } else {
-    fb.innerHTML = '⚠️ <strong>Link no reconocido.</strong> Asegúrate de copiar el link desde el botón <strong>"Compartir"</strong> en Google Drive, no desde la barra de direcciones.';
-    fb.style.color = '#c0392b';
-  }
-}
-
- return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 </script>
 </body>
 </html>
