@@ -217,7 +217,18 @@ footer a{color:var(--gold2);text-decoration:none}
 .chart-legend{display:flex;gap:1.2rem;margin-top:.8rem}
 .chart-legend-item{display:flex;align-items:center;gap:.4rem;font-size:.74rem;color:var(--muted)}
 .chart-legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+/* GOOGLE LOGIN */
+.login-divider{display:flex;align-items:center;gap:.8rem;margin:1.2rem 0;color:rgba(255,255,255,.3);font-size:.78rem}
+.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.12)}
+.btn-google{width:100%;padding:.8rem 1rem;background:#fff;color:#1a2035;font-family:'Source Sans 3',sans-serif;font-size:.95rem;font-weight:600;border:none;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.7rem;transition:background .2s,box-shadow .2s;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.btn-google:hover{background:#f5f5f5;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.btn-google:active{transform:scale(.98)}
+.btn-google svg{flex-shrink:0}
+.login-or-manual{text-align:center;margin-top:1rem;font-size:.75rem;color:rgba(255,255,255,.35);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.login-or-manual:hover{color:var(--gold2)}
+.login-manual-fields{display:none;margin-top:.8rem}
 </style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
 
@@ -231,17 +242,31 @@ footer a{color:var(--gold2);text-decoration:none}
         <h1>Unidad de Personal<br>y Movilidad</h1>
         <p>Cuerpo de Vigilancia – CTE</p>
       </div>
-      <div class="login-error" id="login-error"></div>
-      <div class="field">
-        <label>Correo Gmail</label>
-        <input type="email" id="inp-user" placeholder="nombre@gmail.com" autocomplete="email" inputmode="email"/>
+      <div class="login-error" id="login-error">Acceso denegado.</div>
+
+      <!-- BOTÓN GOOGLE -->
+      <button class="btn-google" onclick="loginConGoogle()">
+        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+        Ingresar con Google
+      </button>
+
+      <div class="login-divider">o</div>
+
+      <!-- ACCESO MANUAL (admin o fallback) -->
+      <div class="login-manual-fields" id="login-manual-fields">
+        <div class="field">
+          <label>Usuario</label>
+          <input type="text" id="inp-user" placeholder="ej: admin" autocomplete="username"/>
+        </div>
+        <div class="field">
+          <label>Contraseña</label>
+          <input type="password" id="inp-pass" placeholder="••••••••" autocomplete="current-password"/>
+        </div>
+        <button class="btn-login" onclick="doLogin()">Ingresar</button>
       </div>
-      <div class="field">
-        <label>Contraseña</label>
-        <input type="password" id="inp-pass" placeholder="••••••••" autocomplete="current-password"/>
-      </div>
-      <button class="btn-login" onclick="doLogin()">Ingresar al Sistema</button>
-      <div class="login-footer">Comisión de Tránsito del Ecuador · Acceso restringido al personal autorizado<br>Solo correos @gmail.com autorizados por el administrador</div>
+      <div class="login-or-manual" onclick="toggleManual()">🔑 Acceso manual (administrador)</div>
+
+      <div class="login-footer">Comisión de Tránsito del Ecuador · Acceso restringido al personal autorizado</div>
     </div>
   </div>
 </div>
@@ -532,24 +557,25 @@ footer a{color:var(--gold2);text-decoration:none}
 </div>
 
 <script>
+// ══════════════════════════════════════════════════════
+//  GOOGLE OAUTH CLIENT ID
+//  Reemplaza con tu Client ID de Google Cloud Console
+// ══════════════════════════════════════════════════════
+const GOOGLE_CLIENT_ID = 'TU_CLIENT_ID_AQUI.apps.googleusercontent.com';
+
 // ══════════════════════════════════════
 //  USUARIOS DEL SISTEMA
 //  Agrega, edita o quita personal aquí
 // ══════════════════════════════════════
-// ══════════════════════════════════════════════════════════
-//  USUARIOS DEL SISTEMA — usa correo Gmail como login
-//  Agrega el correo exacto de cada persona
-//  rol: 'admin' o 'user'
-// ══════════════════════════════════════════════════════════
 const USERS = [
-  { user:'admin.cte@gmail.com',      pass:'@dmin2026',  nombre:'Administrador Sistema', rol:'admin' },
-  { user:'juan.perez.cte@gmail.com', pass:'cte2026',    nombre:'Juan Pérez',            rol:'user'  },
-  { user:'maria.torres@gmail.com',   pass:'cte2026',    nombre:'María Torres',          rol:'user'  },
-  { user:'roberto.garcia@gmail.com', pass:'cte2026',    nombre:'Roberto García',        rol:'user'  },
-  { user:'luis.vega.cte@gmail.com',  pass:'cte2026',    nombre:'Luis Vega',             rol:'user'  },
-  { user:'ana.morales@gmail.com',    pass:'cte2026',    nombre:'Ana Morales',           rol:'user'  },
-  { user:'franklin.delgado@gmail.com',pass:'cte2026',   nombre:'Franklin Delgado',      rol:'user'  },
-  { user:'mario.suarez@gmail.com',   pass:'cte2026',    nombre:'Mario Suarez',          rol:'user'  },
+  { user:'admin',     pass:'@dmin2026',  nombre:'Administrador Sistema', rol:'admin', email:'admin@gmail.com'       },
+  { user:'j.perez',   pass:'cte2026',    nombre:'Juan Pérez',            rol:'user',  email:'juan.perez@gmail.com'  },
+  { user:'m.torres',  pass:'cte2026',    nombre:'María Torres',          rol:'user',  email:'maria.torres@gmail.com'},
+  { user:'r.garcia',  pass:'cte2026',    nombre:'Roberto García',        rol:'user',  email:'r.garcia@gmail.com'    },
+  { user:'l.vega',    pass:'cte2026',    nombre:'Luis Vega',             rol:'user',  email:'l.vega@gmail.com'      },
+  { user:'a.morales', pass:'cte2026',    nombre:'Ana Morales',           rol:'user',  email:'a.morales@gmail.com'   },
+  { user:'f.delgado', pass:'cte2026',    nombre:'Franklin Delgado',      rol:'user',  email:'f.delgado@gmail.com'   },
+  { user:'m.suarez',  pass:'cte2026',    nombre:'Mario Suarez',          rol:'user',  email:'m.suarez@gmail.com'    },
 ];
 
 // ══════════════════════════════════════════════════════════
@@ -570,7 +596,7 @@ const USERS = [
 // ══════════════════════════════════════════════════════════
 const FILES_BASE = [
   // Ejemplo (borra esta línea y agrega los tuyos):
-  // { id:1779140207710, nombre:'ORGANICO CTE ', seccion:'organico', tipo:'excel', desc:'', fecha:'18/05/2026', urlOriginal:'https://drive.google.com/drive/folders/1IKszLxBRMZTpv0CyJYaFJ11KbmaftAlW?usp=sharing' },
+  // { id:1, nombre:'Orgánico 2025', seccion:'organico', tipo:'pdf', desc:'Versión oficial', fecha:'01/01/2025', urlOriginal:'https://drive.google.com/file/d/AQUI_VA_EL_ID/view' },
 ];
 
 
@@ -601,12 +627,13 @@ document.getElementById('confirm-modal').addEventListener('click', function(e){
 
 function getLogs(){ try{ return JSON.parse(localStorage.getItem('cte_logs')||'[]'); }catch(e){ return []; } }
 function saveLogs(l){ localStorage.setItem('cte_logs', JSON.stringify(l.slice(-300))); }
-function addLog(usuario, nombre, estado){
+function addLog(usuario, nombre, estado, email){
   const logs = getLogs();
   const now = new Date();
   const dev = /Mobi|Android/i.test(navigator.userAgent) ? 'Móvil' : 'Computadora';
   logs.push({
     usuario, nombre, estado,
+    email: email || '',
     fecha: now.toLocaleDateString('es-EC',{day:'2-digit',month:'2-digit',year:'numeric'}),
     hora:  now.toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),
     device: dev
@@ -614,53 +641,144 @@ function addLog(usuario, nombre, estado){
   saveLogs(logs);
 }
 
-// ══ SESIÓN ══
-let currentUser = null;
+// ══ GOOGLE OAUTH ══
+function iniciarGoogle(){
+  if(GOOGLE_CLIENT_ID === 'TU_CLIENT_ID_AQUI.apps.googleusercontent.com') return; // sin configurar aún
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: onGoogleToken,
+    auto_select: true,        // intenta login automático si hay sesión activa
+    cancel_on_tap_outside: false
+  });
+  google.accounts.id.prompt(); // muestra el One Tap si hay sesión Google activa
+}
 
-function doLogin(){
-  const u = document.getElementById('inp-user').value.trim().toLowerCase().replace(/\s/g,'');
-  const p = document.getElementById('inp-pass').value;
-  const errEl = document.getElementById('login-error');
-  if(!u||!p){ errEl.textContent='Ingresa tu correo Gmail y contraseña.'; errEl.style.display='block'; return; } if(!u.includes('@gmail.com')){ errEl.textContent='Solo se permiten correos @gmail.com autorizados.'; errEl.style.display='block'; return; }
-  const found = USERS.find(x => x.user===u && x.pass===p);
-  if(found){
-    if(isBlocked(found.user)){
-      errEl.textContent='Tu cuenta está bloqueada. Contacta al administrador.';
-      errEl.style.display='block';
-      addLog(found.user, found.nombre, 'fail');
-      return;
+function loginConGoogle(){
+  if(GOOGLE_CLIENT_ID === 'TU_CLIENT_ID_AQUI.apps.googleusercontent.com'){
+    mostrarError('⚙️ El Client ID de Google aún no está configurado. Usa el acceso manual o contacta al administrador.');
+    return;
+  }
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: onGoogleToken
+  });
+  google.accounts.id.prompt((notification)=>{
+    if(notification.isNotDisplayed() || notification.isSkippedMoment()){
+      // Si One Tap no se muestra, usar popup
+      google.accounts.id.renderButton(
+        document.createElement('div'),
+        { theme:'outline', size:'large' }
+      );
+      mostrarError('Haz clic en la ventana emergente de Google para continuar. Si no aparece, permite las ventanas emergentes en tu navegador.');
     }
-    errEl.style.display='none';
-    currentUser = found;
-    addLog(found.user, found.nombre, 'ok');
-    document.getElementById('screen-login').style.display='none';
-    document.getElementById('screen-main').style.display='block';
-    document.getElementById('display-user').textContent = found.nombre+' · '+found.user;
-    const rb = document.getElementById('display-role-badge');
-    rb.textContent = found.rol==='admin' ? 'ADMIN' : 'USUARIO';
-    rb.className = 'badge '+(found.rol==='admin'?'badge-admin':'badge-user');
-    if(found.rol==='admin') document.getElementById('nav-admin').style.display='block';
-    renderDashboard();
-    renderAllSectionFiles();
-  } else {
-    addLog(u||'(desconocido)','—','fail');
-    errEl.textContent='Correo o contraseña incorrectos, o no autorizado. Intento registrado.';
-    errEl.style.display='block';
-    document.getElementById('inp-pass').value='';
+  });
+}
+
+function onGoogleToken(response){
+  // Decodifica el JWT de Google (sin librería externa)
+  try{
+    const payload = JSON.parse(atob(response.credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+    const email = payload.email.toLowerCase();
+    const nombre = payload.name;
+    const foto   = payload.picture;
+    procesarLoginGoogle(email, nombre, foto);
+  }catch(e){
+    mostrarError('Error al procesar la respuesta de Google. Intenta de nuevo.');
   }
 }
 
-document.getElementById('inp-pass').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
-document.getElementById('inp-user').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('inp-pass').focus(); });
+function procesarLoginGoogle(email, nombreGoogle, foto){
+  const errEl = document.getElementById('login-error');
+  // Buscar usuario por email
+  const found = USERS.find(x => x.email && x.email.toLowerCase() === email);
+  if(found){
+    if(isBlocked(found.user)){
+      mostrarError('Tu cuenta está bloqueada. Contacta al administrador.');
+      addLog(found.user, found.nombre, 'fail');
+      return;
+    }
+    addLog(found.user, found.nombre, 'ok');
+    entrarAlSistema(found, foto);
+  } else {
+    addLog(email, nombreGoogle||email, 'fail');
+    mostrarError('El correo ' + email + ' no está registrado en el sistema. Contacta al administrador.');
+  }
+}
+
+function mostrarError(msg){
+  const el = document.getElementById('login-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function toggleManual(){
+  const f = document.getElementById('login-manual-fields');
+  f.style.display = f.style.display === 'block' ? 'none' : 'block';
+}
+
+// ══ SESIÓN ══
+let currentUser = null;
+
+function entrarAlSistema(found, foto){
+  currentUser = found;
+  document.getElementById('screen-login').style.display = 'none';
+  document.getElementById('screen-main').style.display  = 'block';
+  // Mostrar foto de Google si está disponible
+  const escudo = document.querySelector('header .escudo');
+  if(foto){ escudo.innerHTML = `<img src="${foto}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`; }
+  else { escudo.textContent = 'CTE'; }
+  document.getElementById('display-user').textContent = found.nombre + ' (' + found.user + ')';
+  const rb = document.getElementById('display-role-badge');
+  rb.textContent = found.rol === 'admin' ? 'ADMIN' : 'USUARIO';
+  rb.className   = 'badge ' + (found.rol==='admin' ? 'badge-admin' : 'badge-user');
+  if(found.rol === 'admin') document.getElementById('nav-admin').style.display = 'block';
+  renderDashboard();
+  renderAllSectionFiles();
+}
+
+function doLogin(){
+  const u = document.getElementById('inp-user').value.trim().toLowerCase();
+  const p = document.getElementById('inp-pass').value;
+  if(!u||!p){ mostrarError('Ingresa tu usuario y contraseña.'); return; }
+  const found = USERS.find(x => x.user===u && x.pass===p);
+  if(found){
+    if(isBlocked(found.user)){
+      mostrarError('Tu cuenta está bloqueada. Contacta al administrador.');
+      addLog(found.user, found.nombre, 'fail');
+      return;
+    }
+    document.getElementById('login-error').style.display = 'none';
+    addLog(found.user, found.nombre, 'ok');
+    entrarAlSistema(found, null);
+  } else {
+    addLog(u||'(desconocido)', '—', 'fail');
+    mostrarError('Usuario o contraseña incorrectos. Intento registrado en bitácora.');
+    document.getElementById('inp-pass').value = '';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('inp-pass')?.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+  document.getElementById('inp-user')?.addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('inp-pass').focus(); });
+  // Intentar One Tap automático al cargar
+  if(typeof google !== 'undefined') iniciarGoogle();
+  else window.addEventListener('load', ()=>{ if(typeof google !== 'undefined') iniciarGoogle(); });
+});
 
 function doLogout(){
-  currentUser=null;
-  document.getElementById('screen-main').style.display='none';
-  document.getElementById('screen-login').style.display='flex';
-  document.getElementById('inp-user').value='';
-  document.getElementById('inp-pass').value='';
-  document.getElementById('login-error').style.display='none';
-  document.getElementById('nav-admin').style.display='none';
+  currentUser = null;
+  // Revocar sesión Google para forzar selección de cuenta
+  if(GOOGLE_CLIENT_ID !== 'TU_CLIENT_ID_AQUI.apps.googleusercontent.com' && typeof google !== 'undefined'){
+    google.accounts.id.disableAutoSelect();
+  }
+  document.getElementById('screen-main').style.display  = 'none';
+  document.getElementById('screen-login').style.display = 'flex';
+  document.getElementById('inp-user').value  = '';
+  document.getElementById('inp-pass').value  = '';
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('nav-admin').style.display   = 'none';
+  document.querySelector('header .escudo').textContent  = 'CTE';
+  document.querySelector('header .escudo').innerHTML    = 'CTE';
 }
 
 // ══ TABS ══
