@@ -231,17 +231,17 @@ footer a{color:var(--gold2);text-decoration:none}
         <h1>Unidad de Personal<br>y Movilidad</h1>
         <p>Cuerpo de Vigilancia – CTE</p>
       </div>
-      <div class="login-error" id="login-error">Usuario o contraseña incorrectos.</div>
+      <div class="login-error" id="login-error"></div>
       <div class="field">
-        <label>Usuario</label>
-        <input type="text" id="inp-user" placeholder="ej: juan.perez" autocomplete="username"/>
+        <label>Correo Gmail</label>
+        <input type="email" id="inp-user" placeholder="nombre@gmail.com" autocomplete="email" inputmode="email"/>
       </div>
       <div class="field">
         <label>Contraseña</label>
         <input type="password" id="inp-pass" placeholder="••••••••" autocomplete="current-password"/>
       </div>
       <button class="btn-login" onclick="doLogin()">Ingresar al Sistema</button>
-      <div class="login-footer">Comisión de Tránsito del Ecuador · Acceso restringido al personal autorizado</div>
+      <div class="login-footer">Comisión de Tránsito del Ecuador · Acceso restringido al personal autorizado<br>Solo correos @gmail.com autorizados por el administrador</div>
     </div>
   </div>
 </div>
@@ -536,15 +536,20 @@ footer a{color:var(--gold2);text-decoration:none}
 //  USUARIOS DEL SISTEMA
 //  Agrega, edita o quita personal aquí
 // ══════════════════════════════════════
+// ══════════════════════════════════════════════════════════
+//  USUARIOS DEL SISTEMA — usa correo Gmail como login
+//  Agrega el correo exacto de cada persona
+//  rol: 'admin' o 'user'
+// ══════════════════════════════════════════════════════════
 const USERS = [
-  { user:'admin',     pass:'@dmin2026',  nombre:'Administrador Sistema', rol:'admin' },
-  { user:'j.perez',   pass:'cte2026',    nombre:'Juan Pérez',            rol:'user'  },
-  { user:'m.torres',  pass:'cte2026',    nombre:'María Torres',          rol:'user'  },
-  { user:'r.garcia',  pass:'cte2026',    nombre:'Roberto García',        rol:'user'  },
-  { user:'l.vega',    pass:'cte2026',    nombre:'Luis Vega',             rol:'user'  },
-  { user:'a.morales', pass:'cte2026',    nombre:'Ana Morales',           rol:'user'  },
-  { user:'f.delgado', pass:'cte2026',    nombre:'Franklin Delgado',      rol:'user'  },
-  { user:'m.suarez',  pass:'cte2026',    nombre:'Mario Suarez',          rol:'user'  },
+  { user:'admin.cte@gmail.com',      pass:'@dmin2026',  nombre:'Administrador Sistema', rol:'admin' },
+  { user:'juan.perez.cte@gmail.com', pass:'cte2026',    nombre:'Juan Pérez',            rol:'user'  },
+  { user:'maria.torres@gmail.com',   pass:'cte2026',    nombre:'María Torres',          rol:'user'  },
+  { user:'roberto.garcia@gmail.com', pass:'cte2026',    nombre:'Roberto García',        rol:'user'  },
+  { user:'luis.vega.cte@gmail.com',  pass:'cte2026',    nombre:'Luis Vega',             rol:'user'  },
+  { user:'ana.morales@gmail.com',    pass:'cte2026',    nombre:'Ana Morales',           rol:'user'  },
+  { user:'franklin.delgado@gmail.com',pass:'cte2026',   nombre:'Franklin Delgado',      rol:'user'  },
+  { user:'mario.suarez@gmail.com',   pass:'cte2026',    nombre:'Mario Suarez',          rol:'user'  },
 ];
 
 // ══════════════════════════════════════════════════════════
@@ -613,10 +618,10 @@ function addLog(usuario, nombre, estado){
 let currentUser = null;
 
 function doLogin(){
-  const u = document.getElementById('inp-user').value.trim().toLowerCase();
+  const u = document.getElementById('inp-user').value.trim().toLowerCase().replace(/\s/g,'');
   const p = document.getElementById('inp-pass').value;
   const errEl = document.getElementById('login-error');
-  if(!u||!p){ errEl.textContent='Ingresa tu usuario y contraseña.'; errEl.style.display='block'; return; }
+  if(!u||!p){ errEl.textContent='Ingresa tu correo Gmail y contraseña.'; errEl.style.display='block'; return; } if(!u.includes('@gmail.com')){ errEl.textContent='Solo se permiten correos @gmail.com autorizados.'; errEl.style.display='block'; return; }
   const found = USERS.find(x => x.user===u && x.pass===p);
   if(found){
     if(isBlocked(found.user)){
@@ -630,7 +635,7 @@ function doLogin(){
     addLog(found.user, found.nombre, 'ok');
     document.getElementById('screen-login').style.display='none';
     document.getElementById('screen-main').style.display='block';
-    document.getElementById('display-user').textContent = found.nombre+' ('+found.user+')';
+    document.getElementById('display-user').textContent = found.nombre+' · '+found.user;
     const rb = document.getElementById('display-role-badge');
     rb.textContent = found.rol==='admin' ? 'ADMIN' : 'USUARIO';
     rb.className = 'badge '+(found.rol==='admin'?'badge-admin':'badge-user');
@@ -639,7 +644,7 @@ function doLogin(){
     renderAllSectionFiles();
   } else {
     addLog(u||'(desconocido)','—','fail');
-    errEl.textContent='Usuario o contraseña incorrectos. Intento registrado en bitácora.';
+    errEl.textContent='Correo o contraseña incorrectos, o no autorizado. Intento registrado.';
     errEl.style.display='block';
     document.getElementById('inp-pass').value='';
   }
