@@ -159,6 +159,8 @@ footer a{color:var(--gold2);text-decoration:none}
 .btn-approve:hover{background:#155d3a}
 .btn-reject{background:var(--danger);color:#fff;font-family:'Oswald',sans-serif;font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.3rem .8rem;border:none;border-radius:4px;cursor:pointer}
 .btn-reject:hover{background:#a93226}
+.btn-excel{background:var(--success);color:#fff;font-family:'Oswald',sans-serif;font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.3rem .8rem;border:none;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;gap:.4rem}
+.btn-excel:hover{background:#155d3a}
 
 .modal-overlay{position:fixed;inset:0;background:rgba(10,22,40,.7);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
 .modal-overlay.open{opacity:1;pointer-events:all}
@@ -226,15 +228,15 @@ footer a{color:var(--gold2);text-decoration:none}
       <!-- Formulario de Registro -->
       <div class="field">
         <label>Nombre</label>
-        <input type="text" id="reg-nombre" placeholder="Juan"/>
+        <input type="text" id="reg-nombre" placeholder="Juan" oninput="this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1).toLowerCase()"/>
       </div>
       <div class="field">
         <label>Apellido</label>
-        <input type="text" id="reg-apellido" placeholder="Pérez"/>
+        <input type="text" id="reg-apellido" placeholder="Pérez" oninput="this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1).toLowerCase()"/>
       </div>
       <div class="field">
         <label>Correo Gmail</label>
-        <input type="email" id="reg-email" placeholder="ejemplo@gmail.com"/>
+        <input type="email" id="reg-email" placeholder="ejemplo@gmail.com" oninput="this.value = this.value.toLowerCase()"/>
       </div>
       <button class="btn-register" onclick="solicitarRegistro()">📝 Solicitar Registro</button>
       
@@ -327,11 +329,11 @@ footer a{color:var(--gold2);text-decoration:none}
       <div id="admin-files-list"></div>
 
       <div class="section-title">Usuarios y Bitácora</div>
-      <div class="admin-card"><div class="admin-card-head"><h3>Usuarios del Sistema</h3></div><div class="admin-card-body" id="admin-users-list"></div></div>
+      <div class="admin-card"><div class="admin-card-head"><h3>Usuarios del Sistema</h3><button class="btn-excel" onclick="exportUsersToExcel()" style="margin-left:auto">📎 Exportar Usuarios</button></div><div class="admin-card-body" id="admin-users-list"></div></div>
       <div class="admin-card"><div class="admin-card-head"><h3>Estadísticas por Usuario</h3></div><div class="admin-card-body" id="admin-stats"></div></div>
       
       <div class="section-title">Bitácora Completa</div>
-      <div class="log-wrap"><div class="log-header"><h3>🔒 Todos los Registros</h3><div><span id="admin-log-total">—</span><button class="btn-danger" onclick="confirmClearLogs()" style="margin-left:.8rem">🗑 Borrar Bitácora</button><button class="btn-add-file" onclick="exportLogsToCSV()" style="margin-left:.8rem">📎 Exportar CSV</button></div></div><div style="overflow-x:auto"><table class="log-table"><thead><tr><th>Usuario</th><th>Nombre</th><th>Fecha/Hora</th><th>Dispositivo</th><th>Estado</th></tr></thead><tbody id="admin-log-tbody"></tbody></table></div></div>
+      <div class="log-wrap"><div class="log-header"><h3>🔒 Todos los Registros</h3><div><span id="admin-log-total">—</span><button class="btn-danger" onclick="confirmClearLogs()" style="margin-left:.8rem">🗑 Borrar Bitácora</button><button class="btn-add-file" onclick="exportLogsToCSV()" style="margin-left:.8rem">📎 Exportar CSV</button><button class="btn-excel" onclick="exportLogsToExcel()" style="margin-left:.8rem">📊 Exportar Excel</button></div></div><div style="overflow-x:auto"><table class="log-table"><thead><tr><th>Usuario</th><th>Nombre</th><th>Fecha/Hora</th><th>Dispositivo</th><th>Estado</th></tr></thead><tbody id="admin-log-tbody"></tbody></table></div></div>
       <div class="section-title">🔍 Búsqueda Global de Archivos</div>
       <div class="admin-card"><div class="admin-card-body"><input type="text" id="global-search-input" placeholder="Buscar en todas las secciones..." class="files-search" style="width:100%" oninput="globalSearchFiles()"/><div id="global-search-results" style="margin-top:1rem"></div></div></div>
     </div>
@@ -410,10 +412,12 @@ function toggleBlockUser(username, block) {
 
 async function addEditUser() {
   const login = document.getElementById('new-user-login').value.trim();
-  const name = document.getElementById('new-user-name').value.trim();
+  let name = document.getElementById('new-user-name').value.trim();
   const pass = document.getElementById('new-user-pass').value;
   const rol = document.getElementById('new-user-rol').value;
   if (!login || !name) { alert("Usuario y nombre son obligatorios"); return; }
+  // Formatear nombre a mayúsculas iniciales
+  name = name.split(' ').map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
   const existing = USERS.find(u => u.user === login);
   if (existing) {
     if (pass) existing.passHash = await hashPass(pass);
@@ -475,10 +479,18 @@ function saveSolicitudes(solicitudes) {
   localStorage.setItem('cte_solicitudes', JSON.stringify(solicitudes));
 }
 
+function formatNombreApellido(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
 function solicitarRegistro() {
-  const nombre = document.getElementById('reg-nombre').value.trim();
-  const apellido = document.getElementById('reg-apellido').value.trim();
+  let nombre = document.getElementById('reg-nombre').value.trim();
+  let apellido = document.getElementById('reg-apellido').value.trim();
   const email = document.getElementById('reg-email').value.trim().toLowerCase();
+  
+  // Formatear nombre y apellido a mayúsculas iniciales
+  nombre = formatNombreApellido(nombre);
+  apellido = formatNombreApellido(apellido);
   
   if (!nombre || !apellido || !email) {
     mostrarError('Completa todos los campos');
@@ -609,6 +621,46 @@ function addLog(usuario, nombre, estado, email='', details=''){
   const dev = /Mobi|Android/i.test(navigator.userAgent) ? 'Móvil' : 'Computadora';
   logs.push({ usuario, nombre, estado, email, details, fecha: now.toLocaleDateString('es-EC'), hora: now.toLocaleTimeString('es-EC'), device: dev, timestamp: now.getTime() });
   saveLogs(logs);
+}
+
+// ==================== EXPORTAR A EXCEL ====================
+function exportUsersToExcel() {
+  let csv = "NOMBRE,USUARIO,ROL,EMAIL,ESTADO\n";
+  USERS.forEach(u => {
+    csv += `"${u.nombre}","${u.user}","${u.rol === 'admin' ? 'ADMINISTRADOR' : 'USUARIO'}","${u.email || ''}","${u.blocked ? 'BLOQUEADO' : 'ACTIVO'}"\n`;
+  });
+  downloadCSV(csv, `usuarios_cte_${new Date().toISOString().slice(0,19)}.csv`);
+}
+
+function exportLogsToExcel() {
+  const logs = getLogs();
+  let csv = "USUARIO,NOMBRE,EMAIL,FECHA,HORA,DISPOSITIVO,ESTADO,DETALLES\n";
+  logs.forEach(l => {
+    let estadoTexto = l.estado === 'ok' ? 'INGRESO EXITOSO' : (l.estado === 'aprobacion' ? 'APROBACIÓN DE CUENTA' : 'INTENTO FALLIDO');
+    csv += `"${l.usuario}","${l.nombre}","${l.email || ''}","${l.fecha}","${l.hora}","${l.device}","${estadoTexto}","${l.details || ''}"\n`;
+  });
+  downloadCSV(csv, `bitacora_cte_${new Date().toISOString().slice(0,19)}.csv`);
+}
+
+function exportSolicitudesToExcel() {
+  const solicitudes = getSolicitudes();
+  let csv = "NOMBRE,APELLIDO,EMAIL,FECHA_SOLICITUD\n";
+  solicitudes.forEach(s => {
+    csv += `"${s.nombre}","${s.apellido}","${s.email}","${s.fecha}"\n`;
+  });
+  downloadCSV(csv, `solicitudes_cte_${new Date().toISOString().slice(0,19)}.csv`);
+}
+
+function downloadCSV(csv, filename) {
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.href = url;
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }
 
 // ==================== ARCHIVOS ====================
@@ -769,7 +821,7 @@ function renderAdmin(){
   
   const all=[...logs].reverse();
   document.getElementById('admin-log-total').textContent = all.length;
-  document.getElementById('admin-log-tbody').innerHTML = all.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':'badge-fail'}">${l.estado==='ok'?'✓ Exitoso':(l.estado==='aprobacion'?'✅ Aprobación':'✗ Fallido')}</span>${l.details?`<br><small>${esc(l.details)}</small>`:''}</td></tr>`).join('');
+  document.getElementById('admin-log-tbody').innerHTML = all.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':(l.estado==='aprobacion'?'badge-admin':'badge-fail')}">${l.estado==='ok'?'✓ Exitoso':(l.estado==='aprobacion'?'✅ Aprobación':'✗ Fallido')}</span>${l.details?`<br><small>${esc(l.details)}</small>`:''}</td></tr>`).join('');
   renderChart(logs);
   renderAdminFiles();
 }
@@ -874,10 +926,9 @@ function globalSearchFiles(){
 // ==================== EXTRAS ====================
 function exportLogsToCSV(){
   const logs = getLogs();
-  let csv = "Usuario,Nombre,Email,Fecha,Hora,Dispositivo,Estado,Detalles\n";
-  logs.forEach(l=>{ csv += `"${l.usuario}","${l.nombre}","${l.email||''}","${l.fecha}","${l.hora}","${l.device}","${l.estado}","${l.details||''}"\n`; });
-  const blob = new Blob([csv], {type:"text/csv"});
-  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `bitacora_cte_${new Date().toISOString().slice(0,19)}.csv`; a.click();
+  let csv = "Usuario,Nombre,Email,Fecha,Hora,Dispositivo,Estado\n";
+  logs.forEach(l=>{ csv += `"${l.usuario}","${l.nombre}","${l.email||''}","${l.fecha}","${l.hora}","${l.device}","${l.estado}"\n`; });
+  downloadCSV(csv, `bitacora_cte_${new Date().toISOString().slice(0,19)}.csv`);
 }
 function printCurrentView(){
   const tab = document.querySelector('.tab.active');
