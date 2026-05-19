@@ -14,7 +14,16 @@
   --text:#1a2035;--muted:#5a6278;
   --danger:#c0392b;--success:#1a7a4a;
 }
-body{font-family:'Source Sans 3',sans-serif;background:var(--light);color:var(--text);min-height:100vh}
+body.dark-mode {
+  --light: #1a1f2e;
+  --white: #252b3d;
+  --text: #eef2ff;
+  --muted: #9ca3af;
+  --silver: #6b7280;
+  --navy: #0f172a;
+  --navy2: #1e293b;
+}
+body{font-family:'Source Sans 3',sans-serif;background:var(--light);color:var(--text);min-height:100vh;transition:background 0.3s, color 0.2s}
 
 /* LOGIN */
 #screen-login{min-height:100vh;display:flex;flex-direction:column;background:linear-gradient(145deg,var(--navy) 0%,var(--navy2) 55%,#1a3060 100%);position:relative;overflow:hidden}
@@ -37,40 +46,40 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--light);color:var(--
 .login-error{background:rgba(192,57,43,.18);border:1px solid rgba(192,57,43,.5);color:#f1a9a0;font-size:.85rem;padding:.6rem .9rem;border-radius:5px;margin-bottom:1rem;display:none}
 .login-footer{text-align:center;margin-top:1.5rem;font-size:.75rem;color:rgba(255,255,255,.35)}
 
-/* MAIN */
 #screen-main{display:none}
 .header-stripe{background:var(--gold);height:5px}
 header{background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 60%,#1a3060 100%);color:#fff;position:relative;overflow:hidden}
 header::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(200,168,75,.04) 40px,rgba(200,168,75,.04) 80px);pointer-events:none}
 .header-inner{position:relative;max-width:1060px;margin:0 auto;padding:1.2rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
-.escudo{width:56px;height:56px;flex-shrink:0;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:1rem;color:var(--navy);border:3px solid rgba(255,255,255,.25)}
+.escudo{width:56px;height:56px;flex-shrink:0;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:1rem;color:var(--navy);border:3px solid rgba(255,255,255,.25);overflow:hidden}
 .header-text{flex:1;min-width:0}
 .header-text h1{font-family:'Oswald',sans-serif;font-weight:700;font-size:clamp(.95rem,3vw,1.8rem);letter-spacing:.06em;text-transform:uppercase;line-height:1.2}
 .header-text p{margin-top:.2rem;font-size:.72rem;color:var(--gold2);font-weight:600;letter-spacing:.08em;text-transform:uppercase}
-.header-right{margin-left:auto;flex-shrink:0}
+.header-right{margin-left:auto;flex-shrink:0;display:flex;gap:.5rem;align-items:center}
 .user-badge{display:flex;align-items:center;gap:.5rem;background:rgba(255,255,255,.08);border:1px solid rgba(200,168,75,.2);border-radius:6px;padding:.45rem .8rem;flex-wrap:wrap}
 .user-badge span{font-size:.75rem;color:var(--silver)}
 .user-badge strong{font-size:.82rem;color:var(--gold2);font-family:'Oswald',sans-serif;letter-spacing:.05em;word-break:break-word}
-.btn-logout{background:transparent;border:1px solid rgba(200,168,75,.35);color:var(--gold2);font-family:'Oswald',sans-serif;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;padding:.35rem .8rem;border-radius:4px;cursor:pointer;margin-top:.4rem;transition:background .2s;display:block;width:100%}
+.btn-logout{background:transparent;border:1px solid rgba(200,168,75,.35);color:var(--gold2);font-family:'Oswald',sans-serif;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;padding:.35rem .8rem;border-radius:4px;cursor:pointer;transition:background .2s}
 .btn-logout:hover{background:rgba(200,168,75,.15)}
+.theme-toggle{background:rgba(255,255,255,.08);border:1px solid rgba(200,168,75,.2);border-radius:6px;padding:.45rem .8rem;cursor:pointer;color:var(--gold2);font-size:.8rem}
+.print-btn{background:rgba(255,255,255,.08);border:1px solid rgba(200,168,75,.2);border-radius:6px;padding:.45rem .8rem;cursor:pointer;color:var(--gold2);font-size:.8rem}
 @media(max-width:500px){
   .header-inner{padding:1rem}
   .escudo{width:44px;height:44px;font-size:.85rem}
-  .header-right{width:100%;margin-left:0}
-  .user-badge{width:100%}
+  .header-right{width:100%;margin-left:0;justify-content:space-between}
+  .user-badge{width:auto}
 }
 
 nav{background:var(--navy2);border-bottom:2px solid var(--gold);position:sticky;top:0;z-index:100}
 .nav-inner{max-width:1060px;margin:0 auto;padding:0 2rem;display:flex;gap:0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .nav-inner::-webkit-scrollbar{display:none}
-nav a{display:block;padding:.9rem 1.1rem;color:var(--silver);text-decoration:none;font-family:'Oswald',sans-serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;transition:color .2s,background .2s;border-bottom:3px solid transparent;cursor:pointer;-webkit-tap-highlight-color:transparent}
+nav a{display:block;padding:.9rem 1.1rem;color:var(--silver);text-decoration:none;font-family:'Oswald',sans-serif;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;transition:color .2s,background .2s;border-bottom:3px solid transparent;cursor:pointer}
 nav a:hover,nav a.active{color:var(--gold2);border-bottom-color:var(--gold);background:rgba(200,168,75,.08)}
 
 main{max-width:1060px;margin:0 auto;padding:2rem}
 @media(max-width:600px){main{padding:1rem}}
 .tab{display:none}.tab.active{display:block}
 
-/* STATS */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem;margin-bottom:2rem}
 .stat-card{background:var(--white);border:1px solid #dde0e8;border-radius:8px;padding:1.2rem 1.4rem;border-top:3px solid var(--gold)}
 .stat-card .lbl{font-size:.72rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-weight:600}
@@ -79,18 +88,16 @@ main{max-width:1060px;margin:0 auto;padding:2rem}
 
 .section-title{font-family:'Oswald',sans-serif;font-size:1.1rem;font-weight:600;color:var(--navy);letter-spacing:.1em;text-transform:uppercase;border-left:4px solid var(--gold);padding-left:.8rem;margin-bottom:1.2rem}
 
-/* CARDS */
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:1rem;margin-bottom:2rem}
 .card{background:var(--white);border:1px solid #dde0e8;border-radius:8px;padding:1.3rem;cursor:pointer;transition:box-shadow .2s,transform .2s;position:relative;overflow:hidden}
 .card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--gold);transform:scaleY(0);transform-origin:bottom;transition:transform .25s}
 .card:hover{box-shadow:0 4px 18px rgba(10,22,40,.1);transform:translateY(-2px)}
 .card:hover::before{transform:scaleY(1)}
 .card-icon{width:38px;height:38px;background:var(--navy);border-radius:6px;display:flex;align-items:center;justify-content:center;margin-bottom:.9rem}
-.card-icon svg{width:20px;height:20px;stroke:var(--gold2);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.card-icon svg{width:20px;height:20px;stroke:var(--gold2);fill:none;stroke-width:1.8}
 .card h3{font-family:'Oswald',sans-serif;font-size:.88rem;font-weight:600;color:var(--navy);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.3rem}
 .card p{font-size:.82rem;color:var(--muted);line-height:1.4}
 
-/* LOG TABLE */
 .log-wrap{background:var(--white);border:1px solid #dde0e8;border-radius:8px;overflow:hidden;margin-bottom:2rem}
 .log-header{padding:.9rem 1.4rem;background:var(--navy);display:flex;align-items:center;justify-content:space-between}
 .log-header h3{font-family:'Oswald',sans-serif;font-size:.88rem;color:var(--gold2);letter-spacing:.1em;text-transform:uppercase}
@@ -105,13 +112,9 @@ main{max-width:1060px;margin:0 auto;padding:2rem}
 .badge-fail{background:#f8d7da;color:#a71d2a}
 .badge-admin{background:#fff3cd;color:#7a5c00}
 .badge-user{background:#e8eaf6;color:#2a3580}
-.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
 
-/* ADMIN */
-.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem}
-@media(max-width:680px){.admin-grid{grid-template-columns:1fr}}
-.admin-card{background:var(--white);border:1px solid #dde0e8;border-radius:8px;overflow:hidden}
+.admin-card{background:var(--white);border:1px solid #dde0e8;border-radius:8px;overflow:hidden;margin-bottom:1.5rem}
 .admin-card-head{background:var(--navy);padding:.85rem 1.2rem;display:flex;align-items:center;gap:.6rem}
 .admin-card-head h3{font-family:'Oswald',sans-serif;font-size:.88rem;color:var(--gold2);letter-spacing:.08em;text-transform:uppercase}
 .admin-card-body{padding:1.2rem}
@@ -122,7 +125,6 @@ main{max-width:1060px;margin:0 auto;padding:2rem}
 .user-info strong{font-size:.86rem;color:var(--text);display:block}
 .user-info span{font-size:.74rem;color:var(--muted)}
 
-/* INFO */
 .info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1rem;margin-bottom:2rem}
 .info-box{background:var(--white);border:1px solid #dde0e8;border-radius:8px;padding:1.2rem 1.4rem}
 .info-box h3{font-family:'Oswald',sans-serif;font-size:.78rem;font-weight:600;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.5rem}
@@ -137,21 +139,16 @@ footer{background:var(--navy);color:var(--silver);padding:1.5rem 2rem;text-align
 footer a{color:var(--gold2);text-decoration:none}
 .footer-stripe{background:var(--gold);height:4px}
 
-.placeholder-box{background:var(--white);border:1px solid #dde0e8;border-radius:8px;padding:2.5rem;text-align:center;color:var(--muted)}
-.placeholder-box p{font-size:.95rem;line-height:1.7}
-
-/* BLOCK BUTTON */
-.btn-block{background:transparent;border:1px solid rgba(192,57,43,.4);color:var(--danger);font-family:'Oswald',sans-serif;font-size:.7rem;letter-spacing:.07em;text-transform:uppercase;padding:.25rem .65rem;border-radius:4px;cursor:pointer;transition:background .2s,color .2s;white-space:nowrap}
+.btn-block{background:transparent;border:1px solid rgba(192,57,43,.4);color:var(--danger);font-family:'Oswald',sans-serif;font-size:.7rem;letter-spacing:.07em;text-transform:uppercase;padding:.25rem .65rem;border-radius:4px;cursor:pointer}
 .btn-block:hover{background:var(--danger);color:#fff}
-.btn-unblock{background:rgba(26,122,74,.12);border:1px solid rgba(26,122,74,.4);color:var(--success);font-family:'Oswald',sans-serif;font-size:.7rem;letter-spacing:.07em;text-transform:uppercase;padding:.25rem .65rem;border-radius:4px;cursor:pointer;transition:background .2s,color .2s;white-space:nowrap}
+.btn-unblock{background:rgba(26,122,74,.12);border:1px solid rgba(26,122,74,.4);color:var(--success);font-family:'Oswald',sans-serif;font-size:.7rem;letter-spacing:.07em;text-transform:uppercase;padding:.25rem .65rem;border-radius:4px;cursor:pointer}
 .btn-unblock:hover{background:var(--success);color:#fff}
 .blocked-badge{font-size:.68rem;font-weight:700;color:var(--danger);letter-spacing:.06em;text-transform:uppercase;margin-left:.4rem}
-
-/* DELETE LOG BUTTON */
-.btn-danger{background:rgba(192,57,43,.1);border:1px solid rgba(192,57,43,.35);color:var(--danger);font-family:'Oswald',sans-serif;font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;padding:.3rem .8rem;border-radius:4px;cursor:pointer;transition:background .2s}
+.btn-danger{background:rgba(192,57,43,.1);border:1px solid rgba(192,57,43,.35);color:var(--danger);font-family:'Oswald',sans-serif;font-size:.74rem;letter-spacing:.08em;text-transform:uppercase;padding:.3rem .8rem;border-radius:4px;cursor:pointer}
 .btn-danger:hover{background:var(--danger);color:#fff}
+.btn-add-file{background:var(--navy);color:var(--gold2);font-family:'Oswald',sans-serif;font-size:.78rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.5rem 1rem;border:none;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;gap:.4rem}
+.btn-add-file:hover{background:var(--navy3)}
 
-/* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(10,22,40,.7);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
 .modal-overlay.open{opacity:1;pointer-events:all}
 .modal-box{background:var(--white);border-radius:10px;padding:2rem;max-width:380px;width:90%;box-shadow:0 20px 60px rgba(10,22,40,.3);transform:scale(.95);transition:transform .2s}
@@ -159,72 +156,49 @@ footer a{color:var(--gold2);text-decoration:none}
 .modal-box h3{font-family:'Oswald',sans-serif;font-size:1rem;font-weight:700;color:var(--navy);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.6rem}
 .modal-box p{font-size:.88rem;color:var(--muted);line-height:1.5;margin-bottom:1.4rem}
 .modal-actions{display:flex;gap:.7rem;justify-content:flex-end}
-.btn-confirm{background:var(--danger);color:#fff;font-family:'Oswald',sans-serif;font-size:.82rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.5rem 1.1rem;border:none;border-radius:5px;cursor:pointer;transition:background .2s}
-.btn-confirm:hover{background:#a93226}
-.btn-cancel-modal{background:var(--light);color:var(--muted);font-family:'Oswald',sans-serif;font-size:.82rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.5rem 1rem;border:1px solid #dde0e8;border-radius:5px;cursor:pointer;transition:background .2s}
-.btn-cancel-modal:hover{background:#e4e6ed}
+.btn-confirm{background:var(--danger);color:#fff;font-family:'Oswald',sans-serif;font-size:.82rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.5rem 1.1rem;border:none;border-radius:5px;cursor:pointer}
+.btn-cancel-modal{background:var(--light);color:var(--muted);font-family:'Oswald',sans-serif;font-size:.82rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.5rem 1rem;border:1px solid #dde0e8;border-radius:5px;cursor:pointer}
 
-/* ══ GESTOR DE ARCHIVOS ══ */
 .files-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.7rem;margin-bottom:1rem}
-.files-search{flex:1;min-width:160px;padding:.5rem .9rem;border:1px solid #dde0e8;border-radius:6px;font-family:'Source Sans 3',sans-serif;font-size:.88rem;color:var(--text);outline:none;transition:border-color .2s}
+.files-search{flex:1;min-width:160px;padding:.5rem .9rem;border:1px solid #dde0e8;border-radius:6px;font-family:'Source Sans 3',sans-serif;font-size:.88rem;color:var(--text);outline:none}
 .files-search:focus{border-color:var(--gold)}
-.btn-add-file{background:var(--navy);color:var(--gold2);font-family:'Oswald',sans-serif;font-size:.78rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.5rem 1rem;border:none;border-radius:5px;cursor:pointer;display:flex;align-items:center;gap:.4rem;white-space:nowrap;transition:background .2s}
-.btn-add-file:hover{background:var(--navy3)}
 .files-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.9rem;margin-bottom:1.5rem}
-.file-card{background:var(--white);border:1px solid #dde0e8;border-radius:8px;overflow:hidden;transition:box-shadow .2s,transform .2s;position:relative}
+.file-card{background:var(--white);border:1px solid #dde0e8;border-radius:8px;overflow:hidden;transition:box-shadow .2s,transform .2s}
 .file-card:hover{box-shadow:0 4px 16px rgba(10,22,40,.1);transform:translateY(-2px)}
 .file-card-top{padding:.9rem 1rem .6rem;display:flex;align-items:flex-start;gap:.7rem}
 .file-type-icon{width:36px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
-.file-type-pdf{background:#fde8e8;}
-.file-type-word{background:#e8f0fe;}
-.file-type-excel{background:#e6f4ea;}
-.file-type-img{background:#fff8e1;}
-.file-type-other{background:#f3e8fd;}
-.file-card-name{font-size:.84rem;font-weight:600;color:var(--text);line-height:1.3;word-break:break-word}
+.file-type-pdf{background:#fde8e8;}.file-type-word{background:#e8f0fe;}.file-type-excel{background:#e6f4ea;}.file-type-img{background:#fff8e1;}.file-type-other{background:#f3e8fd;}
+.file-card-name{font-size:.84rem;font-weight:600;color:var(--text);word-break:break-word}
 .file-card-meta{font-size:.72rem;color:var(--muted);margin-top:.2rem}
 .file-card-actions{display:flex;border-top:1px solid #f0f2f6;gap:0}
-.file-card-btn{flex:1;padding:.5rem;background:none;border:none;cursor:pointer;font-family:'Oswald',sans-serif;font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;transition:background .2s;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center;gap:.3rem}
-.file-card-btn-open{color:var(--navy)}
-.file-card-btn-open:hover{background:var(--light);color:var(--gold)}
-.file-card-btn-del{color:var(--danger);border-left:1px solid #f0f2f6}
-.file-card-btn-del:hover{background:#fde8e8}
+.file-card-btn{flex:1;padding:.5rem;background:none;border:none;cursor:pointer;font-family:'Oswald',sans-serif;font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;transition:background .2s;text-align:center;display:flex;align-items:center;justify-content:center;gap:.3rem;text-decoration:none}
+.file-card-btn-open{color:var(--navy)}.file-card-btn-open:hover{background:var(--light);color:var(--gold)}
+.file-card-btn-del{color:var(--danger);border-left:1px solid #f0f2f6}.file-card-btn-del:hover{background:#fde8e8}
 .file-empty{text-align:center;padding:2.5rem;color:var(--muted);font-size:.9rem;background:var(--white);border:1px dashed #dde0e8;border-radius:8px}
-
-/* Modal formulario archivo */
 .form-field{margin-bottom:1rem}
 .form-field label{display:block;font-size:.75rem;font-weight:600;color:var(--muted);letter-spacing:.09em;text-transform:uppercase;margin-bottom:.35rem}
-.form-field input,.form-field select,.form-field textarea{width:100%;padding:.6rem .85rem;border:1px solid #dde0e8;border-radius:5px;font-family:'Source Sans 3',sans-serif;font-size:.9rem;color:var(--text);outline:none;transition:border-color .2s;background:var(--white)}
-.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--gold)}
-.form-field textarea{resize:vertical;min-height:60px}
-.modal-box-wide{max-width:480px}
-.help-text{font-size:.75rem;color:var(--muted);margin-top:.3rem;line-height:1.4}
-.help-text a{color:var(--navy);font-weight:600}
-.section-badge{display:inline-block;font-size:.68rem;font-weight:700;padding:.18rem .5rem;border-radius:3px;letter-spacing:.06em;text-transform:uppercase;background:var(--navy);color:var(--gold2);margin-right:.3rem}
-
-/* CHART */
-.chart-wrap{background:var(--white);border:1px solid #dde0e8;border-radius:8px;overflow:hidden;margin-bottom:2rem}
-.chart-head{background:var(--navy);padding:.85rem 1.2rem;display:flex;align-items:center;justify-content:space-between}
-.chart-head h3{font-family:'Oswald',sans-serif;font-size:.88rem;color:var(--gold2);letter-spacing:.08em;text-transform:uppercase}
-.chart-body{padding:1.4rem 1.4rem 1rem}
+.form-field input,.form-field select,.form-field textarea{width:100%;padding:.6rem .85rem;border:1px solid #dde0e8;border-radius:5px;font-family:'Source Sans 3',sans-serif;font-size:.9rem;color:var(--text);outline:none;background:var(--white)}
+.form-field input:focus,.form-field select:focus{border-color:var(--gold)}
+.help-text{font-size:.75rem;color:var(--muted);margin-top:.3rem}
+.section-badge{display:inline-block;font-size:.68rem;font-weight:700;padding:.18rem .5rem;border-radius:3px;background:var(--navy);color:var(--gold2)}
+.chart-wrap{background:var(--white);border:1px solid #dde0e8;border-radius:8px;margin-bottom:2rem}
+.chart-head{background:var(--navy);padding:.85rem 1.2rem}
+.chart-head h3{font-family:'Oswald',sans-serif;font-size:.88rem;color:var(--gold2)}
+.chart-body{padding:1.4rem}
 .chart-bars{display:flex;align-items:flex-end;gap:6px;height:120px;margin-bottom:.5rem}
-.chart-bar-group{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
-.chart-bar{width:100%;border-radius:3px 3px 0 0;transition:opacity .2s;position:relative;cursor:default}
-.chart-bar:hover{opacity:.8}
+.chart-bar-group{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.chart-bar{width:100%;border-radius:3px 3px 0 0}
 .chart-bar-ok{background:linear-gradient(180deg,#2ecc71,#1a7a4a)}
 .chart-bar-fail{background:linear-gradient(180deg,#e74c3c,#c0392b)}
 .chart-labels{display:flex;gap:6px}
-.chart-label{flex:1;text-align:center;font-size:.62rem;color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chart-label{flex:1;text-align:center;font-size:.62rem;color:var(--muted)}
 .chart-legend{display:flex;gap:1.2rem;margin-top:.8rem}
-.chart-legend-item{display:flex;align-items:center;gap:.4rem;font-size:.74rem;color:var(--muted)}
-.chart-legend-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
-/* GOOGLE LOGIN */
-.login-divider{display:flex;align-items:center;gap:.8rem;margin:1.2rem 0;color:rgba(255,255,255,.3);font-size:.78rem}
-.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.12)}
-.btn-google{width:100%;padding:.8rem 1rem;background:#fff;color:#1a2035;font-family:'Source Sans 3',sans-serif;font-size:.95rem;font-weight:600;border:none;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.7rem;transition:background .2s,box-shadow .2s;box-shadow:0 2px 8px rgba(0,0,0,.25)}
-.btn-google:hover{background:#f5f5f5;box-shadow:0 4px 14px rgba(0,0,0,.3)}
-.btn-google:active{transform:scale(.98)}
-.btn-google svg{flex-shrink:0}
-.login-or-manual{text-align:center;margin-top:1rem;font-size:.75rem;color:rgba(255,255,255,.35);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.chart-legend-item{display:flex;align-items:center;gap:.4rem;font-size:.74rem}
+.chart-legend-dot{width:10px;height:10px;border-radius:2px}
+.login-divider{display:flex;align-items:center;gap:.8rem;margin:1.2rem 0;color:rgba(255,255,255,.3)}.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.12)}
+.btn-google{width:100%;padding:.8rem 1rem;background:#fff;color:#1a2035;font-size:.95rem;font-weight:600;border:none;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.7rem}
+.btn-google:hover{background:#f5f5f5}
+.login-or-manual{text-align:center;margin-top:1rem;font-size:.75rem;color:rgba(255,255,255,.35);cursor:pointer;text-decoration:underline}
 .login-or-manual:hover{color:var(--gold2)}
 .login-manual-fields{display:none;margin-top:.8rem}
 </style>
@@ -232,7 +206,6 @@ footer a{color:var(--gold2);text-decoration:none}
 </head>
 <body>
 
-<!-- ══ LOGIN ══ -->
 <div id="screen-login">
   <div class="login-stripe"></div>
   <div class="login-wrap">
@@ -242,724 +215,260 @@ footer a{color:var(--gold2);text-decoration:none}
         <h1>Unidad de Personal<br>y Movilidad</h1>
         <p>Cuerpo de Vigilancia – CTE</p>
       </div>
-      <div class="login-error" id="login-error">Acceso denegado.</div>
-
-      <!-- BOTÓN GOOGLE -->
-      <button class="btn-google" onclick="loginConGoogle()">
-        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
-        Ingresar con Google
-      </button>
-
+      <div class="login-error" id="login-error"></div>
+      <button class="btn-google" onclick="loginConGoogle()"><svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Ingresar con Google</button>
       <div class="login-divider">o</div>
-
-      <!-- ACCESO MANUAL (admin o fallback) -->
       <div class="login-manual-fields" id="login-manual-fields">
-        <div class="field">
-          <label>Usuario</label>
-          <input type="text" id="inp-user" placeholder="ej: admin" autocomplete="username"/>
-        </div>
-        <div class="field">
-          <label>Contraseña</label>
-          <input type="password" id="inp-pass" placeholder="••••••••" autocomplete="current-password"/>
-        </div>
+        <div class="field"><label>Usuario</label><input type="text" id="inp-user" placeholder="ej: admin"/></div>
+        <div class="field"><label>Contraseña</label><input type="password" id="inp-pass" placeholder="••••••••"/></div>
         <button class="btn-login" onclick="doLogin()">Ingresar</button>
       </div>
       <div class="login-or-manual" onclick="toggleManual()">🔑 Acceso manual (administrador)</div>
-
       <div class="login-footer">Comisión de Tránsito del Ecuador · Acceso restringido al personal autorizado</div>
     </div>
   </div>
 </div>
 
-<!-- ══ PANTALLA PRINCIPAL ══ -->
 <div id="screen-main">
   <div class="header-stripe"></div>
   <header>
     <div class="header-inner">
       <div class="escudo">CTE</div>
-      <div class="header-text">
-        <h1>Unidad de Personal y Movilidad</h1>
-        <p>Cuerpo de Vigilancia · Comisión de Tránsito del Ecuador</p>
-      </div>
+      <div class="header-text"><h1>Unidad de Personal y Movilidad</h1><p>Cuerpo de Vigilancia · Comisión de Tránsito del Ecuador</p></div>
       <div class="header-right">
-        <div class="user-badge">
-          <div>
-            <span>Sesión: </span><strong id="display-user">—</strong>
-            <span id="display-role-badge" class="badge" style="margin-left:.4rem"></span>
-          </div>
-        </div>
+        <button class="theme-toggle" onclick="toggleDarkMode()">🌙 Modo</button>
+        <button class="print-btn" id="print-btn" onclick="printCurrentView()" style="display:none">🖨️ Imprimir</button>
+        <div class="user-badge"><div><span>Sesión: </span><strong id="display-user">—</strong><span id="display-role-badge" class="badge" style="margin-left:.4rem"></span></div></div>
         <button class="btn-logout" onclick="doLogout()">⎋ Cerrar Sesión</button>
       </div>
     </div>
   </header>
 
-  <nav>
-    <div class="nav-inner">
-      <a class="active" onclick="showTab('inicio')">Inicio</a>
-      <a onclick="showTab('organico')">Orgánico</a>
-      <a onclick="showTab('orden')">Orden del Cuerpo</a>
-      <a onclick="showTab('parametros')">Parámetros</a>
-      <a onclick="showTab('reportes')">Reportes</a>
-      <a onclick="showTab('historia')">Historia</a>
-      <a id="nav-admin" onclick="showTab('admin')" style="display:none;color:#e8c96a">⚙ Admin</a>
-    </div>
-  </nav>
+  <nav><div class="nav-inner">
+    <a class="active" onclick="showTab('inicio')">Inicio</a>
+    <a onclick="showTab('organico')">Orgánico</a>
+    <a onclick="showTab('orden')">Orden</a>
+    <a onclick="showTab('parametros')">Parámetros</a>
+    <a onclick="showTab('reportes')">Reportes</a>
+    <a onclick="showTab('historia')">Historia</a>
+    <a id="nav-admin" onclick="showTab('admin')" style="display:none">⚙ Admin</a>
+  </div></nav>
 
   <main>
-
-    <!-- INICIO -->
     <div class="tab active" id="tab-inicio">
-      <div class="stats-row">
-        <div class="stat-card"><div class="lbl">Usuarios</div><div class="val" id="stat-total">—</div><div class="sub">registrados</div></div>
-        <div class="stat-card"><div class="lbl">Accesos hoy</div><div class="val" id="stat-hoy">—</div><div class="sub">ingresos exitosos</div></div>
-        <div class="stat-card"><div class="lbl">Intentos fallidos</div><div class="val" id="stat-fail">—</div><div class="sub">hoy</div></div>
-        <div class="stat-card"><div class="lbl">Último acceso</div><div class="val" style="font-size:1rem;padding-top:.5rem" id="stat-last">—</div><div class="sub" id="stat-last-time">—</div></div>
+      <div class="stats-row"><div class="stat-card"><div class="lbl">Usuarios</div><div class="val" id="stat-total">—</div></div><div class="stat-card"><div class="lbl">Accesos hoy</div><div class="val" id="stat-hoy">—</div></div><div class="stat-card"><div class="lbl">Intentos fallidos</div><div class="val" id="stat-fail">—</div></div><div class="stat-card"><div class="lbl">Último acceso</div><div class="val" style="font-size:1rem" id="stat-last">—</div><div class="sub" id="stat-last-time">—</div></div></div>
+      <div class="section-title">Secciones del Sistema</div><div class="grid">
+        <div class="card" onclick="showTab('organico')"><div class="card-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div><h3>Orgánico</h3><p>Estructura organizacional.</p></div>
+        <div class="card" onclick="showTab('organico')"><div class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div><h3>Beta Orgánico</h3><p>Versión de prueba.</p></div>
+        <div class="card" onclick="showTab('orden')"><div class="card-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div><h3>Orden del Cuerpo</h3><p>Órdenes oficiales.</p></div>
+        <div class="card" onclick="showTab('parametros')"><div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M12 2v2M12 20v2M4.93 4.93l1.41 1.41M18.66 18.66l1.41 1.41M2 12h2M20 12h2"/></svg></div><h3>Parámetros</h3><p>Configuración.</p></div>
+        <div class="card" onclick="showTab('reportes')"><div class="card-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg></div><h3>Reportes Diarios</h3><p>Registro operativo.</p></div>
+        <div class="card" onclick="showTab('historia')"><div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><h3>Historia</h3><p>Historial institucional.</p></div>
       </div>
-
-      <div class="section-title">Secciones del Sistema</div>
-      <div class="grid">
-        <div class="card" onclick="showTab('organico')">
-          <div class="card-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
-          <h3>Orgánico</h3><p>Estructura organizacional del cuerpo.</p>
-        </div>
-        <div class="card" onclick="showTab('organico')">
-          <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div>
-          <h3>Beta Orgánico</h3><p>Versión de prueba actualizada.</p>
-        </div>
-        <div class="card" onclick="showTab('orden')">
-          <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
-          <h3>Orden del Cuerpo</h3><p>Órdenes e instrucciones oficiales.</p>
-        </div>
-        <div class="card" onclick="showTab('parametros')">
-          <div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M12 2v2M12 20v2M4.93 4.93l1.41 1.41M18.66 18.66l1.41 1.41M2 12h2M20 12h2"/></svg></div>
-          <h3>Parámetros</h3><p>Configuración del sistema.</p>
-        </div>
-        <div class="card" onclick="showTab('reportes')">
-          <div class="card-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg></div>
-          <h3>Reportes Diarios</h3><p>Registro de reportes operativos.</p>
-        </div>
-        <div class="card" onclick="showTab('historia')">
-          <div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
-          <h3>Historia</h3><p>Historial institucional del cuerpo.</p>
-        </div>
-      </div>
-
-      <div class="section-title">Registro de Accesos Recientes</div>
-      <div id="dashboard-bitacora" style="display:none">
-      <div class="log-wrap">
-        <div class="log-header">
-          <h3>🔒 Bitácora de Ingresos</h3>
-          <span id="log-count-label">—</span>
-        </div>
-        <div style="overflow-x:auto">
-          <table class="log-table">
-            <thead><tr><th>Usuario</th><th>Nombre</th><th>Fecha y Hora</th><th>Dispositivo</th><th>Estado</th></tr></thead>
-            <tbody id="log-tbody"></tbody>
-          </table>
-        </div>
-      </div>
-      </div>
-      <div id="dashboard-no-admin" style="display:none;background:var(--white);border:1px solid #dde0e8;border-radius:8px;padding:1.5rem;text-align:center;color:var(--muted);font-size:.88rem;margin-bottom:2rem">
-        🔒 La bitácora de accesos está disponible solo para administradores.
-      </div>
+      <div class="section-title">Registro de Accesos Recientes</div><div id="dashboard-bitacora" style="display:none"><div class="log-wrap"><div class="log-header"><h3>🔒 Bitácora de Ingresos</h3><span id="log-count-label">—</span></div><div style="overflow-x:auto"><table class="log-table"><thead><tr><th>Usuario</th><th>Nombre</th><th>Fecha y Hora</th><th>Dispositivo</th><th>Estado</th></tr></thead><tbody id="log-tbody"></tbody></table></div></div></div>
+      <div id="dashboard-no-admin" style="display:none;background:var(--white);border:1px solid #dde0e8;border-radius:8px;padding:1.5rem;text-align:center">🔒 La bitácora de accesos está disponible solo para administradores.</div>
     </div>
 
-    <!-- ORGANICO -->
-    <div class="tab" id="tab-organico">
-      <div class="section-title">Orgánico – Estructura del Cuerpo</div>
-      <div id="files-toolbar-organico"></div>
-      <div id="files-grid-organico"></div>
-    </div>
-
-    <!-- ORDEN -->
-    <div class="tab" id="tab-orden">
-      <div class="section-title">Orden del Cuerpo</div>
-      <div id="files-toolbar-orden"></div>
-      <div id="files-grid-orden"></div>
-    </div>
-
-    <!-- PARAMETROS -->
-    <div class="tab" id="tab-parametros">
-      <div class="section-title">Parámetros del Sistema</div>
-      <div id="files-toolbar-parametros"></div>
-      <div id="files-grid-parametros"></div>
-    </div>
-
-    <!-- REPORTES -->
-    <div class="tab" id="tab-reportes">
-      <div class="section-title">Reportes Diarios</div>
-      <div id="files-toolbar-reportes"></div>
-      <div id="files-grid-reportes"></div>
-    </div>
-
-    <!-- HISTORIA -->
+    <div class="tab" id="tab-organico"><div class="section-title">Orgánico – Estructura del Cuerpo</div><div id="files-toolbar-organico"></div><div id="files-grid-organico"></div></div>
+    <div class="tab" id="tab-orden"><div class="section-title">Orden del Cuerpo</div><div id="files-toolbar-orden"></div><div id="files-grid-orden"></div></div>
+    <div class="tab" id="tab-parametros"><div class="section-title">Parámetros del Sistema</div><div id="files-toolbar-parametros"></div><div id="files-grid-parametros"></div></div>
+    <div class="tab" id="tab-reportes"><div class="section-title">Reportes Diarios</div><div id="files-toolbar-reportes"></div><div id="files-grid-reportes"></div></div>
     <div class="tab" id="tab-historia">
-      <div class="section-title">Historia Institucional</div>
-      <div style="background:var(--white);border:1px solid #dde0e8;border-radius:8px;padding:2rem;line-height:1.7;margin-bottom:1.5rem">
-        <p>La <strong>Comisión de Tránsito del Ecuador</strong> dispone de Talento Humano capacitado y comprometido con los intereses institucionales y del Estado. <em>"De la mano de Nuestro Señor Jesucristo."</em></p>
-        <div style="display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1rem">
-          <span class="badge badge-ok">Responsabilidad</span><span class="badge badge-ok">Excelencia</span><span class="badge badge-ok">Eficiencia</span><span class="badge badge-ok">Innovación</span><span class="badge badge-ok">Transparencia</span>
-        </div>
-      </div>
-      <div class="info-grid">
-        <div class="info-box"><h3>Correo</h3><p><a href="mailto:ctepersonal067@gmail.com">ctepersonal067@gmail.com</a></p></div>
-        <div class="info-box"><h3>Teléfono</h3><p>Comandancia General<br><strong>3731750 Ext. 1137</strong></p></div>
-        <div class="info-box"><h3>Institución</h3><p><a href="https://www.comisiontransito.gob.ec/" target="_blank">Comisión de Tránsito del Ecuador →</a></p></div>
-        <div class="info-box"><h3>Redes CTE</h3><div class="social-row"><a class="social-btn" href="https://www.facebook.com/ctecuador" target="_blank">Facebook</a><a class="social-btn" href="https://twitter.com/CTEcuador" target="_blank">Twitter</a><a class="social-btn" href="https://www.tiktok.com/@ctecuador" target="_blank">TikTok</a></div></div>
-      </div>
+      <div class="section-title">Historia Institucional</div><div style="background:var(--white);border-radius:8px;padding:2rem;margin-bottom:1.5rem"><p>La <strong>Comisión de Tránsito del Ecuador</strong> dispone de Talento Humano capacitado. <em>"De la mano de Nuestro Señor Jesucristo."</em></p><div style="display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1rem"><span class="badge badge-ok">Responsabilidad</span><span class="badge badge-ok">Excelencia</span><span class="badge badge-ok">Eficiencia</span></div></div>
+      <div class="info-grid"><div class="info-box"><h3>Correo</h3><p><a href="mailto:ctepersonal067@gmail.com">ctepersonal067@gmail.com</a></p></div><div class="info-box"><h3>Teléfono</h3><p>3731750 Ext. 1137</p></div><div class="info-box"><h3>Institución</h3><p><a href="https://www.comisiontransito.gob.ec/" target="_blank">Comisión de Tránsito →</a></p></div><div class="info-box"><h3>Redes CTE</h3><div class="social-row"><a class="social-btn" href="https://www.facebook.com/ctecuador" target="_blank">Facebook</a><a class="social-btn" href="https://twitter.com/CTEcuador" target="_blank">Twitter</a><a class="social-btn" href="https://www.tiktok.com/@ctecuador" target="_blank">TikTok</a></div></div></div>
     </div>
 
-    <!-- ADMIN -->
     <div class="tab" id="tab-admin">
       <div class="section-title">⚙ Panel de Administración</div>
-
-      <!-- GRÁFICO -->
-      <div class="chart-wrap">
-        <div class="chart-head">
-          <h3>📈 Ingresos por Día (últimos 14 días)</h3>
-        </div>
-        <div class="chart-body">
-          <div class="chart-bars" id="chart-bars"></div>
-          <div class="chart-labels" id="chart-labels"></div>
-          <div class="chart-legend">
-            <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#1a7a4a"></div>Exitosos</div>
-            <div class="chart-legend-item"><div class="chart-legend-dot" style="background:#c0392b"></div>Fallidos</div>
-          </div>
-        </div>
-      </div>
-
+      <div class="chart-wrap"><div class="chart-head"><h3>📈 Ingresos por Día (últimos 14 días)</h3></div><div class="chart-body"><div class="chart-bars" id="chart-bars"></div><div class="chart-labels" id="chart-labels"></div><div class="chart-legend"><div class="chart-legend-item"><div class="chart-legend-dot" style="background:#1a7a4a"></div>Exitosos</div><div class="chart-legend-item"><div class="chart-legend-dot" style="background:#c0392b"></div>Fallidos</div></div></div></div>
+      
       <div class="section-title">📁 Gestión de Archivos por Sección</div>
-      <div class="admin-card" style="margin-bottom:1.5rem">
-        <div class="admin-card-head">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e8c96a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
-          <h3>Agregar Archivo de Google Drive</h3>
-        </div>
-        <div class="admin-card-body">
-          <p style="font-size:.82rem;color:var(--muted);margin-bottom:1rem;line-height:1.5">
-            Sube el archivo a Google Drive, hazlo público (<strong>Cualquiera con el enlace puede ver</strong>), copia el enlace y pégalo aquí.
-          </p>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
-            <div class="form-field">
-              <label>Nombre del archivo</label>
-              <input type="text" id="af-nombre" placeholder="Ej: Orgánico 2025"/>
-            </div>
-            <div class="form-field">
-              <label>Sección</label>
-              <select id="af-seccion">
-                <option value="organico">Orgánico</option>
-                <option value="orden">Orden del Cuerpo</option>
-                <option value="parametros">Parámetros</option>
-                <option value="reportes">Reportes Diarios</option>
-                <option value="historia">Historia</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-field">
-            <label>Enlace de Google Drive</label>
-            <input type="text" id="af-url" placeholder="https://drive.google.com/file/d/..."/>
-            <div class="help-text">⚠️ El archivo debe estar compartido como <strong>"Cualquiera con el enlace"</strong> en Drive.</div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem">
-            <div class="form-field">
-              <label>Tipo de archivo</label>
-              <select id="af-tipo">
-                <option value="pdf">📄 PDF</option>
-                <option value="word">📝 Word (.docx)</option>
-                <option value="excel">📊 Excel (.xlsx)</option>
-                <option value="img">🖼️ Imagen</option>
-                <option value="other">📎 Otro</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label>Descripción (opcional)</label>
-              <input type="text" id="af-desc" placeholder="Ej: Versión aprobada Feb 2025"/>
-            </div>
-          </div>
-          <button class="btn-add-file" onclick="addFile()" style="margin-top:.3rem">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Agregar Archivo al Sistema
-          </button>
+      <div class="admin-card" style="margin-bottom:1.5rem"><div class="admin-card-head"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e8c96a" stroke-width="1.8"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg><h3>Agregar Archivo de Google Drive</h3></div><div class="admin-card-body"><p style="font-size:.82rem;margin-bottom:1rem">Sube el archivo a Drive, compártelo como "Cualquiera con el enlace", pega el enlace aquí.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem"><div class="form-field"><label>Nombre</label><input type="text" id="af-nombre"/></div><div class="form-field"><label>Sección</label><select id="af-seccion"><option value="organico">Orgánico</option><option value="orden">Orden</option><option value="parametros">Parámetros</option><option value="reportes">Reportes</option><option value="historia">Historia</option></select></div></div>
+        <div class="form-field"><label>Enlace de Google Drive</label><input type="text" id="af-url"/><div class="help-text">⚠️ Debe estar compartido como "Cualquiera con el enlace". <button type="button" onclick="verifyDriveLink(document.getElementById('af-url').value)" style="background:none;border:none;color:var(--gold);cursor:pointer">🔍 Verificar enlace</button></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem"><div class="form-field"><label>Tipo</label><select id="af-tipo"><option value="pdf">📄 PDF</option><option value="word">📝 Word</option><option value="excel">📊 Excel</option><option value="img">🖼️ Imagen</option><option value="other">📎 Otro</option></select></div><div class="form-field"><label>Descripción</label><input type="text" id="af-desc"/></div></div>
+        <button class="btn-add-file" onclick="addFile()">➕ Agregar Archivo</button>
+        <div id="af-code-box" style="display:none;margin-top:1rem;background:#0a1628;border-radius:7px;padding:1rem"><div style="font-size:.75rem;color:#e8c96a">📋 Copia esta línea para el HTML permanente</div><code id="af-code-text" style="font-size:.78rem;color:#a8d8a8;display:block"></code><button onclick="copiarCodigo()" style="margin-top:.7rem;background:var(--gold);color:var(--navy);padding:.35rem .9rem;border:none;border-radius:4px;cursor:pointer">📋 Copiar</button></div>
+      </div></div>
 
-          <!-- CÓDIGO GENERADO PARA PUBLICAR -->
-          <div id="af-code-box" style="display:none;margin-top:1.2rem;background:#0a1628;border-radius:7px;padding:1rem 1.2rem">
-            <div style="font-size:.75rem;font-weight:700;color:#e8c96a;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.5rem">
-              📋 Copia esta línea en el archivo HTML para que TODOS lo vean permanentemente
-            </div>
-            <code id="af-code-text" style="font-size:.78rem;color:#a8d8a8;display:block;word-break:break-all;line-height:1.6;white-space:pre-wrap"></code>
-            <button onclick="copiarCodigo()" style="margin-top:.7rem;background:var(--gold);color:var(--navy);font-family:'Oswald',sans-serif;font-size:.75rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:.35rem .9rem;border:none;border-radius:4px;cursor:pointer">
-              📋 Copiar código
-            </button>
-            <div style="font-size:.72rem;color:#6a8a6a;margin-top:.5rem;line-height:1.5">
-              Pega esta línea dentro del array <strong style="color:#e8c96a">FILES_BASE</strong> en el código del HTML y republica en GitHub Pages. Así todos los usuarios lo verán sin importar el dispositivo.
-            </div>
-          </div>
-        </div>
-      </div>
+      <div class="section-title">👥 Gestión de Usuarios</div>
+      <div class="admin-card" style="margin-bottom:1.5rem"><div class="admin-card-head"><h3>➕ Agregar / Editar Usuario</h3></div><div class="admin-card-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:.8rem;align-items:end"><div class="form-field"><label>Usuario</label><input type="text" id="new-user-login" placeholder="ej: j.doe"/></div><div class="form-field"><label>Nombre</label><input type="text" id="new-user-name" placeholder="Juan Pérez"/></div><div class="form-field"><label>Contraseña</label><input type="password" id="new-user-pass" placeholder="****"/></div><div class="form-field"><label>Rol</label><select id="new-user-rol"><option value="user">Usuario</option><option value="admin">Admin</option></select></div></div>
+        <div style="display:flex;gap:.5rem;margin-top:.5rem"><button class="btn-add-file" onclick="addEditUser()">➕ Agregar / Actualizar</button><button class="btn-danger" onclick="deleteSelectedUser()">🗑 Eliminar Seleccionado</button></div>
+        <div class="form-field" style="margin-top:1rem"><label>Seleccionar Usuario para Editar/Eliminar</label><select id="user-selector" style="width:100%" onchange="loadUserToEdit()"></select></div>
+      </div></div>
 
-      <div class="section-title">📋 Todos los Archivos Cargados</div>
-      <div id="admin-files-list" style="margin-bottom:1.5rem"></div>
+      <div class="section-title">📋 Todos los Archivos</div>
+      <div id="admin-files-list"></div>
 
-      <div class="section-title">Usuarios del Sistema y Bitácora</div>
-        <div class="admin-card">
-          <div class="admin-card-head">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e8c96a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-            <h3>Usuarios del Sistema</h3>
-          </div>
-          <div class="admin-card-body" id="admin-users-list"></div>
-        </div>
-        <div class="admin-card">
-          <div class="admin-card-head">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e8c96a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            <h3>Estadísticas por Usuario</h3>
-          </div>
-          <div class="admin-card-body" id="admin-stats"></div>
-        </div>
-      </div>
-      <div class="section-title">Bitácora Completa de Ingresos</div>
-      <div class="log-wrap">
-        <div class="log-header">
-          <h3>🔒 Todos los Registros</h3>
-          <div style="display:flex;align-items:center;gap:.8rem">
-            <span id="admin-log-total">—</span>
-            <button class="btn-danger" onclick="confirmClearLogs()">🗑 Borrar Bitácora</button>
-          </div>
-        </div>
-        <div style="overflow-x:auto">
-          <table class="log-table">
-            <thead><tr><th>Usuario</th><th>Nombre</th><th>Fecha y Hora</th><th>Dispositivo</th><th>Estado</th></tr></thead>
-            <tbody id="admin-log-tbody"></tbody>
-          </table>
-        </div>
-      </div>
+      <div class="section-title">Usuarios y Bitácora</div>
+      <div class="admin-card"><div class="admin-card-head"><h3>Usuarios del Sistema</h3></div><div class="admin-card-body" id="admin-users-list"></div></div>
+      <div class="admin-card"><div class="admin-card-head"><h3>Estadísticas por Usuario</h3></div><div class="admin-card-body" id="admin-stats"></div></div>
+      
+      <div class="section-title">Bitácora Completa</div>
+      <div class="log-wrap"><div class="log-header"><h3>🔒 Todos los Registros</h3><div><span id="admin-log-total">—</span><button class="btn-danger" onclick="confirmClearLogs()" style="margin-left:.8rem">🗑 Borrar Bitácora</button><button class="btn-add-file" onclick="exportLogsToCSV()" style="margin-left:.8rem">📎 Exportar CSV</button></div></div><div style="overflow-x:auto"><table class="log-table"><thead><tr><th>Usuario</th><th>Nombre</th><th>Fecha/Hora</th><th>Dispositivo</th><th>Estado</th></tr></thead><tbody id="admin-log-tbody"></tbody></table></div></div>
+      <div class="section-title">🔍 Búsqueda Global de Archivos</div>
+      <div class="admin-card"><div class="admin-card-body"><input type="text" id="global-search-input" placeholder="Buscar en todas las secciones..." class="files-search" style="width:100%" oninput="globalSearchFiles()"/><div id="global-search-results" style="margin-top:1rem"></div></div></div>
     </div>
-
   </main>
-
   <div class="footer-stripe"></div>
-  <footer>
-    <p><strong>Unidad de Personal y Movilidad – Cuerpo de Vigilancia</strong><br>
-    Comisión de Tránsito del Ecuador · Comandancia General · 3731750 Ext. 1137<br>
-    <a href="mailto:ctepersonal067@gmail.com">ctepersonal067@gmail.com</a></p>
-    <p style="margin-top:.5rem;font-size:.72rem;color:#4a5060">Sistema con registro de bitácora · GitHub Pages</p>
-  </footer>
+  <footer><p><strong>Unidad de Personal y Movilidad – Cuerpo de Vigilancia</strong><br>Comisión de Tránsito del Ecuador · 3731750 Ext. 1137<br><a href="mailto:ctepersonal067@gmail.com">ctepersonal067@gmail.com</a></p></footer>
 </div>
 
-<!-- ══ MODAL CONFIRMACIÓN ══ -->
-<div class="modal-overlay" id="confirm-modal">
-  <div class="modal-box">
-    <h3 id="modal-title">Confirmar acción</h3>
-    <p id="modal-msg">¿Estás seguro?</p>
-    <div class="modal-actions">
-      <button class="btn-cancel-modal" onclick="closeModal()">Cancelar</button>
-      <button class="btn-confirm" id="modal-ok-btn">Confirmar</button>
-    </div>
-  </div>
-</div>
+<div class="modal-overlay" id="confirm-modal"><div class="modal-box"><h3 id="modal-title">Confirmar</h3><p id="modal-msg">¿Estás seguro?</p><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Cancelar</button><button class="btn-confirm" id="modal-ok-btn">Confirmar</button></div></div></div>
 
 <script>
-// ══════════════════════════════════════════════════════
-//  GOOGLE OAUTH CLIENT ID
-//  Reemplaza con tu Client ID de Google Cloud Console
-// ══════════════════════════════════════════════════════
+// ==================== CONFIGURACIÓN INICIAL ====================
 const GOOGLE_CLIENT_ID = '571154981190-e83q5clu440b0p8jqikrqkq3r6v2qrdt.apps.googleusercontent.com';
 
-// ══════════════════════════════════════
-//  USUARIOS DEL SISTEMA
-//  Agrega, edita o quita personal aquí
-// ══════════════════════════════════════
-const USERS = [
-  { user:'admin',     pass:'@dmin2026',  nombre:'Administrador Sistema', rol:'admin', email:'ctepersonal0@gmail.com' },
-  { user:'f.delgado', pass:'cte2026',    nombre:'Franklin Delgado',      rol:'user',  email:'organicocte2020@gmail.com'}, 
+// Usuarios por defecto (se cargan en localStorage si no existen)
+const DEFAULT_USERS = [
+  { user:'admin',     passHash:'', nombre:'Administrador Sistema', rol:'admin', email:'ctepersonal0@gmail.com', blocked: false },
+  { user:'f.delgado', passHash:'', nombre:'Franklin Delgado',      rol:'user',  email:'organicocte2020@gmail.com', blocked: false },
 ];
 
-// ══════════════════════════════════════════════════════════
-//  ARCHIVOS COMPARTIDOS DEL SISTEMA
-//  El admin agrega aquí los links de Drive y todos los
-//  usuarios los ven sin importar el dispositivo.
-//
-//  Para agregar un archivo:
-//  1. Sube el archivo a Google Drive
-//  2. Compártelo como "Cualquiera con el enlace puede ver"
-//  3. Agrega una línea con este formato:
-//     { id:NUMERO, nombre:'Nombre', seccion:'organico',
-//       tipo:'pdf', desc:'descripción', fecha:'DD/MM/AAAA',
-//       urlOriginal:'https://drive.google.com/file/d/ID/view' }
-//
-//  Secciones válidas: organico, orden, parametros, reportes, historia
-//  Tipos válidos:     pdf, word, excel, img, other
-// ══════════════════════════════════════════════════════════
 const FILES_BASE = [
-  // Ejemplo (borra esta línea y agrega los tuyos):
-    { id:1779224557782, nombre:'HISTORIAL CTE', seccion:'organico', tipo:'excel', desc:'', fecha:'19/05/2026', urlOriginal:'https://drive.google.com/drive/folders/1IKszLxBRMZTpv0CyJYaFJ11KbmaftAlW?usp=sharing' },
+  { id:1779224557782, nombre:'HISTORIAL CTE', seccion:'organico', tipo:'excel', desc:'', fecha:'19/05/2026', urlOriginal:'https://drive.google.com/drive/folders/1IKszLxBRMZTpv0CyJYaFJ11KbmaftAlW?usp=sharing' },
 ];
 
-
-function getBlocked(){ try{ return JSON.parse(localStorage.getItem('cte_blocked')||'[]'); }catch(e){ return []; } }
-function saveBlocked(b){ localStorage.setItem('cte_blocked', JSON.stringify(b)); }
-function isBlocked(user){ return getBlocked().includes(user); }
-
-// ══ MODAL ══
-let _modalCallback = null;
-function openModal(title, msg, onConfirm){
-  document.getElementById('modal-title').textContent = title;
-  document.getElementById('modal-msg').textContent = msg;
-  _modalCallback = onConfirm;
-  document.getElementById('confirm-modal').classList.add('open');
+// ==================== FUNCIONES DE HASH ====================
+async function hashPass(pass) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(pass);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
-function closeModal(){
-  document.getElementById('confirm-modal').classList.remove('open');
-  _modalCallback = null;
+
+// ==================== GESTIÓN DE USUARIOS ====================
+let USERS = [];
+
+function loadUsersFromStorage() {
+  const saved = localStorage.getItem('cte_users');
+  if (saved) return JSON.parse(saved);
+  return JSON.parse(JSON.stringify(DEFAULT_USERS));
 }
-document.getElementById('modal-ok-btn').onclick = function(){
-  if(_modalCallback) _modalCallback();
-  closeModal();
-};
-document.getElementById('confirm-modal').addEventListener('click', function(e){
-  if(e.target === this) closeModal();
-});
 
+async function initializeUsers() {
+  USERS = loadUsersFromStorage();
+  let needsSave = false;
+  for (let u of USERS) {
+    if (!u.passHash) {
+      const defaultPass = u.user === 'admin' ? '@dmin2026' : 'cte2026';
+      u.passHash = await hashPass(defaultPass);
+      needsSave = true;
+    }
+  }
+  if (needsSave) saveUsers();
+}
 
-function getLogs(){ try{ return JSON.parse(localStorage.getItem('cte_logs')||'[]'); }catch(e){ return []; } }
-function saveLogs(l){ localStorage.setItem('cte_logs', JSON.stringify(l.slice(-300))); }
-function addLog(usuario, nombre, estado, email){
+function saveUsers() {
+  localStorage.setItem('cte_users', JSON.stringify(USERS));
+}
+
+function getUserByLogin(user, passHash) {
+  return USERS.find(u => u.user === user && u.passHash === passHash);
+}
+
+function getUserByEmail(email) {
+  return USERS.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
+}
+
+function isBlocked(userObj) {
+  return userObj.blocked === true;
+}
+
+function toggleBlockUser(username, block) {
+  const user = USERS.find(u => u.user === username);
+  if (!user || user.rol === 'admin') return;
+  user.blocked = block;
+  saveUsers();
+  if (currentUser && currentUser.rol === 'admin') {
+    renderAdmin();
+  }
+}
+
+async function addEditUser() {
+  const login = document.getElementById('new-user-login').value.trim();
+  const name = document.getElementById('new-user-name').value.trim();
+  const pass = document.getElementById('new-user-pass').value;
+  const rol = document.getElementById('new-user-rol').value;
+  if (!login || !name) { alert("Usuario y nombre son obligatorios"); return; }
+  const existing = USERS.find(u => u.user === login);
+  if (existing) {
+    if (pass) existing.passHash = await hashPass(pass);
+    existing.nombre = name;
+    existing.rol = rol;
+  } else {
+    if (!pass) { alert("Contraseña requerida para nuevo usuario"); return; }
+    USERS.push({ user: login, passHash: await hashPass(pass), nombre: name, rol: rol, email: '', blocked: false });
+  }
+  saveUsers();
+  document.getElementById('new-user-pass').value = '';
+  populateUserSelector();
+  if (currentUser && currentUser.rol === 'admin') {
+    renderAdmin();
+  }
+}
+
+function deleteSelectedUser() {
+  const selector = document.getElementById('user-selector');
+  const username = selector.value;
+  if (!username) return;
+  const user = USERS.find(u => u.user === username);
+  if (user && user.rol === 'admin') { alert("No se puede eliminar al administrador principal"); return; }
+  openModal("Eliminar Usuario", `¿Eliminar a ${user.nombre}?`, () => {
+    USERS = USERS.filter(u => u.user !== username);
+    saveUsers();
+    populateUserSelector();
+    if (currentUser && currentUser.rol === 'admin') {
+      renderAdmin();
+    }
+  });
+}
+
+function loadUserToEdit() {
+  const username = document.getElementById('user-selector').value;
+  const user = USERS.find(u => u.user === username);
+  if (user) {
+    document.getElementById('new-user-login').value = user.user;
+    document.getElementById('new-user-name').value = user.nombre;
+    document.getElementById('new-user-rol').value = user.rol;
+    document.getElementById('new-user-pass').value = '';
+  }
+}
+
+function populateUserSelector() {
+  const select = document.getElementById('user-selector');
+  if (!select) return;
+  select.innerHTML = '<option value="">Seleccione un usuario...</option>' + USERS.map(u => `<option value="${u.user}">${u.user} - ${u.nombre}</option>`).join('');
+}
+
+// ==================== BITÁCORA ====================
+function getLogs() { try{ return JSON.parse(localStorage.getItem('cte_logs')||'[]'); }catch(e){ return []; } }
+function saveLogs(l) { localStorage.setItem('cte_logs', JSON.stringify(l.slice(-500))); }
+function addLog(usuario, nombre, estado, email=''){
   const logs = getLogs();
   const now = new Date();
   const dev = /Mobi|Android/i.test(navigator.userAgent) ? 'Móvil' : 'Computadora';
-  logs.push({
-    usuario, nombre, estado,
-    email: email || '',
-    fecha: now.toLocaleDateString('es-EC',{day:'2-digit',month:'2-digit',year:'numeric'}),
-    hora:  now.toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),
-    device: dev
-  });
+  logs.push({ usuario, nombre, estado, email, fecha: now.toLocaleDateString('es-EC'), hora: now.toLocaleTimeString('es-EC'), device: dev, timestamp: now.getTime() });
   saveLogs(logs);
 }
 
-// ══ GOOGLE OAUTH ══
-function iniciarGoogle(){
-  if(GOOGLE_CLIENT_ID === 'TU_CLIENT_ID_AQUI.apps.googleusercontent.com') return; // sin configurar aún
-  google.accounts.id.initialize({
-    client_id: GOOGLE_CLIENT_ID,
-    callback: onGoogleToken,
-    auto_select: true,        // intenta login automático si hay sesión activa
-    cancel_on_tap_outside: false
-  });
-  google.accounts.id.prompt(); // muestra el One Tap si hay sesión Google activa
-}
-
-function loginConGoogle(){
-  if(GOOGLE_CLIENT_ID === 'TU_CLIENT_ID_AQUI.apps.googleusercontent.com'){
-    mostrarError('⚙️ El Client ID de Google aún no está configurado. Usa el acceso manual o contacta al administrador.');
-    return;
-  }
-  google.accounts.id.initialize({
-    client_id: GOOGLE_CLIENT_ID,
-    callback: onGoogleToken
-  });
-  google.accounts.id.prompt((notification)=>{
-    if(notification.isNotDisplayed() || notification.isSkippedMoment()){
-      // Si One Tap no se muestra, usar popup
-      google.accounts.id.renderButton(
-        document.createElement('div'),
-        { theme:'outline', size:'large' }
-      );
-      mostrarError('Haz clic en la ventana emergente de Google para continuar. Si no aparece, permite las ventanas emergentes en tu navegador.');
-    }
-  });
-}
-
-function onGoogleToken(response){
-  // Decodifica el JWT de Google (sin librería externa)
-  try{
-    const payload = JSON.parse(atob(response.credential.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
-    const email = payload.email.toLowerCase();
-    const nombre = payload.name;
-    const foto   = payload.picture;
-    procesarLoginGoogle(email, nombre, foto);
-  }catch(e){
-    mostrarError('Error al procesar la respuesta de Google. Intenta de nuevo.');
-  }
-}
-
-function procesarLoginGoogle(email, nombreGoogle, foto){
-  const errEl = document.getElementById('login-error');
-  // Buscar usuario por email
-  const found = USERS.find(x => x.email && x.email.toLowerCase() === email);
-  if(found){
-    if(isBlocked(found.user)){
-      mostrarError('Tu cuenta está bloqueada. Contacta al administrador.');
-      addLog(found.user, found.nombre, 'fail');
-      return;
-    }
-    addLog(found.user, found.nombre, 'ok');
-    entrarAlSistema(found, foto);
-  } else {
-    addLog(email, nombreGoogle||email, 'fail');
-    mostrarError('El correo ' + email + ' no está registrado en el sistema. Contacta al administrador.');
-  }
-}
-
-function mostrarError(msg){
-  const el = document.getElementById('login-error');
-  el.textContent = msg;
-  el.style.display = 'block';
-}
-
-function toggleManual(){
-  const f = document.getElementById('login-manual-fields');
-  f.style.display = f.style.display === 'block' ? 'none' : 'block';
-}
-
-// ══ SESIÓN ══
-let currentUser = null;
-
-function entrarAlSistema(found, foto){
-  currentUser = found;
-  document.getElementById('screen-login').style.display = 'none';
-  document.getElementById('screen-main').style.display  = 'block';
-  // Mostrar foto de Google si está disponible
-  const escudo = document.querySelector('header .escudo');
-  if(foto){ escudo.innerHTML = `<img src="${foto}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`; }
-  else { escudo.textContent = 'CTE'; }
-  document.getElementById('display-user').textContent = found.nombre + ' (' + found.user + ')';
-  const rb = document.getElementById('display-role-badge');
-  rb.textContent = found.rol === 'admin' ? 'ADMIN' : 'USUARIO';
-  rb.className   = 'badge ' + (found.rol==='admin' ? 'badge-admin' : 'badge-user');
-  if(found.rol === 'admin') document.getElementById('nav-admin').style.display = 'block';
-  renderDashboard();
-  renderAllSectionFiles();
-}
-
-function doLogin(){
-  const u = document.getElementById('inp-user').value.trim().toLowerCase();
-  const p = document.getElementById('inp-pass').value;
-  if(!u||!p){ mostrarError('Ingresa tu usuario y contraseña.'); return; }
-  const found = USERS.find(x => x.user===u && x.pass===p);
-  if(found){
-    if(isBlocked(found.user)){
-      mostrarError('Tu cuenta está bloqueada. Contacta al administrador.');
-      addLog(found.user, found.nombre, 'fail');
-      return;
-    }
-    document.getElementById('login-error').style.display = 'none';
-    addLog(found.user, found.nombre, 'ok');
-    entrarAlSistema(found, null);
-  } else {
-    addLog(u||'(desconocido)', '—', 'fail');
-    mostrarError('Usuario o contraseña incorrectos. Intento registrado en bitácora.');
-    document.getElementById('inp-pass').value = '';
-  }
-}
-
-document.addEventListener('DOMContentLoaded', ()=>{
-  document.getElementById('inp-pass')?.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
-  document.getElementById('inp-user')?.addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('inp-pass').focus(); });
-  // Intentar One Tap automático al cargar
-  if(typeof google !== 'undefined') iniciarGoogle();
-  else window.addEventListener('load', ()=>{ if(typeof google !== 'undefined') iniciarGoogle(); });
-});
-
-function doLogout(){
-  currentUser = null;
-  // Revocar sesión Google para forzar selección de cuenta
-  if(GOOGLE_CLIENT_ID !== 'TU_CLIENT_ID_AQUI.apps.googleusercontent.com' && typeof google !== 'undefined'){
-    google.accounts.id.disableAutoSelect();
-  }
-  document.getElementById('screen-main').style.display  = 'none';
-  document.getElementById('screen-login').style.display = 'flex';
-  document.getElementById('inp-user').value  = '';
-  document.getElementById('inp-pass').value  = '';
-  document.getElementById('login-error').style.display = 'none';
-  document.getElementById('nav-admin').style.display   = 'none';
-  document.querySelector('header .escudo').textContent  = 'CTE';
-  document.querySelector('header .escudo').innerHTML    = 'CTE';
-}
-
-// ══ TABS ══
-function showTab(id){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('tab-'+id).classList.add('active');
-  document.querySelectorAll('nav a').forEach(a=>a.classList.remove('active'));
-  const lnk=[...document.querySelectorAll('nav a')].find(a=>a.getAttribute('onclick')==="showTab('"+id+"')");
-  if(lnk) lnk.classList.add('active');
-  if(id==='admin') renderAdmin();
-  // Renderizar archivos de la sección al navegar
-  if(SECCIONES[id]) renderSectionFiles(id);
-}
-
-// ══ DASHBOARD ══
-function renderDashboard(){
-  const logs = getLogs();
-  const hoy = new Date().toLocaleDateString('es-EC',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const hoyOk   = logs.filter(l=>l.fecha===hoy && l.estado==='ok').length;
-  const hoyFail = logs.filter(l=>l.fecha===hoy && l.estado==='fail').length;
-  const okLogs  = logs.filter(l=>l.estado==='ok');
-  const last    = okLogs.length ? okLogs[okLogs.length-1] : null;
-  document.getElementById('stat-total').textContent = USERS.length;
-  document.getElementById('stat-hoy').textContent   = hoyOk;
-  document.getElementById('stat-fail').textContent  = hoyFail;
-  if(last){ document.getElementById('stat-last').textContent=last.nombre.split(' ')[0]; document.getElementById('stat-last-time').textContent=last.fecha+' '+last.hora; }
-
-  // Bitácora: solo visible para admin
-  const isAdmin = currentUser && currentUser.rol === 'admin';
-  document.getElementById('dashboard-bitacora').style.display  = isAdmin ? 'block' : 'none';
-  document.getElementById('dashboard-no-admin').style.display  = isAdmin ? 'none'  : 'block';
-
-  if(isAdmin){
-    const recent = [...logs].reverse().slice(0,15);
-    document.getElementById('log-count-label').textContent = logs.length+' registros totales';
-    const tbody = document.getElementById('log-tbody');
-    tbody.innerHTML = recent.map(l=>`
-      <tr>
-        <td><span class="dot" style="background:${l.estado==='ok'?'#1a7a4a':'#c0392b'}"></span>${esc(l.usuario)}</td>
-        <td>${esc(l.nombre)}</td>
-        <td>${l.fecha} ${l.hora}</td>
-        <td>${l.device}</td>
-        <td><span class="badge ${l.estado==='ok'?'badge-ok':'badge-fail'}">${l.estado==='ok'?'✓ Exitoso':'✗ Fallido'}</span></td>
-      </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1.5rem">Sin registros aún.</td></tr>';
-  }
-}
-
-// ══ ADMIN ══
-function renderAdmin(){
-  if(!currentUser||currentUser.rol!=='admin') return;
-  const logs = getLogs();
-  const blocked = getBlocked();
-
-  // Usuarios con botón bloquear/desbloquear
-  document.getElementById('admin-users-list').innerHTML = USERS.map(u=>{
-    const isAdm = u.rol==='admin';
-    const blk = blocked.includes(u.user);
-    const btnHtml = isAdm ? '' : blk
-      ? `<button class="btn-unblock" onclick="toggleBlock('${u.user}',false)">✓ Desbloquear</button>`
-      : `<button class="btn-block" onclick="toggleBlock('${u.user}',true)">⊘ Bloquear</button>`;
-    return `<div class="user-row">
-      <div class="avatar">${u.nombre.split(' ').map(x=>x[0]).slice(0,2).join('')}</div>
-      <div class="user-info" style="flex:1">
-        <strong>${esc(u.nombre)}${blk?'<span class="blocked-badge">● Bloqueado</span>':''}</strong>
-        <span>${esc(u.user)} · <span class="badge ${u.rol==='admin'?'badge-admin':'badge-user'}">${u.rol}</span></span>
-      </div>
-      ${btnHtml}
-    </div>`;
-  }).join('');
-
-  // Estadísticas por usuario
-  const byUser={};
-  USERS.forEach(u=>{ byUser[u.user]={ok:0,fail:0,last:'Nunca'}; });
-  logs.forEach(l=>{
-    if(!byUser[l.usuario]) byUser[l.usuario]={ok:0,fail:0,last:'Nunca'};
-    if(l.estado==='ok'){ byUser[l.usuario].ok++; byUser[l.usuario].last=l.fecha+' '+l.hora; }
-    else byUser[l.usuario].fail++;
-  });
-  document.getElementById('admin-stats').innerHTML = USERS.map(u=>`
-    <div style="padding:.5rem 0;border-bottom:1px solid #f0f2f6;font-size:.82rem">
-      <strong>${esc(u.nombre)}</strong><br>
-      <span style="color:var(--muted)">Ingresos: <strong style="color:var(--success)">${byUser[u.user]?.ok||0}</strong> &nbsp;·&nbsp; Fallidos: <strong style="color:var(--danger)">${byUser[u.user]?.fail||0}</strong></span><br>
-      <span style="color:var(--muted);font-size:.73rem">Último: ${byUser[u.user]?.last||'Nunca'}</span>
-    </div>`).join('');
-
-  // Bitácora completa
-  const all=[...logs].reverse();
-  document.getElementById('admin-log-total').textContent=all.length+' registros';
-  document.getElementById('admin-log-tbody').innerHTML=all.map(l=>`
-    <tr>
-      <td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td>
-      <td>${l.fecha} ${l.hora}</td><td>${l.device}</td>
-      <td><span class="badge ${l.estado==='ok'?'badge-ok':'badge-fail'}">${l.estado==='ok'?'✓ Exitoso':'✗ Fallido'}</span></td>
-    </tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1.5rem">Sin registros.</td></tr>';
-
-  // Gráfico
-  renderChart(logs);
-  // Archivos
-  renderAdminFiles();
-}
-
-function renderChart(logs){
-  const days = 14;
-  const labels = [], okCounts = [], failCounts = [];
-  for(let i=days-1;i>=0;i--){
-    const d = new Date(); d.setDate(d.getDate()-i);
-    const label = d.toLocaleDateString('es-EC',{day:'2-digit',month:'2-digit'});
-    labels.push(label);
-    const dayLogs = logs.filter(l=>l.fecha===label);
-    okCounts.push(dayLogs.filter(l=>l.estado==='ok').length);
-    failCounts.push(dayLogs.filter(l=>l.estado==='fail').length);
-  }
-  const maxVal = Math.max(...okCounts, ...failCounts, 1);
-  const barsEl = document.getElementById('chart-bars');
-  const labelsEl = document.getElementById('chart-labels');
-  barsEl.innerHTML = labels.map((_,i)=>{
-    const okH = Math.round((okCounts[i]/maxVal)*100);
-    const failH = Math.round((failCounts[i]/maxVal)*100);
-    return `<div class="chart-bar-group">
-      <div style="display:flex;align-items:flex-end;gap:2px;width:100%;height:100%">
-        <div class="chart-bar chart-bar-ok" style="height:${okH}%;flex:1" title="Exitosos: ${okCounts[i]}"></div>
-        <div class="chart-bar chart-bar-fail" style="height:${failH}%;flex:1" title="Fallidos: ${failCounts[i]}"></div>
-      </div>
-    </div>`;
-  }).join('');
-  labelsEl.innerHTML = labels.map(l=>`<div class="chart-label">${l}</div>`).join('');
-}
-
-function toggleBlock(username, block){
-  const u = USERS.find(x=>x.user===username);
-  if(!u) return;
-  const action = block ? 'bloquear' : 'desbloquear';
-  openModal(
-    block ? '⊘ Bloquear usuario' : '✓ Desbloquear usuario',
-    `¿Confirmas ${action} la cuenta de ${u.nombre} (${u.user})?`,
-    ()=>{
-      const b = getBlocked();
-      if(block){ if(!b.includes(username)) b.push(username); }
-      else { const idx=b.indexOf(username); if(idx>-1) b.splice(idx,1); }
-      saveBlocked(b);
-      renderAdmin();
-    }
-  );
-}
-
-function confirmClearLogs(){
-  openModal(
-    '🗑 Borrar Bitácora',
-    'Esta acción eliminará TODOS los registros de la bitácora de forma permanente. ¿Deseas continuar?',
-    ()=>{
-      saveLogs([]);
-      renderDashboard();
-      renderAdmin();
-    }
-  );
-}
-
-
-
-// ══ GESTOR DE ARCHIVOS ══
-const SECCIONES = {
-  organico:  'Orgánico',
-  orden:     'Orden del Cuerpo',
-  parametros:'Parámetros',
-  reportes:  'Reportes Diarios',
-  historia:  'Historia'
-};
-const TIPO_ICONS = { pdf:'📄', word:'📝', excel:'📊', img:'🖼️', other:'📎' };
-const TIPO_CSS   = { pdf:'file-type-pdf', word:'file-type-word', excel:'file-type-excel', img:'file-type-img', other:'file-type-other' };
-
-// Devuelve FILES_BASE (compartidos) + los agregados en sesión local
+// ==================== ARCHIVOS ====================
 function getFiles(){
   try{
     const local = JSON.parse(localStorage.getItem('cte_files')||'[]');
-    // Evitar duplicados: si un id de FILES_BASE ya existe en local, no repetir
     const localIds = new Set(local.map(f=>f.id));
     const base = FILES_BASE.filter(f=>!localIds.has(f.id));
     return [...base, ...local];
-  }catch(e){ return FILES_BASE.slice(); }
+  }catch(e){ return [...FILES_BASE]; }
 }
 function saveFiles(f){
-  // Solo guardar en localStorage los que NO son de FILES_BASE
   const baseIds = new Set(FILES_BASE.map(x=>x.id));
   localStorage.setItem('cte_files', JSON.stringify(f.filter(x=>!baseIds.has(x.id))));
 }
 
-// Extrae el ID de cualquier formato de link de Google Drive
 function extractDriveId(url){
   const m1 = url.match(/\/d\/([a-zA-Z0-9_-]{15,})/);
   const m2 = url.match(/[?&]id=([a-zA-Z0-9_-]{15,})/);
@@ -967,194 +476,305 @@ function extractDriveId(url){
   if(m2) return m2[1];
   return null;
 }
-// URL para ABRIR segun tipo
 function driveViewUrl(url, tipo){
   const id = extractDriveId(url);
   if(!id) return url;
-  if(tipo === 'pdf' || tipo === 'img'){
-    return 'https://drive.google.com/file/d/' + id + '/view?usp=sharing';
-  }
-  // Word, Excel, otro: visor Google Docs
+  if(tipo === 'pdf' || tipo === 'img') return 'https://drive.google.com/file/d/' + id + '/view?usp=sharing';
   return 'https://docs.google.com/viewer?url=' + encodeURIComponent('https://drive.google.com/uc?id=' + id);
 }
-// URL para DESCARGAR
 function driveDownloadUrl(url){
   const id = extractDriveId(url);
   if(!id) return url;
   return 'https://drive.google.com/uc?export=download&id=' + id;
 }
+function verifyDriveLink(url){
+  const id = extractDriveId(url);
+  if(id) alert(`✅ ID de Drive detectado: ${id}\nEl archivo será accesible.`);
+  else alert('❌ No se pudo extraer el ID. Asegúrate de usar un enlace estándar de Drive.');
+}
 
-function addFile(){
-  const nombre  = document.getElementById('af-nombre').value.trim();
+// ==================== SESIÓN Y UI ====================
+let currentUser = null;
+let inactivityTimer;
+
+function resetInactivityTimer() {
+  clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(() => { if (currentUser) doLogout(); }, 30 * 60 * 1000);
+}
+document.body.addEventListener('click', resetInactivityTimer);
+document.body.addEventListener('keypress', resetInactivityTimer);
+
+function entrarAlSistema(found, foto){
+  currentUser = found;
+  document.getElementById('screen-login').style.display = 'none';
+  document.getElementById('screen-main').style.display  = 'block';
+  const escudoDiv = document.querySelector('header .escudo');
+  if(foto) escudoDiv.innerHTML = `<img src="${foto}" style="width:100%;height:100%;border-radius:50%;object-fit:cover">`;
+  else escudoDiv.textContent = 'CTE';
+  document.getElementById('display-user').textContent = found.nombre + ' (' + found.user + ')';
+  const rb = document.getElementById('display-role-badge');
+  rb.textContent = found.rol === 'admin' ? 'ADMIN' : 'USUARIO';
+  rb.className = 'badge ' + (found.rol==='admin' ? 'badge-admin' : 'badge-user');
+  
+  const isAdmin = found.rol === 'admin';
+  document.getElementById('nav-admin').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('print-btn').style.display = isAdmin ? 'block' : 'none';
+  
+  renderDashboard();
+  renderAllSectionFiles();
+  if (isAdmin) {
+    renderAdmin();
+  }
+  resetInactivityTimer();
+}
+
+async function doLogin(){
+  const u = document.getElementById('inp-user').value.trim().toLowerCase();
+  const p = document.getElementById('inp-pass').value;
+  if(!u||!p){ mostrarError('Ingresa tu usuario y contraseña.'); return; }
+  const passHash = await hashPass(p);
+  const found = getUserByLogin(u, passHash);
+  if(found){
+    if(isBlocked(found)){ mostrarError('Cuenta bloqueada.'); addLog(found.user, found.nombre, 'fail'); return; }
+    addLog(found.user, found.nombre, 'ok', found.email);
+    entrarAlSistema(found, null);
+  } else {
+    addLog(u, '—', 'fail');
+    mostrarError('Credenciales incorrectas.');
+  }
+}
+
+function loginConGoogle(){
+  if(GOOGLE_CLIENT_ID === 'TU_CLIENT_ID_AQUI.apps.googleusercontent.com'){ mostrarError('Google Login no configurado.'); return; }
+  google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: onGoogleToken });
+  google.accounts.id.prompt();
+}
+function onGoogleToken(response){
+  try{
+    const payload = JSON.parse(atob(response.credential.split('.')[1]));
+    const email = payload.email.toLowerCase();
+    const nombre = payload.name;
+    const foto = payload.picture;
+    procesarLoginGoogle(email, nombre, foto);
+  }catch(e){ mostrarError('Error con Google.'); }
+}
+function procesarLoginGoogle(email, nombreGoogle, foto){
+  const found = getUserByEmail(email);
+  if(found){
+    if(isBlocked(found)){ mostrarError('Cuenta bloqueada.'); addLog(found.user, found.nombre, 'fail'); return; }
+    addLog(found.user, found.nombre, 'ok', email);
+    entrarAlSistema(found, foto);
+  } else {
+    addLog(email, nombreGoogle, 'fail');
+    mostrarError('Correo no registrado. Contacta al administrador.');
+  }
+}
+
+function doLogout(){
+  currentUser = null;
+  document.getElementById('screen-main').style.display = 'none';
+  document.getElementById('screen-login').style.display = 'flex';
+  document.getElementById('inp-pass').value = '';
+  document.getElementById('nav-admin').style.display = 'none';
+  document.getElementById('print-btn').style.display = 'none';
+  document.querySelector('header .escudo').innerHTML = 'CTE';
+}
+
+// ==================== RENDERIZADO PRINCIPAL ====================
+function renderDashboard(){
+  const logs = getLogs();
+  const hoy = new Date().toLocaleDateString('es-EC');
+  const hoyOk = logs.filter(l=>l.fecha===hoy && l.estado==='ok').length;
+  const hoyFail = logs.filter(l=>l.fecha===hoy && l.estado==='fail').length;
+  const last = logs.filter(l=>l.estado==='ok').pop();
+  document.getElementById('stat-total').textContent = USERS.length;
+  document.getElementById('stat-hoy').textContent = hoyOk;
+  document.getElementById('stat-fail').textContent = hoyFail;
+  if(last){ document.getElementById('stat-last').textContent = last.nombre.split(' ')[0]; document.getElementById('stat-last-time').textContent = last.fecha+' '+last.hora; }
+  
+  const isAdmin = currentUser && currentUser.rol === 'admin';
+  document.getElementById('dashboard-bitacora').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('dashboard-no-admin').style.display = isAdmin ? 'none' : 'block';
+  if(isAdmin){
+    const recent = [...logs].reverse().slice(0,15);
+    document.getElementById('log-count-label').textContent = logs.length+' registros';
+    document.getElementById('log-tbody').innerHTML = recent.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':'badge-fail'}">${l.estado==='ok'?'✓ Exitoso':'✗ Fallido'}</span></td></tr>`).join('');
+  }
+}
+
+function renderAdmin(){
+  if(!currentUser||currentUser.rol!=='admin') return;
+  const logs = getLogs();
+  document.getElementById('admin-users-list').innerHTML = USERS.map(u => {
+    const isAdm = u.rol==='admin';
+    const btnHtml = isAdm ? '' : (u.blocked ? `<button class="btn-unblock" onclick="toggleBlockUser('${u.user}',false)">✓ Desbloquear</button>` : `<button class="btn-block" onclick="toggleBlockUser('${u.user}',true)">⊘ Bloquear</button>`);
+    return `<div class="user-row"><div class="avatar">${(u.nombre.split(' ').map(x=>x[0]).slice(0,2).join(''))}</div><div class="user-info"><strong>${esc(u.nombre)}${u.blocked?'<span class="blocked-badge">● Bloqueado</span>':''}</strong><span>${esc(u.user)} · <span class="badge ${u.rol==='admin'?'badge-admin':'badge-user'}">${u.rol}</span> · 📧 ${u.email || 'Sin correo'}</span></div>${btnHtml}</div>`;
+  }).join('');
+  
+  const byUser={};
+  USERS.forEach(u=>{ byUser[u.user]={ok:0,fail:0,last:'Nunca'}; });
+  logs.forEach(l=>{ if(byUser[l.usuario]) { if(l.estado==='ok'){ byUser[l.usuario].ok++; byUser[l.usuario].last=l.fecha+' '+l.hora; } else byUser[l.usuario].fail++; } });
+  document.getElementById('admin-stats').innerHTML = USERS.map(u=>`<div style="padding:.5rem 0;border-bottom:1px solid #f0f2f6"><strong>${esc(u.nombre)}</strong><br><span>Ingresos: <strong style="color:var(--success)">${byUser[u.user]?.ok||0}</strong> · Fallidos: <strong style="color:var(--danger)">${byUser[u.user]?.fail||0}</strong></span><br><span style="font-size:.73rem">Último: ${byUser[u.user]?.last}</span></div>`).join('');
+  
+  const all=[...logs].reverse();
+  document.getElementById('admin-log-total').textContent = all.length;
+  document.getElementById('admin-log-tbody').innerHTML = all.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':'badge-fail'}">${l.estado==='ok'?'✓ Exitoso':'✗ Fallido'}</span></td></tr>`).join('');
+  renderChart(logs);
+  renderAdminFiles();
+}
+
+function renderChart(logs){
+  const days = 14, labels = [], okC = [], failC = [];
+  for(let i=days-1;i>=0;i--){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const label = d.toLocaleDateString('es-EC');
+    labels.push(label);
+    const dayLogs = logs.filter(l=>l.fecha===label);
+    okC.push(dayLogs.filter(l=>l.estado==='ok').length);
+    failC.push(dayLogs.filter(l=>l.estado==='fail').length);
+  }
+  const maxVal = Math.max(...okC, ...failC, 1);
+  document.getElementById('chart-bars').innerHTML = labels.map((_,i)=>`<div class="chart-bar-group"><div style="display:flex;align-items:flex-end;gap:2px;height:100%"><div class="chart-bar chart-bar-ok" style="height:${Math.round((okC[i]/maxVal)*100)}%;flex:1"></div><div class="chart-bar chart-bar-fail" style="height:${Math.round((failC[i]/maxVal)*100)}%;flex:1"></div></div></div>`).join('');
+  document.getElementById('chart-labels').innerHTML = labels.map(l=>`<div class="chart-label">${l}</div>`).join('');
+}
+
+// ==================== ARCHIVOS UI ====================
+const SECCIONES = { organico:'Orgánico', orden:'Orden del Cuerpo', parametros:'Parámetros', reportes:'Reportes', historia:'Historia' };
+const TIPO_ICONS = { pdf:'📄', word:'📝', excel:'📊', img:'🖼️', other:'📎' };
+const TIPO_CSS = { pdf:'file-type-pdf', word:'file-type-word', excel:'file-type-excel', img:'file-type-img', other:'file-type-other' };
+
+function renderSectionFiles(seccion){
+  const toolbar = document.getElementById('files-toolbar-'+seccion);
+  const grid = document.getElementById('files-grid-'+seccion);
+  if(!toolbar) return;
+  const isAdmin = currentUser && currentUser.rol==='admin';
+  toolbar.innerHTML = `<div class="files-toolbar"><input class="files-search" type="text" placeholder="Buscar..." oninput="filterFiles('${seccion}',this.value)"/>${isAdmin ? `<button class="btn-add-file" onclick="showTab('admin');document.getElementById('af-seccion').value='${seccion}'">➕ Agregar</button>` : ''}</div>`;
+  const files = getFiles().filter(f=>f.seccion===seccion);
+  renderFilesGrid(grid, files);
+}
+function filterFiles(seccion, q){
+  const files = getFiles().filter(f=>f.seccion===seccion && (f.nombre.toLowerCase().includes(q.toLowerCase()) || (f.desc||'').toLowerCase().includes(q.toLowerCase())));
+  renderFilesGrid(document.getElementById('files-grid-'+seccion), files);
+}
+function renderFilesGrid(el, files){
+  if(!el) return;
+  if(!files.length){ el.innerHTML = `<div class="file-empty">📁 No hay archivos en esta sección.</div>`; return; }
+  el.innerHTML = `<div class="files-grid">${files.map(f=>{
+    const viewUrl = driveViewUrl(f.urlOriginal, f.tipo);
+    const dlUrl = driveDownloadUrl(f.urlOriginal);
+    return `<div class="file-card"><div class="file-card-top"><div class="file-type-icon ${TIPO_CSS[f.tipo]}">${TIPO_ICONS[f.tipo]}</div><div><div class="file-card-name">${esc(f.nombre)}</div><div class="file-card-meta">${f.desc?esc(f.desc)+'<br>':''}${f.fecha}</div></div></div><div class="file-card-actions"><a class="file-card-btn file-card-btn-open" href="${viewUrl}" target="_blank">👁️ Ver</a><a class="file-card-btn file-card-btn-open" href="${dlUrl}" target="_blank">⬇️ Bajar</a>${currentUser?.rol==='admin' ? `<button class="file-card-btn file-card-btn-del" onclick="deleteFile(${f.id})">🗑</button>` : ''}</div></div>`;
+  }).join('')}</div>`;
+}
+function renderAllSectionFiles(){ Object.keys(SECCIONES).forEach(s=>renderSectionFiles(s)); }
+function renderAdminFiles(){
+  const files = getFiles();
+  if(!files.length){ document.getElementById('admin-files-list').innerHTML = '<div class="file-empty">Sin archivos.</div>'; return; }
+  const bySection = {};
+  files.forEach(f=>{ if(!bySection[f.seccion]) bySection[f.seccion]=[]; bySection[f.seccion].push(f); });
+  document.getElementById('admin-files-list').innerHTML = Object.keys(bySection).map(s=>`<div style="margin-bottom:1rem"><div class="section-badge" style="margin-bottom:.5rem">${SECCIONES[s]||s}</div><div class="files-grid">${bySection[s].map(f=>`<div class="file-card"><div class="file-card-top"><div class="file-type-icon ${TIPO_CSS[f.tipo]}">${TIPO_ICONS[f.tipo]}</div><div><div class="file-card-name">${esc(f.nombre)}</div><div class="file-card-meta">${f.fecha}</div></div></div><div class="file-card-actions"><button class="file-card-btn file-card-btn-del" onclick="deleteFile(${f.id})">🗑 Eliminar</button></div></div>`).join('')}</div></div>`).join('');
+}
+function deleteFile(id){
+  const file = getFiles().find(f=>f.id===id);
+  openModal('Eliminar Archivo', `¿Eliminar "${file?.nombre}"?`, ()=>{
+    const newFiles = getFiles().filter(f=>f.id!==id);
+    saveFiles(newFiles);
+    if (currentUser && currentUser.rol === 'admin') {
+      renderAdmin();
+      renderAllSectionFiles();
+    }
+  });
+}
+async function addFile(){
+  const nombre = document.getElementById('af-nombre').value.trim();
   const seccion = document.getElementById('af-seccion').value;
-  const url     = document.getElementById('af-url').value.trim();
-  const tipo    = document.getElementById('af-tipo').value;
-  const desc    = document.getElementById('af-desc').value.trim();
-  if(!nombre){ alert('Ingresa el nombre del archivo.'); return; }
-  if(!url){ alert('Pega el enlace de Google Drive.'); return; }
+  const url = document.getElementById('af-url').value.trim();
+  const tipo = document.getElementById('af-tipo').value;
+  const desc = document.getElementById('af-desc').value.trim();
+  if(!nombre || !url){ alert('Completa nombre y enlace.'); return; }
   const newId = Date.now();
-  const fecha = new Date().toLocaleDateString('es-EC',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const entry = {
-    id: newId,
-    nombre, seccion, urlOriginal: url, url: driveViewUrl(url, tipo), tipo, desc,
-    fecha, subidoPor: currentUser.nombre
-  };
+  const fecha = new Date().toLocaleDateString('es-EC');
+  const entry = { id:newId, nombre, seccion, urlOriginal: url, tipo, desc, fecha, subidoPor: currentUser ? currentUser.nombre : 'admin' };
   const files = getFiles();
   files.push(entry);
   saveFiles(files);
-  // Limpiar campos
-  ['af-nombre','af-url','af-desc'].forEach(id=>document.getElementById(id).value='');
-  // Mostrar código para copiar en FILES_BASE
+  document.getElementById('af-nombre').value = ''; document.getElementById('af-url').value = ''; document.getElementById('af-desc').value = '';
   const linea = `  { id:${newId}, nombre:'${nombre.replace(/'/g,"\\'")}', seccion:'${seccion}', tipo:'${tipo}', desc:'${desc.replace(/'/g,"\\'")}', fecha:'${fecha}', urlOriginal:'${url}' },`;
   document.getElementById('af-code-text').textContent = linea;
   document.getElementById('af-code-box').style.display = 'block';
-  document.getElementById('af-code-box').scrollIntoView({behavior:'smooth', block:'nearest'});
-  renderAdmin();
-  renderSectionFiles(seccion);
+  if (currentUser && currentUser.rol === 'admin') {
+    renderAdmin();
+    renderSectionFiles(seccion);
+  }
 }
-
 function copiarCodigo(){
   const txt = document.getElementById('af-code-text').textContent;
-  navigator.clipboard.writeText(txt).then(()=>{
-    const btn = event.target;
-    const orig = btn.textContent;
-    btn.textContent = '✓ Copiado!';
-    setTimeout(()=>btn.textContent=orig, 2000);
-  }).catch(()=>{
-    // Fallback para móviles
-    const ta = document.createElement('textarea');
-    ta.value = txt; ta.style.position='fixed'; ta.style.opacity='0';
-    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
-    document.body.removeChild(ta);
-    const btn = event.target;
-    btn.textContent = '✓ Copiado!';
-    setTimeout(()=>btn.textContent='📋 Copiar código', 2000);
-  });
+  navigator.clipboard.writeText(txt);
+  alert('Código copiado. Pégalo en FILES_BASE en el HTML.');
 }
 
-function deleteFile(id){
-  openModal('🗑 Eliminar Archivo','¿Eliminar este archivo del sistema? El archivo en Google Drive NO se borra.',()=>{
-    const files = getFiles().filter(f=>f.id!==id);
-    saveFiles(files);
-    renderAdmin();
-    Object.keys(SECCIONES).forEach(s=>renderSectionFiles(s));
-  });
+function globalSearchFiles(){
+  const query = document.getElementById('global-search-input').value.toLowerCase();
+  if(!query) { document.getElementById('global-search-results').innerHTML = ''; return; }
+  const files = getFiles().filter(f=>f.nombre.toLowerCase().includes(query) || (f.desc||'').toLowerCase().includes(query));
+  if(!files.length) { document.getElementById('global-search-results').innerHTML = '<div class="file-empty">No se encontraron archivos.</div>'; return; }
+  document.getElementById('global-search-results').innerHTML = `<div class="files-grid">${files.map(f=>`<div class="file-card"><div class="file-card-top"><div class="file-type-icon ${TIPO_CSS[f.tipo]}">${TIPO_ICONS[f.tipo]}</div><div><div class="file-card-name">${esc(f.nombre)}</div><div class="file-card-meta">${SECCIONES[f.seccion]} · ${f.fecha}</div></div></div><div class="file-card-actions"><a class="file-card-btn file-card-btn-open" href="${driveViewUrl(f.urlOriginal, f.tipo)}" target="_blank">Ver</a></div></div>`).join('')}</div>`;
 }
 
-function renderSectionFiles(seccion){
-  const toolbarEl = document.getElementById('files-toolbar-'+seccion);
-  const gridEl    = document.getElementById('files-grid-'+seccion);
-  if(!toolbarEl || !gridEl) return;
-  const isAdmin = currentUser && currentUser.rol==='admin';
-  const files = getFiles().filter(f=>f.seccion===seccion);
-
-  // Toolbar con búsqueda + botón solo para admin
-  toolbarEl.innerHTML = `
-    <div class="files-toolbar">
-      <input class="files-search" type="text" placeholder="Buscar archivo…" oninput="filterFiles('${seccion}',this.value)" id="search-${seccion}"/>
-      ${isAdmin ? `<button class="btn-add-file" onclick="showTab('admin');document.getElementById('af-seccion').value='${seccion}'">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Agregar Archivo
-      </button>` : ''}
-    </div>`;
-
-  renderFilesGrid(gridEl, files, seccion, isAdmin);
+// ==================== EXTRAS ====================
+function exportLogsToCSV(){
+  const logs = getLogs();
+  let csv = "Usuario,Nombre,Email,Fecha,Hora,Dispositivo,Estado\n";
+  logs.forEach(l=>{ csv += `"${l.usuario}","${l.nombre}","${l.email||''}","${l.fecha}","${l.hora}","${l.device}","${l.estado}"\n`; });
+  const blob = new Blob([csv], {type:"text/csv"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `bitacora_cte_${new Date().toISOString().slice(0,19)}.csv`; a.click();
+}
+function printCurrentView(){
+  const tab = document.querySelector('.tab.active');
+  const win = window.open('', '_blank');
+  win.document.write(`<html><head><title>Reporte CTE</title><link href="https://fonts.googleapis.com/css2?family=Source+Sans+3&display=swap" rel="stylesheet"/><style>body{font-family:'Source Sans 3';padding:2rem;}</style></head><body>${tab.innerHTML}</body></html>`);
+  win.document.close(); win.print();
+}
+function toggleDarkMode(){
+  document.body.classList.toggle('dark-mode');
+  localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
 }
 
-function filterFiles(seccion, query){
-  const isAdmin = currentUser && currentUser.rol==='admin';
-  const q = query.toLowerCase();
-  const files = getFiles().filter(f=>f.seccion===seccion && (
-    f.nombre.toLowerCase().includes(q) || (f.desc||'').toLowerCase().includes(q)
-  ));
-  const gridEl = document.getElementById('files-grid-'+seccion);
-  renderFilesGrid(gridEl, files, seccion, isAdmin);
+function confirmClearLogs(){
+  openModal('🗑 Borrar Bitácora', '¿Eliminar TODOS los registros?', ()=>{ saveLogs([]); renderDashboard(); if(currentUser && currentUser.rol === 'admin') { renderAdmin(); } });
 }
 
-function renderFilesGrid(el, files, seccion, isAdmin){
-  if(!files.length){
-    el.innerHTML = `<div class="file-empty">
-      ${isAdmin ? '📁 No hay archivos en esta sección. Agrégalos desde el Panel Admin.' : '📁 No hay archivos disponibles en esta sección.'}
-    </div>`;
-    return;
-  }
-  el.innerHTML = `<div class="files-grid">${files.map(f=>{
-    const urlOrig = f.urlOriginal || f.url;
-    const viewUrl = driveViewUrl(urlOrig, f.tipo);
-    const dlUrl   = driveDownloadUrl(urlOrig);
-    return `<div class="file-card">
-      <div class="file-card-top">
-        <div class="file-type-icon ${TIPO_CSS[f.tipo]||TIPO_CSS.other}">${TIPO_ICONS[f.tipo]||'📎'}</div>
-        <div>
-          <div class="file-card-name">${esc(f.nombre)}</div>
-          <div class="file-card-meta">${f.desc?esc(f.desc)+'<br>':''}<span style="opacity:.7">${f.fecha}</span></div>
-        </div>
-      </div>
-      <div class="file-card-actions">
-        <a class="file-card-btn file-card-btn-open" href="${viewUrl}" target="_blank" title="Ver archivo">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          Ver
-        </a>
-        <a class="file-card-btn file-card-btn-open" href="${dlUrl}" target="_blank" title="Descargar" style="border-left:1px solid #f0f2f6">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Bajar
-        </a>
-        ${isAdmin ? `<button class="file-card-btn file-card-btn-del" onclick="deleteFile(${f.id})" style="border-left:1px solid #f0f2f6">🗑</button>` : ''}
-      </div>
-    </div>`;
-  }).join('')}</div>`;
+// ==================== MODAL Y UTILS ====================
+let _modalCallback = null;
+function openModal(title, msg, onConfirm){
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-msg').textContent = msg;
+  _modalCallback = onConfirm;
+  document.getElementById('confirm-modal').classList.add('open');
 }
-
-function renderAllSectionFiles(){
-  Object.keys(SECCIONES).forEach(s=>renderSectionFiles(s));
+function closeModal(){ document.getElementById('confirm-modal').classList.remove('open'); _modalCallback = null; }
+document.getElementById('modal-ok-btn').onclick = () => { if(_modalCallback) _modalCallback(); closeModal(); };
+document.getElementById('confirm-modal').addEventListener('click', e=>{ if(e.target === e.currentTarget) closeModal(); });
+function mostrarError(msg){ const el = document.getElementById('login-error'); el.textContent = msg; el.style.display = 'block'; setTimeout(()=>el.style.display='none', 3000); }
+function toggleManual(){ const f = document.getElementById('login-manual-fields'); f.style.display = f.style.display === 'block' ? 'none' : 'block'; }
+function showTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  document.querySelectorAll('nav a').forEach(a=>a.classList.remove('active'));
+  const lnk = [...document.querySelectorAll('nav a')].find(a=>a.getAttribute('onclick')===`showTab('${id}')`);
+  if(lnk) lnk.classList.add('active');
+  if(id === 'admin' && currentUser && currentUser.rol === 'admin') renderAdmin();
+  if(SECCIONES[id]) renderSectionFiles(id);
 }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// Renderizar secciones al cambiar de tab
-function renderAdminFiles(){
-  const files = getFiles();
-  if(!files.length){
-    document.getElementById('admin-files-list').innerHTML = '<div class="file-empty">Aún no se han agregado archivos al sistema.</div>';
-    return;
-  }
-  // Agrupar por sección
-  const bySection = {};
-  files.forEach(f=>{ if(!bySection[f.seccion]) bySection[f.seccion]=[]; bySection[f.seccion].push(f); });
-  document.getElementById('admin-files-list').innerHTML = Object.keys(bySection).map(s=>`
-    <div style="margin-bottom:1.2rem">
-      <div style="font-size:.78rem;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.6rem;display:flex;align-items:center;gap:.5rem">
-        <span class="section-badge">${SECCIONES[s]||s}</span> ${bySection[s].length} archivo(s)
-      </div>
-      <div class="files-grid">${bySection[s].map(f=>{
-        const urlOrig = f.urlOriginal || f.url;
-        const viewUrl = driveViewUrl(urlOrig, f.tipo);
-        const dlUrl   = driveDownloadUrl(urlOrig);
-        return `<div class="file-card">
-          <div class="file-card-top">
-            <div class="file-type-icon ${TIPO_CSS[f.tipo]||TIPO_CSS.other}">${TIPO_ICONS[f.tipo]||'📎'}</div>
-            <div>
-              <div class="file-card-name">${esc(f.nombre)}</div>
-              <div class="file-card-meta">${f.desc?esc(f.desc)+'<br>':''}<span style="opacity:.7">${f.fecha} · ${esc(f.subidoPor)}</span></div>
-            </div>
-          </div>
-          <div class="file-card-actions">
-            <a class="file-card-btn file-card-btn-open" href="${viewUrl}" target="_blank" title="Ver archivo">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              Ver
-            </a>
-            <a class="file-card-btn file-card-btn-open" href="${dlUrl}" target="_blank" title="Descargar" style="border-left:1px solid #f0f2f6">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Bajar
-            </a>
-            <button class="file-card-btn file-card-btn-del" onclick="deleteFile(${f.id})" style="border-left:1px solid #f0f2f6">🗑</button>
-          </div>
-        </div>`;
-      }).join('')}
-      </div>
-    </div>`).join('');
-}
-
-
-function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+// ==================== INICIALIZACIÓN ====================
+(async function init(){
+  await initializeUsers();
+  if(localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
+  document.getElementById('inp-pass')?.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+  populateUserSelector();
+  renderAllSectionFiles();
+})();
 </script>
 </body>
 </html>
