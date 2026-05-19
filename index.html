@@ -111,7 +111,6 @@ main{max-width:1060px;margin:0 auto;padding:2rem}
 .badge-fail{background:#f8d7da;color:#a71d2a}
 .badge-admin{background:#fff3cd;color:#7a5c00}
 .badge-user{background:#e8eaf6;color:#2a3580}
-.badge-email{background:#e2e3e5;color:#383d41}
 .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
 
 .admin-card{background:var(--white);border:1px solid #dde0e8;border-radius:8px;overflow:hidden;margin-bottom:1.5rem}
@@ -148,8 +147,6 @@ footer a{color:var(--gold2);text-decoration:none}
 .btn-danger:hover{background:var(--danger);color:#fff}
 .btn-add-file{background:var(--navy);color:var(--gold2);font-family:'Oswald',sans-serif;font-size:.78rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.5rem 1rem;border:none;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;gap:.4rem}
 .btn-add-file:hover{background:var(--navy3)}
-.btn-register-email{background:var(--gold);color:var(--navy);font-family:'Oswald',sans-serif;font-size:.78rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.5rem 1rem;border:none;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;gap:.4rem}
-.btn-register-email:hover{background:var(--gold2)}
 
 .modal-overlay{position:fixed;inset:0;background:rgba(10,22,40,.7);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
 .modal-overlay.open{opacity:1;pointer-events:all}
@@ -219,13 +216,14 @@ footer a{color:var(--gold2);text-decoration:none}
       </div>
       <div class="login-error" id="login-error"></div>
       <button class="btn-google" onclick="loginConGoogle()"><svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Ingresar con Google</button>
+      
       <div class="login-divider">o</div>
+      <div class="login-or-manual" onclick="toggleManual()">🔑 Acceso manual (administrador)</div>
       <div class="login-manual-fields" id="login-manual-fields">
         <div class="field"><label>Usuario</label><input type="text" id="inp-user" placeholder="ej: admin"/></div>
         <div class="field"><label>Contraseña</label><input type="password" id="inp-pass" placeholder="••••••••"/></div>
         <button class="btn-login" onclick="doLogin()">Ingresar</button>
       </div>
-      <div class="login-or-manual" onclick="toggleManual()">🔑 Acceso manual (administrador)</div>
       <div class="login-footer">Comisión de Tránsito del Ecuador · Acceso restringido al personal autorizado</div>
     </div>
   </div>
@@ -259,7 +257,13 @@ footer a{color:var(--gold2);text-decoration:none}
   <main>
     <div class="tab active" id="tab-inicio">
       <div class="stats-row"><div class="stat-card"><div class="lbl">Usuarios</div><div class="val" id="stat-total">—</div></div><div class="stat-card"><div class="lbl">Accesos hoy</div><div class="val" id="stat-hoy">—</div></div><div class="stat-card"><div class="lbl">Intentos fallidos</div><div class="val" id="stat-fail">—</div></div><div class="stat-card"><div class="lbl">Último acceso</div><div class="val" style="font-size:1rem" id="stat-last">—</div><div class="sub" id="stat-last-time">—</div></div></div>
-      <div class="section-title">Secciones del Sistema</div><div class="grid"><div class="card" onclick="showTab('organico')"><div class="card-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div><h3>Orgánico</h3><p>Estructura organizacional.</p></div><div class="card" onclick="showTab('organico')"><div class="card-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div><h3>Beta Orgánico</h3><p>Versión de prueba. <button class="btn-register-email" onclick="registrarCorreoUsuario()" style="margin-left:.5rem;padding:.2rem .6rem;font-size:.7rem">📧 Registrar mi correo</button></p></div><div class="card" onclick="showTab('orden')"><div class="card-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div><h3>Orden del Cuerpo</h3><p>Órdenes oficiales.</p></div><div class="card" onclick="showTab('parametros')"><div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M12 2v2M12 20v2M4.93 4.93l1.41 1.41M18.66 18.66l1.41 1.41M2 12h2M20 12h2"/></svg></div><h3>Parámetros</h3><p>Configuración.</p></div><div class="card" onclick="showTab('reportes')"><div class="card-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg></div><h3>Reportes Diarios</h3><p>Registro operativo.</p></div><div class="card" onclick="showTab('historia')"><div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><h3>Historia</h3><p>Historial institucional.</p></div></div>
+      <div class="section-title">Secciones del Sistema</div><div class="grid">
+        <div class="card" onclick="showTab('organico')"><div class="card-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div><h3>Orgánico</h3><p>Estructura organizacional.</p></div>
+        <div class="card" onclick="showTab('orden')"><div class="card-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div><h3>Orden del Cuerpo</h3><p>Órdenes oficiales.</p></div>
+        <div class="card" onclick="showTab('parametros')"><div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M12 2v2M12 20v2M4.93 4.93l1.41 1.41M18.66 18.66l1.41 1.41M2 12h2M20 12h2"/></svg></div><h3>Parámetros</h3><p>Configuración.</p></div>
+        <div class="card" onclick="showTab('reportes')"><div class="card-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg></div><h3>Reportes Diarios</h3><p>Registro operativo.</p></div>
+        <div class="card" onclick="showTab('historia')"><div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><h3>Historia</h3><p>Historial institucional.</p></div>
+      </div>
       <div class="section-title">Registro de Accesos Recientes</div><div id="dashboard-bitacora" style="display:none"><div class="log-wrap"><div class="log-header"><h3>🔒 Bitácora de Ingresos</h3><span id="log-count-label">—</span></div><div style="overflow-x:auto"><table class="log-table"><thead><tr><th>Usuario</th><th>Nombre</th><th>Fecha y Hora</th><th>Dispositivo</th><th>Estado</th></tr></thead><tbody id="log-tbody"></tbody></table></div></div></div>
       <div id="dashboard-no-admin" style="display:none;background:var(--white);border:1px solid #dde0e8;border-radius:8px;padding:1.5rem;text-align:center">🔒 La bitácora de accesos está disponible solo para administradores.</div>
     </div>
@@ -375,6 +379,45 @@ function getUserByEmail(email) {
   return USERS.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
 }
 
+async function autoRegisterUser(email, nombre, foto) {
+  // Verificar si ya existe
+  let user = USERS.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
+  if (user) {
+    // Actualizar nombre si es necesario
+    if (user.nombre !== nombre) {
+      user.nombre = nombre;
+      saveUsers();
+    }
+    return user;
+  }
+  
+  // Crear nuevo usuario
+  const baseUsername = email.split('@')[0];
+  let username = baseUsername;
+  let counter = 1;
+  while (USERS.find(u => u.user === username)) {
+    username = `${baseUsername}${counter}`;
+    counter++;
+  }
+  
+  const newUser = {
+    user: username,
+    passHash: await hashPass('google_' + Math.random().toString(36)),
+    nombre: nombre,
+    rol: 'user',
+    email: email,
+    blocked: false
+  };
+  
+  USERS.push(newUser);
+  saveUsers();
+  
+  // Registrar en bitácora el registro automático
+  addLog(newUser.user, newUser.nombre, 'registro_auto', email, `Usuario registrado automáticamente con Google`);
+  
+  return newUser;
+}
+
 function isBlocked(userObj) {
   return userObj.blocked === true;
 }
@@ -454,29 +497,6 @@ function addLog(usuario, nombre, estado, email='', details=''){
   const dev = /Mobi|Android/i.test(navigator.userAgent) ? 'Móvil' : 'Computadora';
   logs.push({ usuario, nombre, estado, email, details, fecha: now.toLocaleDateString('es-EC'), hora: now.toLocaleTimeString('es-EC'), device: dev, timestamp: now.getTime() });
   saveLogs(logs);
-}
-
-// ==================== REGISTRO DE CORREO ====================
-function registrarCorreoUsuario() {
-  if (!currentUser) {
-    alert("No hay sesión activa.");
-    return;
-  }
-  const userEmail = currentUser.email || '';
-  if (!userEmail) {
-    alert("El usuario actual no tiene un correo asociado. Contacte al administrador.");
-    return;
-  }
-  // Registrar en bitácora
-  addLog(currentUser.user, currentUser.nombre, 'registro_correo', userEmail, `Correo registrado: ${userEmail}`);
-  // Actualizar el campo email del usuario en la lista USERS si es necesario
-  const userInList = USERS.find(u => u.user === currentUser.user);
-  if (userInList && (!userInList.email || userInList.email !== userEmail)) {
-    userInList.email = userEmail;
-    saveUsers();
-    if (currentUser.rol === 'admin') renderAdmin();
-  }
-  alert(`✅ Correo ${userEmail} registrado exitosamente en la bitácora.`);
 }
 
 // ==================== ARCHIVOS ====================
@@ -573,24 +593,35 @@ function loginConGoogle(){
   google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: onGoogleToken });
   google.accounts.id.prompt();
 }
-function onGoogleToken(response){
+
+async function onGoogleToken(response){
   try{
     const payload = JSON.parse(atob(response.credential.split('.')[1]));
     const email = payload.email.toLowerCase();
     const nombre = payload.name;
     const foto = payload.picture;
-    procesarLoginGoogle(email, nombre, foto);
-  }catch(e){ mostrarError('Error con Google.'); }
-}
-function procesarLoginGoogle(email, nombreGoogle, foto){
-  const found = getUserByEmail(email);
-  if(found){
-    if(isBlocked(found)){ mostrarError('Cuenta bloqueada.'); addLog(found.user, found.nombre, 'fail'); return; }
-    addLog(found.user, found.nombre, 'ok', email);
-    entrarAlSistema(found, foto);
-  } else {
-    addLog(email, nombreGoogle, 'fail');
-    mostrarError('Correo no registrado.');
+    
+    // Buscar si el usuario ya existe por email
+    let user = getUserByEmail(email);
+    
+    if (!user) {
+      // Registrar automáticamente al usuario
+      user = await autoRegisterUser(email, nombre, foto);
+      mostrarError(`✅ Usuario registrado automáticamente. Bienvenido ${nombre}`);
+    }
+    
+    if(isBlocked(user)){ 
+      mostrarError('Cuenta bloqueada. Contacte al administrador.'); 
+      addLog(user.user, user.nombre, 'fail', email);
+      return; 
+    }
+    
+    addLog(user.user, user.nombre, 'ok', email);
+    entrarAlSistema(user, foto);
+    
+  }catch(e){ 
+    console.error(e);
+    mostrarError('Error al procesar la respuesta de Google.'); 
   }
 }
 
@@ -622,7 +653,7 @@ function renderDashboard(){
   if(isAdmin){
     const recent = [...logs].reverse().slice(0,15);
     document.getElementById('log-count-label').textContent = logs.length+' registros';
-    document.getElementById('log-tbody').innerHTML = recent.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':(l.estado==='registro_correo'?'badge-email':'badge-fail')}">${l.estado==='ok'?'✓ Exitoso':(l.estado==='registro_correo'?'📧 Correo':'✗ Fallido')}</span></td></tr>`).join('');
+    document.getElementById('log-tbody').innerHTML = recent.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':(l.estado==='registro_auto'?'badge-email':'badge-fail')}">${l.estado==='ok'?'✓ Exitoso':(l.estado==='registro_auto'?'📝 Registro':'✗ Fallido')}</span></td></tr>`).join('');
   }
 }
 
@@ -642,7 +673,7 @@ function renderAdmin(){
   
   const all=[...logs].reverse();
   document.getElementById('admin-log-total').textContent = all.length;
-  document.getElementById('admin-log-tbody').innerHTML = all.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':(l.estado==='registro_correo'?'badge-email':'badge-fail')}">${l.estado==='ok'?'✓ Exitoso':(l.estado==='registro_correo'?'📧 Correo':'✗ Fallido')}</span>${l.details?`<br><small>${esc(l.details)}</small>`:''}</td></tr>`).join('');
+  document.getElementById('admin-log-tbody').innerHTML = all.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':(l.estado==='registro_auto'?'badge-email':'badge-fail')}">${l.estado==='ok'?'✓ Exitoso':(l.estado==='registro_auto'?'📝 Registro':'✗ Fallido')}</span>${l.details?`<br><small>${esc(l.details)}</small>`:''}</td></tr>`).join('');
   renderChart(logs);
   renderAdminFiles();
 }
