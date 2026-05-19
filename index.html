@@ -29,7 +29,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--light);color:var(--
 #screen-login::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 50px,rgba(200,168,75,.04) 50px,rgba(200,168,75,.04) 100px)}
 .login-stripe{background:var(--gold);height:5px;width:100%;position:relative;z-index:2}
 .login-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem;position:relative;z-index:2}
-.login-box{background:rgba(255,255,255,.06);border:1px solid rgba(200,168,75,.25);border-radius:12px;padding:2.5rem 2.8rem;width:100%;max-width:420px;backdrop-filter:blur(8px)}
+.login-box{background:rgba(255,255,255,.06);border:1px solid rgba(200,168,75,.25);border-radius:12px;padding:2.5rem 2.8rem;width:100%;max-width:450px;backdrop-filter:blur(8px)}
 .login-logo{text-align:center;margin-bottom:2rem}
 .login-escudo{width:72px;height:72px;background:var(--gold);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:1.2rem;color:var(--navy);margin-bottom:1rem;border:3px solid rgba(255,255,255,.2)}
 .login-logo h1{font-family:'Oswald',sans-serif;font-size:1.3rem;font-weight:700;color:#fff;letter-spacing:.08em;text-transform:uppercase;line-height:1.2}
@@ -42,8 +42,14 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--light);color:var(--
 .btn-login{width:100%;padding:.85rem;background:var(--gold);color:var(--navy);font-family:'Oswald',sans-serif;font-size:1rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border:none;border-radius:6px;cursor:pointer;transition:background .2s,transform .1s;margin-top:.5rem}
 .btn-login:hover{background:var(--gold2)}
 .btn-login:active{transform:scale(.98)}
+.btn-register{width:100%;padding:.85rem;background:rgba(200,168,75,.2);color:var(--gold2);font-family:'Oswald',sans-serif;font-size:1rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--gold);border-radius:6px;cursor:pointer;transition:background .2s;margin-top:.5rem}
+.btn-register:hover{background:rgba(200,168,75,.4)}
 .login-error{background:rgba(192,57,43,.18);border:1px solid rgba(192,57,43,.5);color:#f1a9a0;font-size:.85rem;padding:.6rem .9rem;border-radius:5px;margin-bottom:1rem;display:none}
+.login-success{background:rgba(26,122,74,.18);border:1px solid rgba(26,122,74,.5);color:#a5d6a7;font-size:.85rem;padding:.6rem .9rem;border-radius:5px;margin-bottom:1rem;display:none}
 .login-footer{text-align:center;margin-top:1.5rem;font-size:.75rem;color:rgba(255,255,255,.35)}
+.login-divider{display:flex;align-items:center;gap:.8rem;margin:1.2rem 0;color:rgba(255,255,255,.3)}.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.12)}
+.btn-google{width:100%;padding:.8rem 1rem;background:#fff;color:#1a2035;font-size:.95rem;font-weight:600;border:none;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.7rem}
+.btn-google:hover{background:#f5f5f5}
 
 #screen-main{display:none}
 .header-stripe{background:var(--gold);height:5px}
@@ -111,6 +117,7 @@ main{max-width:1060px;margin:0 auto;padding:2rem}
 .badge-fail{background:#f8d7da;color:#a71d2a}
 .badge-admin{background:#fff3cd;color:#7a5c00}
 .badge-user{background:#e8eaf6;color:#2a3580}
+.badge-pending{background:#fff3cd;color:#856404}
 .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
 
 .admin-card{background:var(--white);border:1px solid #dde0e8;border-radius:8px;overflow:hidden;margin-bottom:1.5rem}
@@ -147,6 +154,10 @@ footer a{color:var(--gold2);text-decoration:none}
 .btn-danger:hover{background:var(--danger);color:#fff}
 .btn-add-file{background:var(--navy);color:var(--gold2);font-family:'Oswald',sans-serif;font-size:.78rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.5rem 1rem;border:none;border-radius:5px;cursor:pointer;display:inline-flex;align-items:center;gap:.4rem}
 .btn-add-file:hover{background:var(--navy3)}
+.btn-approve{background:var(--success);color:#fff;font-family:'Oswald',sans-serif;font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.3rem .8rem;border:none;border-radius:4px;cursor:pointer}
+.btn-approve:hover{background:#155d3a}
+.btn-reject{background:var(--danger);color:#fff;font-family:'Oswald',sans-serif;font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:.3rem .8rem;border:none;border-radius:4px;cursor:pointer}
+.btn-reject:hover{background:#a93226}
 
 .modal-overlay{position:fixed;inset:0;background:rgba(10,22,40,.7);backdrop-filter:blur(4px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
 .modal-overlay.open{opacity:1;pointer-events:all}
@@ -194,12 +205,6 @@ footer a{color:var(--gold2);text-decoration:none}
 .chart-legend{display:flex;gap:1.2rem;margin-top:.8rem}
 .chart-legend-item{display:flex;align-items:center;gap:.4rem;font-size:.74rem}
 .chart-legend-dot{width:10px;height:10px;border-radius:2px}
-.login-divider{display:flex;align-items:center;gap:.8rem;margin:1.2rem 0;color:rgba(255,255,255,.3)}.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.12)}
-.btn-google{width:100%;padding:.8rem 1rem;background:#fff;color:#1a2035;font-size:.95rem;font-weight:600;border:none;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.7rem}
-.btn-google:hover{background:#f5f5f5}
-.login-or-manual{text-align:center;margin-top:1rem;font-size:.75rem;color:rgba(255,255,255,.35);cursor:pointer;text-decoration:underline}
-.login-or-manual:hover{color:var(--gold2)}
-.login-manual-fields{display:none;margin-top:.8rem}
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -215,16 +220,31 @@ footer a{color:var(--gold2);text-decoration:none}
         <p>Cuerpo de Vigilancia – CTE</p>
       </div>
       <div class="login-error" id="login-error"></div>
-      <button class="btn-google" onclick="loginConGoogle()"><svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Ingresar con Google</button>
+      <div class="login-success" id="login-success"></div>
+      
+      <!-- Formulario de Registro -->
+      <div class="field">
+        <label>Nombre</label>
+        <input type="text" id="reg-nombre" placeholder="Juan"/>
+      </div>
+      <div class="field">
+        <label>Apellido</label>
+        <input type="text" id="reg-apellido" placeholder="Pérez"/>
+      </div>
+      <div class="field">
+        <label>Correo Gmail</label>
+        <input type="email" id="reg-email" placeholder="ejemplo@gmail.com"/>
+      </div>
+      <button class="btn-register" onclick="solicitarRegistro()">📝 Solicitar Registro</button>
       
       <div class="login-divider">o</div>
-      <div class="login-or-manual" onclick="toggleManual()">🔑 Acceso manual (administrador)</div>
-      <div class="login-manual-fields" id="login-manual-fields">
-        <div class="field"><label>Usuario</label><input type="text" id="inp-user" placeholder="ej: admin"/></div>
-        <div class="field"><label>Contraseña</label><input type="password" id="inp-pass" placeholder="••••••••"/></div>
-        <button class="btn-login" onclick="doLogin()">Ingresar</button>
-      </div>
-      <div class="login-footer">Comisión de Tránsito del Ecuador · Acceso restringido al personal autorizado</div>
+      
+      <button class="btn-google" onclick="loginConGoogle()">
+        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Ingresar con Google (solo usuarios aprobados)
+      </button>
+      
+      <div class="login-footer">Comisión de Tránsito del Ecuador · Registro requiere aprobación del administrador</div>
     </div>
   </div>
 </div>
@@ -264,7 +284,7 @@ footer a{color:var(--gold2);text-decoration:none}
         <div class="card" onclick="showTab('reportes')"><div class="card-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg></div><h3>Reportes Diarios</h3><p>Registro operativo.</p></div>
         <div class="card" onclick="showTab('historia')"><div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><h3>Historia</h3><p>Historial institucional.</p></div>
       </div>
-      <div class="section-title">Registro de Accesos Recientes</div><div id="dashboard-bitacora" style="display:none"><div class="log-wrap"><div class="log-header"><h3>🔒 Bitácora de Ingresos</h3><span id="log-count-label">—</span></div><div style="overflow-x:auto"><table class="log-table"><thead><tr><th>Usuario</th><th>Nombre</th><th>Fecha y Hora</th><th>Dispositivo</th><th>Estado</th></tr></thead><tbody id="log-tbody"></tbody></table></div></div></div>
+      <div class="section-title">Registro de Accesos Recientes</div><div id="dashboard-bitacora" style="display:none"><div class="log-wrap"><div class="log-header"><h3>🔒 Bitácora de Ingresos</h3><span id="log-count-label">—</span></div><div style="overflow-x:auto"><table class="log-table"><thead><tr><th>Usuario</th><th>Nombre</th><th>Fecha y Hora</th><th>Dispositivo</th><th>Estado</th></tr></thead><tbody id="log-tbody"></tbody><table></div></div></div>
       <div id="dashboard-no-admin" style="display:none;background:var(--white);border:1px solid #dde0e8;border-radius:8px;padding:1.5rem;text-align:center">🔒 La bitácora de accesos está disponible solo para administradores.</div>
     </div>
 
@@ -279,6 +299,11 @@ footer a{color:var(--gold2);text-decoration:none}
 
     <div class="tab" id="tab-admin">
       <div class="section-title">⚙ Panel de Administración</div>
+      
+      <!-- Solicitudes Pendientes -->
+      <div class="section-title">📋 Solicitudes de Registro Pendientes</div>
+      <div class="admin-card"><div class="admin-card-body" id="solicitudes-list"></div></div>
+      
       <div class="chart-wrap"><div class="chart-head"><h3>📈 Ingresos por Día (últimos 14 días)</h3></div><div class="chart-body"><div class="chart-bars" id="chart-bars"></div><div class="chart-labels" id="chart-labels"></div><div class="chart-legend"><div class="chart-legend-item"><div class="chart-legend-dot" style="background:#1a7a4a"></div>Exitosos</div><div class="chart-legend-item"><div class="chart-legend-dot" style="background:#c0392b"></div>Fallidos</div></div></div></div>
       
       <div class="section-title">📁 Gestión de Archivos por Sección</div>
@@ -320,15 +345,14 @@ footer a{color:var(--gold2);text-decoration:none}
 // ==================== CONFIGURACIÓN INICIAL ====================
 const GOOGLE_CLIENT_ID = '571154981190-e83q5clu440b0p8jqikrqkq3r6v2qrdt.apps.googleusercontent.com';
 
+// Usuarios por defecto (admin)
 const DEFAULT_USERS = [
-  { user:'admin',     passHash:'', nombre:'Administrador Sistema', rol:'admin', email:'ctepersonal0@gmail.com', blocked: false },
-  { user:'f.delgado', passHash:'', nombre:'Franklin Delgado',      rol:'user',  email:'organicocte2020@gmail.com', blocked: false },
+  { user:'admin', passHash:'', nombre:'Administrador Sistema', rol:'admin', email:'ctepersonal0@gmail.com', blocked: false },
 ];
 
 const FILES_BASE = [
   { id:1779204488747, nombre:'LISTADO', seccion:'parametros', tipo:'excel', desc:'', fecha:'19/05/2026', urlOriginal:'https://drive.google.com/drive/folders/1XPel3aDUBnMdyCMTGpBhIW0GPP98F5dh?usp=sharing' },
   { id:1779206676497, nombre:'ORDEN DEL CUERPO 2026', seccion:'orden', tipo:'other', desc:'', fecha:'19/05/2026', urlOriginal:'https://drive.google.com/drive/folders/1Np2lvD-Rlgxkkq9_OGPIrlJAHrRyiE3M?usp=sharing' },
-  { id:1779222274850, nombre:'HISTORIAL CTE', seccion:'organico', tipo:'excel', desc:'', fecha:'19/5/2026', urlOriginal:'https://drive.google.com/drive/folders/1IKszLxBRMZTpv0CyJYaFJ11KbmaftAlW?usp=sharing' },
 ];
 
 // ==================== FUNCIONES DE HASH ====================
@@ -366,28 +390,76 @@ function saveUsers() {
   localStorage.setItem('cte_users', JSON.stringify(USERS));
 }
 
-function getUserByLogin(user, passHash) {
-  return USERS.find(u => u.user === user && u.passHash === passHash);
-}
-
 function getUserByEmail(email) {
   return USERS.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
 }
 
-async function autoRegisterUser(email, nombre, foto) {
-  // Verificar si ya existe
-  let user = USERS.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
-  if (user) {
-    // Actualizar nombre si es necesario
-    if (user.nombre !== nombre) {
-      user.nombre = nombre;
-      saveUsers();
-    }
-    return user;
+// ==================== SOLICITUDES DE REGISTRO ====================
+function getSolicitudes() {
+  try {
+    return JSON.parse(localStorage.getItem('cte_solicitudes') || '[]');
+  } catch(e) { return []; }
+}
+
+function saveSolicitudes(solicitudes) {
+  localStorage.setItem('cte_solicitudes', JSON.stringify(solicitudes));
+}
+
+function solicitarRegistro() {
+  const nombre = document.getElementById('reg-nombre').value.trim();
+  const apellido = document.getElementById('reg-apellido').value.trim();
+  const email = document.getElementById('reg-email').value.trim().toLowerCase();
+  
+  if (!nombre || !apellido || !email) {
+    mostrarError('Completa todos los campos');
+    return;
   }
   
-  // Crear nuevo usuario
-  const baseUsername = email.split('@')[0];
+  if (!email.endsWith('@gmail.com')) {
+    mostrarError('Solo se permiten correos de Gmail');
+    return;
+  }
+  
+  // Verificar si ya existe un usuario aprobado con ese email
+  if (getUserByEmail(email)) {
+    mostrarError('Este correo ya está registrado y aprobado en el sistema');
+    return;
+  }
+  
+  // Verificar si ya existe una solicitud pendiente
+  const solicitudes = getSolicitudes();
+  if (solicitudes.find(s => s.email === email)) {
+    mostrarError('Ya tienes una solicitud pendiente. Espera la aprobación del administrador.');
+    return;
+  }
+  
+  const nuevaSolicitud = {
+    id: Date.now(),
+    nombre: nombre,
+    apellido: apellido,
+    email: email,
+    fecha: new Date().toLocaleDateString('es-EC'),
+    estado: 'pendiente'
+  };
+  
+  solicitudes.push(nuevaSolicitud);
+  saveSolicitudes(solicitudes);
+  
+  mostrarExito('✅ Solicitud enviada. Espera la aprobación del administrador para poder ingresar.');
+  document.getElementById('reg-nombre').value = '';
+  document.getElementById('reg-apellido').value = '';
+  document.getElementById('reg-email').value = '';
+}
+
+function aprobarSolicitud(id) {
+  const solicitudes = getSolicitudes();
+  const solicitud = solicitudes.find(s => s.id === id);
+  
+  if (!solicitud) return;
+  
+  // Crear usuario a partir de la solicitud
+  const nombreCompleto = `${solicitud.nombre} ${solicitud.apellido}`;
+  const baseUsername = solicitud.email.split('@')[0];
   let username = baseUsername;
   let counter = 1;
   while (USERS.find(u => u.user === username)) {
@@ -395,92 +467,72 @@ async function autoRegisterUser(email, nombre, foto) {
     counter++;
   }
   
-  const newUser = {
+  const nuevoUsuario = {
     user: username,
-    passHash: await hashPass('google_' + Math.random().toString(36)),
-    nombre: nombre,
+    passHash: '', // Los usuarios de Google no necesitan contraseña local
+    nombre: nombreCompleto,
     rol: 'user',
-    email: email,
+    email: solicitud.email,
     blocked: false
   };
   
-  USERS.push(newUser);
+  USERS.push(nuevoUsuario);
   saveUsers();
   
-  // Registrar en bitácora el registro automático
-  addLog(newUser.user, newUser.nombre, 'registro_auto', email, `Usuario registrado automáticamente con Google`);
+  // Eliminar solicitud
+  const nuevasSolicitudes = solicitudes.filter(s => s.id !== id);
+  saveSolicitudes(nuevasSolicitudes);
   
-  return newUser;
+  // Registrar en bitácora
+  addLog(username, nombreCompleto, 'aprobacion', solicitud.email, `Cuenta aprobada por administrador`);
+  
+  renderAdmin();
+  mostrarExitoEnAdmin(`✅ Usuario ${nombreCompleto} aprobado correctamente.`);
 }
 
-function isBlocked(userObj) {
-  return userObj.blocked === true;
-}
-
-function toggleBlockUser(username, block) {
-  const user = USERS.find(u => u.user === username);
-  if (!user || user.rol === 'admin') return;
-  user.blocked = block;
-  saveUsers();
-  if (currentUser && currentUser.rol === 'admin') {
+function rechazarSolicitud(id) {
+  const solicitudes = getSolicitudes();
+  const solicitud = solicitudes.find(s => s.id === id);
+  
+  if (!solicitud) return;
+  
+  openModal('Rechazar Solicitud', `¿Rechazar la solicitud de ${solicitud.nombre} ${solicitud.apellido}?`, () => {
+    const nuevasSolicitudes = getSolicitudes().filter(s => s.id !== id);
+    saveSolicitudes(nuevasSolicitudes);
     renderAdmin();
-  }
-}
-
-async function addEditUser() {
-  const login = document.getElementById('new-user-login').value.trim();
-  const name = document.getElementById('new-user-name').value.trim();
-  const pass = document.getElementById('new-user-pass').value;
-  const rol = document.getElementById('new-user-rol').value;
-  if (!login || !name) { alert("Usuario y nombre son obligatorios"); return; }
-  const existing = USERS.find(u => u.user === login);
-  if (existing) {
-    if (pass) existing.passHash = await hashPass(pass);
-    existing.nombre = name;
-    existing.rol = rol;
-  } else {
-    if (!pass) { alert("Contraseña requerida para nuevo usuario"); return; }
-    USERS.push({ user: login, passHash: await hashPass(pass), nombre: name, rol: rol, email: '', blocked: false });
-  }
-  saveUsers();
-  document.getElementById('new-user-pass').value = '';
-  populateUserSelector();
-  if (currentUser && currentUser.rol === 'admin') {
-    renderAdmin();
-  }
-}
-
-function deleteSelectedUser() {
-  const selector = document.getElementById('user-selector');
-  const username = selector.value;
-  if (!username) return;
-  const user = USERS.find(u => u.user === username);
-  if (user && user.rol === 'admin') { alert("No se puede eliminar al administrador principal"); return; }
-  openModal("Eliminar Usuario", `¿Eliminar a ${user.nombre}?`, () => {
-    USERS = USERS.filter(u => u.user !== username);
-    saveUsers();
-    populateUserSelector();
-    if (currentUser && currentUser.rol === 'admin') {
-      renderAdmin();
-    }
   });
 }
 
-function loadUserToEdit() {
-  const username = document.getElementById('user-selector').value;
-  const user = USERS.find(u => u.user === username);
-  if (user) {
-    document.getElementById('new-user-login').value = user.user;
-    document.getElementById('new-user-name').value = user.nombre;
-    document.getElementById('new-user-rol').value = user.rol;
-    document.getElementById('new-user-pass').value = '';
+function renderSolicitudes() {
+  const solicitudes = getSolicitudes();
+  const container = document.getElementById('solicitudes-list');
+  
+  if (!container) return;
+  
+  if (solicitudes.length === 0) {
+    container.innerHTML = '<div class="file-empty">📭 No hay solicitudes pendientes</div>';
+    return;
   }
-}
-
-function populateUserSelector() {
-  const select = document.getElementById('user-selector');
-  if (!select) return;
-  select.innerHTML = '<option value="">Seleccione un usuario...</option>' + USERS.map(u => `<option value="${u.user}">${u.user} - ${u.nombre}</option>`).join('');
+  
+  container.innerHTML = `
+    <div class="files-grid">
+      ${solicitudes.map(s => `
+        <div class="file-card">
+          <div class="file-card-top">
+            <div class="file-type-icon file-type-other">📧</div>
+            <div>
+              <div class="file-card-name">${esc(s.nombre)} ${esc(s.apellido)}</div>
+              <div class="file-card-meta">${esc(s.email)}<br>Solicitado: ${s.fecha}</div>
+            </div>
+          </div>
+          <div class="file-card-actions">
+            <button class="file-card-btn file-card-btn-open btn-approve" onclick="aprobarSolicitud(${s.id})">✓ Aprobar</button>
+            <button class="file-card-btn file-card-btn-del btn-reject" onclick="rechazarSolicitud(${s.id})">✗ Rechazar</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
 }
 
 // ==================== BITÁCORA ====================
@@ -567,22 +619,6 @@ function entrarAlSistema(found, foto){
   resetInactivityTimer();
 }
 
-async function doLogin(){
-  const u = document.getElementById('inp-user').value.trim().toLowerCase();
-  const p = document.getElementById('inp-pass').value;
-  if(!u||!p){ mostrarError('Ingresa tu usuario y contraseña.'); return; }
-  const passHash = await hashPass(p);
-  const found = getUserByLogin(u, passHash);
-  if(found){
-    if(isBlocked(found)){ mostrarError('Cuenta bloqueada.'); addLog(found.user, found.nombre, 'fail'); return; }
-    addLog(found.user, found.nombre, 'ok', found.email);
-    entrarAlSistema(found, null);
-  } else {
-    addLog(u, '—', 'fail');
-    mostrarError('Credenciales incorrectas.');
-  }
-}
-
 function loginConGoogle(){
   if(GOOGLE_CLIENT_ID === 'TU_CLIENT_ID_AQUI.apps.googleusercontent.com'){ mostrarError('Google Login no configurado.'); return; }
   google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: onGoogleToken });
@@ -600,12 +636,11 @@ async function onGoogleToken(response){
     let user = getUserByEmail(email);
     
     if (!user) {
-      // Registrar automáticamente al usuario
-      user = await autoRegisterUser(email, nombre, foto);
-      mostrarError(`✅ Usuario registrado automáticamente. Bienvenido ${nombre}`);
+      mostrarError('❌ No tienes una cuenta aprobada. Solicita registro primero y espera la aprobación del administrador.');
+      return;
     }
     
-    if(isBlocked(user)){ 
+    if(user.blocked){ 
       mostrarError('Cuenta bloqueada. Contacte al administrador.'); 
       addLog(user.user, user.nombre, 'fail', email);
       return; 
@@ -624,7 +659,6 @@ function doLogout(){
   currentUser = null;
   document.getElementById('screen-main').style.display = 'none';
   document.getElementById('screen-login').style.display = 'flex';
-  document.getElementById('inp-pass').value = '';
   document.getElementById('nav-admin').style.display = 'none';
   document.getElementById('print-btn').style.display = 'none';
   document.querySelector('header .escudo').innerHTML = 'CTE';
@@ -648,13 +682,16 @@ function renderDashboard(){
   if(isAdmin){
     const recent = [...logs].reverse().slice(0,15);
     document.getElementById('log-count-label').textContent = logs.length+' registros';
-    document.getElementById('log-tbody').innerHTML = recent.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':(l.estado==='registro_auto'?'badge-email':'badge-fail')}">${l.estado==='ok'?'✓ Exitoso':(l.estado==='registro_auto'?'📝 Registro':'✗ Fallido')}</span></td></tr>`).join('');
+    document.getElementById('log-tbody').innerHTML = recent.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':'badge-fail'}">${l.estado==='ok'?'✓ Exitoso':'✗ Fallido'}</span></td></tr>`).join('');
   }
 }
 
 function renderAdmin(){
   if(!currentUser||currentUser.rol!=='admin') return;
   const logs = getLogs();
+  
+  renderSolicitudes();
+  
   document.getElementById('admin-users-list').innerHTML = USERS.map(u => {
     const isAdm = u.rol==='admin';
     const btnHtml = isAdm ? '' : (u.blocked ? `<button class="btn-unblock" onclick="toggleBlockUser('${u.user}',false)">✓ Desbloquear</button>` : `<button class="btn-block" onclick="toggleBlockUser('${u.user}',true)">⊘ Bloquear</button>`);
@@ -668,7 +705,7 @@ function renderAdmin(){
   
   const all=[...logs].reverse();
   document.getElementById('admin-log-total').textContent = all.length;
-  document.getElementById('admin-log-tbody').innerHTML = all.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':(l.estado==='registro_auto'?'badge-email':'badge-fail')}">${l.estado==='ok'?'✓ Exitoso':(l.estado==='registro_auto'?'📝 Registro':'✗ Fallido')}</span>${l.details?`<br><small>${esc(l.details)}</small>`:''}</td></tr>`).join('');
+  document.getElementById('admin-log-tbody').innerHTML = all.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':'badge-fail'}">${l.estado==='ok'?'✓ Exitoso':'✗ Fallido'}</span>${l.details?`<br><small>${esc(l.details)}</small>`:''}</td></tr>`).join('');
   renderChart(logs);
   renderAdminFiles();
 }
@@ -686,6 +723,66 @@ function renderChart(logs){
   const maxVal = Math.max(...okC, ...failC, 1);
   document.getElementById('chart-bars').innerHTML = labels.map((_,i)=>`<div class="chart-bar-group"><div style="display:flex;align-items:flex-end;gap:2px;height:100%"><div class="chart-bar chart-bar-ok" style="height:${Math.round((okC[i]/maxVal)*100)}%;flex:1"></div><div class="chart-bar chart-bar-fail" style="height:${Math.round((failC[i]/maxVal)*100)}%;flex:1"></div></div></div>`).join('');
   document.getElementById('chart-labels').innerHTML = labels.map(l=>`<div class="chart-label">${l}</div>`).join('');
+}
+
+function toggleBlockUser(username, block) {
+  const user = USERS.find(u => u.user === username);
+  if (!user || user.rol === 'admin') return;
+  user.blocked = block;
+  saveUsers();
+  renderAdmin();
+}
+
+async function addEditUser() {
+  const login = document.getElementById('new-user-login').value.trim();
+  const name = document.getElementById('new-user-name').value.trim();
+  const pass = document.getElementById('new-user-pass').value;
+  const rol = document.getElementById('new-user-rol').value;
+  if (!login || !name) { alert("Usuario y nombre son obligatorios"); return; }
+  const existing = USERS.find(u => u.user === login);
+  if (existing) {
+    if (pass) existing.passHash = await hashPass(pass);
+    existing.nombre = name;
+    existing.rol = rol;
+  } else {
+    if (!pass) { alert("Contraseña requerida para nuevo usuario"); return; }
+    USERS.push({ user: login, passHash: await hashPass(pass), nombre: name, rol: rol, email: '', blocked: false });
+  }
+  saveUsers();
+  document.getElementById('new-user-pass').value = '';
+  populateUserSelector();
+  renderAdmin();
+}
+
+function deleteSelectedUser() {
+  const selector = document.getElementById('user-selector');
+  const username = selector.value;
+  if (!username) return;
+  const user = USERS.find(u => u.user === username);
+  if (user && user.rol === 'admin') { alert("No se puede eliminar al administrador principal"); return; }
+  openModal("Eliminar Usuario", `¿Eliminar a ${user.nombre}?`, () => {
+    USERS = USERS.filter(u => u.user !== username);
+    saveUsers();
+    populateUserSelector();
+    renderAdmin();
+  });
+}
+
+function loadUserToEdit() {
+  const username = document.getElementById('user-selector').value;
+  const user = USERS.find(u => u.user === username);
+  if (user) {
+    document.getElementById('new-user-login').value = user.user;
+    document.getElementById('new-user-name').value = user.nombre;
+    document.getElementById('new-user-rol').value = user.rol;
+    document.getElementById('new-user-pass').value = '';
+  }
+}
+
+function populateUserSelector() {
+  const select = document.getElementById('user-selector');
+  if (!select) return;
+  select.innerHTML = '<option value="">Seleccione un usuario...</option>' + USERS.map(u => `<option value="${u.user}">${u.user} - ${u.nombre}</option>`).join('');
 }
 
 // ==================== ARCHIVOS UI ====================
@@ -728,10 +825,8 @@ function deleteFile(id){
   openModal('Eliminar Archivo', `¿Eliminar "${file?.nombre}"?`, ()=>{
     const newFiles = getFiles().filter(f=>f.id!==id);
     saveFiles(newFiles);
-    if (currentUser && currentUser.rol === 'admin') {
-      renderAdmin();
-      renderAllSectionFiles();
-    }
+    renderAdmin();
+    renderAllSectionFiles();
   });
 }
 async function addFile(){
@@ -751,10 +846,8 @@ async function addFile(){
   const linea = `  { id:${newId}, nombre:'${nombre.replace(/'/g,"\\'")}', seccion:'${seccion}', tipo:'${tipo}', desc:'${desc.replace(/'/g,"\\'")}', fecha:'${fecha}', urlOriginal:'${url}' },`;
   document.getElementById('af-code-text').textContent = linea;
   document.getElementById('af-code-box').style.display = 'block';
-  if (currentUser && currentUser.rol === 'admin') {
-    renderAdmin();
-    renderSectionFiles(seccion);
-  }
+  renderAdmin();
+  renderSectionFiles(seccion);
 }
 function copiarCodigo(){
   const txt = document.getElementById('af-code-text').textContent;
@@ -790,7 +883,7 @@ function toggleDarkMode(){
 }
 
 function confirmClearLogs(){
-  openModal('🗑 Borrar Bitácora', '¿Eliminar TODOS los registros?', ()=>{ saveLogs([]); renderDashboard(); if(currentUser && currentUser.rol === 'admin') { renderAdmin(); } });
+  openModal('🗑 Borrar Bitácora', '¿Eliminar TODOS los registros?', ()=>{ saveLogs([]); renderDashboard(); renderAdmin(); });
 }
 
 // ==================== MODAL Y UTILS ====================
@@ -804,8 +897,9 @@ function openModal(title, msg, onConfirm){
 function closeModal(){ document.getElementById('confirm-modal').classList.remove('open'); _modalCallback = null; }
 document.getElementById('modal-ok-btn').onclick = () => { if(_modalCallback) _modalCallback(); closeModal(); };
 document.getElementById('confirm-modal').addEventListener('click', e=>{ if(e.target === e.currentTarget) closeModal(); });
-function mostrarError(msg){ const el = document.getElementById('login-error'); el.textContent = msg; el.style.display = 'block'; setTimeout(()=>el.style.display='none', 3000); }
-function toggleManual(){ const f = document.getElementById('login-manual-fields'); f.style.display = f.style.display === 'block' ? 'none' : 'block'; }
+function mostrarError(msg){ const el = document.getElementById('login-error'); el.textContent = msg; el.style.display = 'block'; setTimeout(()=>el.style.display='none', 5000); }
+function mostrarExito(msg){ const el = document.getElementById('login-success'); el.textContent = msg; el.style.display = 'block'; setTimeout(()=>el.style.display='none', 5000); }
+function mostrarExitoEnAdmin(msg){ alert(msg); }
 function showTab(id){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
@@ -821,7 +915,6 @@ function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 (async function init(){
   await initializeUsers();
   if(localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
-  document.getElementById('inp-pass')?.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
   populateUserSelector();
   renderAllSectionFiles();
 })();
