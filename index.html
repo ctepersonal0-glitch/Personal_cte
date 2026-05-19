@@ -63,6 +63,7 @@ header::before{content:'';position:absolute;inset:0;background:repeating-linear-
 .btn-logout{background:transparent;border:1px solid rgba(200,168,75,.35);color:var(--gold2);font-family:'Oswald',sans-serif;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;padding:.35rem .8rem;border-radius:4px;cursor:pointer;transition:background .2s}
 .btn-logout:hover{background:rgba(200,168,75,.15)}
 .theme-toggle{background:rgba(255,255,255,.08);border:1px solid rgba(200,168,75,.2);border-radius:6px;padding:.45rem .8rem;cursor:pointer;color:var(--gold2);font-size:.8rem}
+.print-btn{background:rgba(255,255,255,.08);border:1px solid rgba(200,168,75,.2);border-radius:6px;padding:.45rem .8rem;cursor:pointer;color:var(--gold2);font-size:.8rem}
 @media(max-width:500px){
   .header-inner{padding:1rem}
   .escudo{width:44px;height:44px;font-size:.85rem}
@@ -211,7 +212,11 @@ footer a{color:var(--gold2);text-decoration:none}
 .login-or-manual{text-align:center;margin-top:1rem;font-size:.75rem;color:rgba(255,255,255,.35);cursor:pointer;text-decoration:underline}
 .login-or-manual:hover{color:var(--gold2)}
 .login-manual-fields{display:none;margin-top:.8rem}
-.print-btn{background:rgba(255,255,255,.08);border:1px solid rgba(200,168,75,.2);border-radius:6px;padding:.45rem .8rem;cursor:pointer;color:var(--gold2);font-size:.8rem}
+.filter-bar{display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;align-items:flex-end}
+.filter-group{display:flex;flex-direction:column;gap:.3rem}
+.filter-group label{font-size:.7rem;font-weight:600;color:var(--muted);text-transform:uppercase}
+.filter-group input, .filter-group select{padding:.4rem .6rem;border-radius:4px;border:1px solid #dde0e8;background:var(--white);color:var(--text)}
+.btn-filter{background:var(--gold);color:var(--navy);border:none;padding:.4rem 1rem;border-radius:4px;font-weight:600;cursor:pointer}
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
@@ -248,14 +253,23 @@ footer a{color:var(--gold2);text-decoration:none}
       <div class="header-text"><h1>Unidad de Personal y Movilidad</h1><p>Cuerpo de Vigilancia · Comisión de Tránsito del Ecuador</p></div>
       <div class="header-right">
         <button class="theme-toggle" onclick="toggleDarkMode()">🌙 Modo</button>
-        <button class="print-btn" onclick="printCurrentView()">🖨️ Imprimir</button>
+        <button class="print-btn" id="print-btn" onclick="printCurrentView()" style="display:none">🖨️ Imprimir</button>
         <div class="user-badge"><div><span>Sesión: </span><strong id="display-user">—</strong><span id="display-role-badge" class="badge" style="margin-left:.4rem"></span></div></div>
         <button class="btn-logout" onclick="doLogout()">⎋ Cerrar Sesión</button>
       </div>
     </div>
   </header>
 
-  <nav><div class="nav-inner"><a class="active" onclick="showTab('inicio')">Inicio</a><a onclick="showTab('organico')">Orgánico</a><a onclick="showTab('orden')">Orden</a><a onclick="showTab('parametros')">Parámetros</a><a onclick="showTab('reportes')">Reportes</a><a onclick="showTab('historia')">Historia</a><a id="nav-admin" onclick="showTab('admin')" style="display:none">⚙ Admin</a></div></nav>
+  <nav><div class="nav-inner">
+    <a class="active" onclick="showTab('inicio')">Inicio</a>
+    <a onclick="showTab('organico')">Orgánico</a>
+    <a onclick="showTab('orden')">Orden</a>
+    <a onclick="showTab('parametros')">Parámetros</a>
+    <a onclick="showTab('reportes')">Reportes</a>
+    <a onclick="showTab('historia')">Historia</a>
+    <a id="nav-historial" onclick="showTab('historial')" style="display:none">📋 Historial CTE</a>
+    <a id="nav-admin" onclick="showTab('admin')" style="display:none">⚙ Admin</a>
+  </div></nav>
 
   <main>
     <div class="tab active" id="tab-inicio">
@@ -272,6 +286,31 @@ footer a{color:var(--gold2);text-decoration:none}
     <div class="tab" id="tab-historia">
       <div class="section-title">Historia Institucional</div><div style="background:var(--white);border-radius:8px;padding:2rem;margin-bottom:1.5rem"><p>La <strong>Comisión de Tránsito del Ecuador</strong> dispone de Talento Humano capacitado. <em>"De la mano de Nuestro Señor Jesucristo."</em></p><div style="display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1rem"><span class="badge badge-ok">Responsabilidad</span><span class="badge badge-ok">Excelencia</span><span class="badge badge-ok">Eficiencia</span></div></div>
       <div class="info-grid"><div class="info-box"><h3>Correo</h3><p><a href="mailto:ctepersonal067@gmail.com">ctepersonal067@gmail.com</a></p></div><div class="info-box"><h3>Teléfono</h3><p>3731750 Ext. 1137</p></div><div class="info-box"><h3>Institución</h3><p><a href="https://www.comisiontransito.gob.ec/" target="_blank">Comisión de Tránsito →</a></p></div><div class="info-box"><h3>Redes CTE</h3><div class="social-row"><a class="social-btn" href="https://www.facebook.com/ctecuador" target="_blank">Facebook</a><a class="social-btn" href="https://twitter.com/CTEcuador" target="_blank">Twitter</a><a class="social-btn" href="https://www.tiktok.com/@ctecuador" target="_blank">TikTok</a></div></div></div>
+    </div>
+
+    <!-- NUEVA PESTAÑA: HISTORIAL CTE -->
+    <div class="tab" id="tab-historial">
+      <div class="section-title">📋 HISTORIAL COMPLETO CTE</div>
+      <div class="stats-row" id="historial-stats">
+        <div class="stat-card"><div class="lbl">Total Registros</div><div class="val" id="hist-total">0</div></div>
+        <div class="stat-card"><div class="lbl">Ingresos Exitosos</div><div class="val" id="hist-ok">0</div></div>
+        <div class="stat-card"><div class="lbl">Intentos Fallidos</div><div class="val" id="hist-fail">0</div></div>
+        <div class="stat-card"><div class="lbl">Usuarios Activos</div><div class="val" id="hist-users">0</div></div>
+      </div>
+      
+      <div class="filter-bar">
+        <div class="filter-group"><label>Desde</label><input type="date" id="filter-fecha-inicio"/></div>
+        <div class="filter-group"><label>Hasta</label><input type="date" id="filter-fecha-fin"/></div>
+        <div class="filter-group"><label>Estado</label><select id="filter-estado"><option value="todos">Todos</option><option value="ok">Exitoso</option><option value="fail">Fallido</option></select></div>
+        <div class="filter-group"><label>Usuario</label><input type="text" id="filter-usuario" placeholder="Usuario..."/></div>
+        <button class="btn-filter" onclick="applyHistorialFilters()">🔍 Filtrar</button>
+        <button class="btn-add-file" onclick="exportLogsToCSV()">📎 Exportar CSV</button>
+      </div>
+
+      <div class="log-wrap">
+        <div class="log-header"><h3>📜 Registro Cronológico de Accesos</h3><span id="historial-count">— registros</span></div>
+        <div style="overflow-x:auto"><table class="log-table"><thead><tr><th>#</th><th>Usuario</th><th>Nombre</th><th>Fecha</th><th>Hora</th><th>Dispositivo</th><th>Estado</th></tr></thead><tbody id="historial-tbody"></tbody></table></div>
+      </div>
     </div>
 
     <div class="tab" id="tab-admin">
@@ -348,22 +387,22 @@ async function hashPass(pass) {
 function loadUsers() {
   const saved = localStorage.getItem('cte_users');
   if (saved) return JSON.parse(saved);
-  // Inicializar hashes para los usuarios por defecto
-  const initUsers = async () => {
-    for (let u of DEFAULT_USERS) {
-      if (!u.passHash) u.passHash = await hashPass(u.user === 'admin' ? '@dmin2026' : 'cte2026');
-    }
-    localStorage.setItem('cte_users', JSON.stringify(DEFAULT_USERS));
-    return DEFAULT_USERS;
-  };
-  // Nota: Esto es asíncrono, pero como se llama al inicio, usamos una promesa.
-  return initUsers();
+  return DEFAULT_USERS;
 }
 
 let USERS = [];
 
 async function initializeUsers() {
-  USERS = await loadUsers();
+  USERS = loadUsers();
+  // Asegurar hashes para usuarios por defecto si están vacíos
+  let needsSave = false;
+  for (let u of USERS) {
+    if (!u.passHash) {
+      u.passHash = await hashPass(u.user === 'admin' ? '@dmin2026' : 'cte2026');
+      needsSave = true;
+    }
+  }
+  if (needsSave) saveUsers();
 }
 
 function saveUsers() {
@@ -388,6 +427,7 @@ function toggleBlockUser(username, block) {
   user.blocked = block;
   saveUsers();
   renderAdmin();
+  renderHistorial(); // Actualizar historial si está visible
 }
 
 function addEditUser() {
@@ -403,12 +443,13 @@ function addEditUser() {
     existing.rol = rol;
   } else {
     if (!pass) { alert("Contraseña requerida para nuevo usuario"); return; }
-    USERS.push({ user: login, passHash: hashPass(pass), nombre: name, rol: rol, email: '', blocked: false });
+    USERS.push({ user: login, passHash: await hashPass(pass), nombre: name, rol: rol, email: '', blocked: false });
   }
   saveUsers();
   document.getElementById('new-user-pass').value = '';
   populateUserSelector();
   renderAdmin();
+  renderHistorial();
 }
 
 function deleteSelectedUser() {
@@ -422,6 +463,7 @@ function deleteSelectedUser() {
     saveUsers();
     populateUserSelector();
     renderAdmin();
+    renderHistorial();
   });
 }
 
@@ -449,7 +491,7 @@ function addLog(usuario, nombre, estado, email=''){
   const logs = getLogs();
   const now = new Date();
   const dev = /Mobi|Android/i.test(navigator.userAgent) ? 'Móvil' : 'Computadora';
-  logs.push({ usuario, nombre, estado, email, fecha: now.toLocaleDateString('es-EC'), hora: now.toLocaleTimeString('es-EC'), device: dev });
+  logs.push({ usuario, nombre, estado, email, fecha: now.toLocaleDateString('es-EC'), hora: now.toLocaleTimeString('es-EC'), device: dev, timestamp: now.getTime() });
   saveLogs(logs);
 }
 
@@ -513,7 +555,13 @@ function entrarAlSistema(found, foto){
   const rb = document.getElementById('display-role-badge');
   rb.textContent = found.rol === 'admin' ? 'ADMIN' : 'USUARIO';
   rb.className = 'badge ' + (found.rol==='admin' ? 'badge-admin' : 'badge-user');
-  if(found.rol === 'admin') document.getElementById('nav-admin').style.display = 'block';
+  
+  // Mostrar elementos solo para admin
+  const isAdmin = found.rol === 'admin';
+  document.getElementById('nav-admin').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('nav-historial').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('print-btn').style.display = isAdmin ? 'block' : 'none';
+  
   renderDashboard();
   renderAllSectionFiles();
   resetInactivityTimer();
@@ -567,6 +615,8 @@ function doLogout(){
   document.getElementById('screen-login').style.display = 'flex';
   document.getElementById('inp-pass').value = '';
   document.getElementById('nav-admin').style.display = 'none';
+  document.getElementById('nav-historial').style.display = 'none';
+  document.getElementById('print-btn').style.display = 'none';
   document.querySelector('header .escudo').innerHTML = 'CTE';
 }
 
@@ -626,6 +676,53 @@ function renderChart(logs){
   const maxVal = Math.max(...okC, ...failC, 1);
   document.getElementById('chart-bars').innerHTML = labels.map((_,i)=>`<div class="chart-bar-group"><div style="display:flex;align-items:flex-end;gap:2px;height:100%"><div class="chart-bar chart-bar-ok" style="height:${Math.round((okC[i]/maxVal)*100)}%;flex:1"></div><div class="chart-bar chart-bar-fail" style="height:${Math.round((failC[i]/maxVal)*100)}%;flex:1"></div></div></div>`).join('');
   document.getElementById('chart-labels').innerHTML = labels.map(l=>`<div class="chart-label">${l}</div>`).join('');
+}
+
+// ==================== HISTORIAL CTE ====================
+function renderHistorial(){
+  const logs = getLogs();
+  const total = logs.length;
+  const okCount = logs.filter(l=>l.estado==='ok').length;
+  const failCount = logs.filter(l=>l.estado==='fail').length;
+  const uniqueUsers = new Set(logs.map(l=>l.usuario)).size;
+  
+  document.getElementById('hist-total').textContent = total;
+  document.getElementById('hist-ok').textContent = okCount;
+  document.getElementById('hist-fail').textContent = failCount;
+  document.getElementById('hist-users').textContent = uniqueUsers;
+  
+  applyHistorialFilters();
+}
+
+function applyHistorialFilters(){
+  let logs = getLogs();
+  const inicio = document.getElementById('filter-fecha-inicio').value;
+  const fin = document.getElementById('filter-fecha-fin').value;
+  const estado = document.getElementById('filter-estado').value;
+  const usuario = document.getElementById('filter-usuario').value.toLowerCase();
+  
+  if(inicio) logs = logs.filter(l => l.fecha >= inicio);
+  if(fin) logs = logs.filter(l => l.fecha <= fin);
+  if(estado !== 'todos') logs = logs.filter(l => l.estado === estado);
+  if(usuario) logs = logs.filter(l => l.usuario.toLowerCase().includes(usuario));
+  
+  // Ordenar por timestamp descendente (más reciente primero)
+  logs.sort((a,b) => (b.timestamp || 0) - (a.timestamp || 0));
+  
+  document.getElementById('historial-count').textContent = logs.length + ' registros';
+  const tbody = document.getElementById('historial-tbody');
+  tbody.innerHTML = logs.map((l, idx) => `
+    <tr>
+      <td>${idx+1}</td>
+      <td>${esc(l.usuario)}</td>
+      <td>${esc(l.nombre)}</td>
+      <td>${l.fecha}</td>
+      <td>${l.hora}</td>
+      <td>${l.device}</td>
+      <td><span class="badge ${l.estado==='ok'?'badge-ok':'badge-fail'}">${l.estado==='ok'?'✓ Exitoso':'✗ Fallido'}</span></td>
+    </tr>
+  `).join('');
+  if(!logs.length) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center">No hay registros con esos filtros.</td></tr>';
 }
 
 // ==================== ARCHIVOS UI ====================
@@ -712,7 +809,7 @@ function exportLogsToCSV(){
   let csv = "Usuario,Nombre,Email,Fecha,Hora,Dispositivo,Estado\n";
   logs.forEach(l=>{ csv += `"${l.usuario}","${l.nombre}","${l.email||''}","${l.fecha}","${l.hora}","${l.device}","${l.estado}"\n`; });
   const blob = new Blob([csv], {type:"text/csv"});
-  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `bitacora_${new Date().toISOString().slice(0,19)}.csv`; a.click();
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `bitacora_cte_${new Date().toISOString().slice(0,19)}.csv`; a.click();
 }
 function printCurrentView(){
   const tab = document.querySelector('.tab.active');
@@ -726,7 +823,7 @@ function toggleDarkMode(){
 }
 
 function confirmClearLogs(){
-  openModal('🗑 Borrar Bitácora', '¿Eliminar TODOS los registros?', ()=>{ saveLogs([]); renderDashboard(); renderAdmin(); });
+  openModal('🗑 Borrar Bitácora', '¿Eliminar TODOS los registros?', ()=>{ saveLogs([]); renderDashboard(); renderAdmin(); renderHistorial(); });
 }
 
 // ==================== MODAL Y UTILS ====================
@@ -749,6 +846,7 @@ function showTab(id){
   const lnk = [...document.querySelectorAll('nav a')].find(a=>a.getAttribute('onclick')===`showTab('${id}')`);
   if(lnk) lnk.classList.add('active');
   if(id === 'admin') renderAdmin();
+  if(id === 'historial') renderHistorial();
   if(SECCIONES[id]) renderSectionFiles(id);
 }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
