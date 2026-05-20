@@ -319,7 +319,7 @@ body.dark-mode .pagination{border-color:#2d3a52}
         </div>
         <div class="field">
           <label>CÓDIGO INSTITUCIONAL</label>
-          <input type="text" id="reg-codigo" placeholder="EJ: CTE-001" />
+          <input type="text" id="reg-codigo" placeholder="EJ: 12345" maxlength="5" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,5)"/>
         </div>
         <div class="field">
           <label>CORREO GMAIL</label>
