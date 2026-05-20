@@ -30,15 +30,15 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--light);color:var(--
 #screen-login::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 50px,rgba(200,168,75,.04) 50px,rgba(200,168,75,.04) 100px)}
 .login-stripe{background:var(--gold);height:5px;width:100%;position:relative;z-index:2}
 .login-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem;position:relative;z-index:2}
-.login-box{background:rgba(255,255,255,.06);border:1px solid rgba(200,168,75,.25);border-radius:12px;padding:2.5rem 2.8rem;width:100%;max-width:450px;backdrop-filter:blur(8px)}
+.login-box{background:rgba(255,255,255,.06);border:1px solid rgba(200,168,75,.25);border-radius:12px;padding:2.5rem 2.8rem;width:100%;max-width:500px;backdrop-filter:blur(8px)}
 .login-logo{text-align:center;margin-bottom:2rem}
 .login-escudo{width:72px;height:72px;background:var(--gold);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:1.2rem;color:var(--navy);margin-bottom:1rem;border:3px solid rgba(255,255,255,.2)}
 .login-logo h1{font-family:'Oswald',sans-serif;font-size:1.3rem;font-weight:700;color:#fff;letter-spacing:.08em;text-transform:uppercase;line-height:1.2}
 .login-logo p{font-size:.78rem;color:var(--gold2);margin-top:.3rem;letter-spacing:.1em;text-transform:uppercase}
 .field{margin-bottom:1.2rem}
 .field label{display:block;font-size:.8rem;font-weight:600;color:var(--silver);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem}
-.field input{width:100%;padding:.75rem 1rem;background:rgba(255,255,255,.08);border:1px solid rgba(200,168,75,.2);border-radius:6px;color:#fff;font-family:'Source Sans 3',sans-serif;font-size:.95rem;outline:none;transition:border-color .2s,background .2s}
-.field input::placeholder{color:rgba(255,255,255,.35)}
+.field input{width:100%;padding:.75rem 1rem;background:rgba(255,255,255,.08);border:1px solid rgba(200,168,75,.2);border-radius:6px;color:#fff;font-family:'Source Sans 3',sans-serif;font-size:.95rem;outline:none;transition:border-color .2s,background .2s;text-transform:uppercase}
+.field input::placeholder{color:rgba(255,255,255,.35);text-transform:none}
 .field input:focus{border-color:var(--gold);background:rgba(255,255,255,.12)}
 .btn-login{width:100%;padding:.85rem;background:var(--gold);color:var(--navy);font-family:'Oswald',sans-serif;font-size:1rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border:none;border-radius:6px;cursor:pointer;transition:background .2s,transform .1s;margin-top:.5rem}
 .btn-login:hover{background:var(--gold2)}
@@ -190,7 +190,8 @@ footer a{color:var(--gold2);text-decoration:none}
 .file-empty{text-align:center;padding:2.5rem;color:var(--muted);font-size:.9rem;background:var(--white);border:1px dashed #dde0e8;border-radius:8px}
 .form-field{margin-bottom:1rem}
 .form-field label{display:block;font-size:.75rem;font-weight:600;color:var(--muted);letter-spacing:.09em;text-transform:uppercase;margin-bottom:.35rem}
-.form-field input,.form-field select,.form-field textarea{width:100%;padding:.6rem .85rem;border:1px solid #dde0e8;border-radius:5px;font-family:'Source Sans 3',sans-serif;font-size:.9rem;color:var(--text);outline:none;background:var(--white)}
+.form-field input,.form-field select,.form-field textarea{width:100%;padding:.6rem .85rem;border:1px solid #dde0e8;border-radius:5px;font-family:'Source Sans 3',sans-serif;font-size:.9rem;color:var(--text);outline:none;background:var(--white);text-transform:uppercase}
+.form-field input::placeholder,.form-field select::placeholder,.form-field textarea::placeholder{text-transform:none}
 .form-field input:focus,.form-field select:focus{border-color:var(--gold)}
 .help-text{font-size:.75rem;color:var(--muted);margin-top:.3rem}
 .section-badge{display:inline-block;font-size:.68rem;font-weight:700;padding:.18rem .5rem;border-radius:3px;background:var(--navy);color:var(--gold2)}
@@ -227,27 +228,31 @@ footer a{color:var(--gold2);text-decoration:none}
       
       <!-- Formulario de Registro -->
       <div class="field">
-        <label>Nombre</label>
-        <input type="text" id="reg-nombre" placeholder="Juan" oninput="this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1).toLowerCase()"/>
+        <label>ÁREA ACTUAL</label>
+        <input type="text" id="reg-area" placeholder="EJ: OPERACIONES" oninput="this.value = this.value.toUpperCase()"/>
       </div>
       <div class="field">
-        <label>Apellido</label>
-        <input type="text" id="reg-apellido" placeholder="Pérez" oninput="this.value = this.value.charAt(0).toUpperCase() + this.value.slice(1).toLowerCase()"/>
+        <label>PROVINCIA</label>
+        <input type="text" id="reg-provincia" placeholder="EJ: PICHINCHA" oninput="this.value = this.value.toUpperCase()"/>
       </div>
       <div class="field">
-        <label>Correo Gmail</label>
+        <label>CÓDIGO INSTITUCIONAL</label>
+        <input type="text" id="reg-codigo" placeholder="EJ: CTE-001" oninput="this.value = this.value.toUpperCase()"/>
+      </div>
+      <div class="field">
+        <label>CORREO GMAIL</label>
         <input type="email" id="reg-email" placeholder="ejemplo@gmail.com" oninput="this.value = this.value.toLowerCase()"/>
       </div>
-      <button class="btn-register" onclick="solicitarRegistro()">📝 Solicitar Registro</button>
+      <button class="btn-register" onclick="solicitarRegistro()">📝 SOLICITAR REGISTRO</button>
       
       <div class="login-divider">o</div>
       
       <button class="btn-google" onclick="loginConGoogle()">
         <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-        Ingresar con Google (solo usuarios aprobados)
+        INGRESAR CON GOOGLE (SOLO USUARIOS APROBADOS)
       </button>
       
-      <div class="login-footer">Comisión de Tránsito del Ecuador · Registro requiere aprobación del administrador</div>
+      <div class="login-footer">COMISIÓN DE TRÁNSITO DEL ECUADOR · REGISTRO REQUIERE APROBACIÓN DEL ADMINISTRADOR</div>
     </div>
   </div>
 </div>
@@ -257,92 +262,92 @@ footer a{color:var(--gold2);text-decoration:none}
   <header>
     <div class="header-inner">
       <div class="escudo">CTE</div>
-      <div class="header-text"><h1>Unidad de Personal y Movilidad</h1><p>Cuerpo de Vigilancia · Comisión de Tránsito del Ecuador</p></div>
+      <div class="header-text"><h1>UNIDAD DE PERSONAL Y MOVILIDAD</h1><p>CUERPO DE VIGILANCIA · COMISIÓN DE TRÁNSITO DEL ECUADOR</p></div>
       <div class="header-right">
-        <button class="theme-toggle" onclick="toggleDarkMode()">🌙 Modo</button>
-        <button class="print-btn" id="print-btn" onclick="printCurrentView()" style="display:none">🖨️ Imprimir</button>
-        <div class="user-badge"><div><span>Sesión: </span><strong id="display-user">—</strong><span id="display-role-badge" class="badge" style="margin-left:.4rem"></span></div></div>
-        <button class="btn-logout" onclick="doLogout()">⎋ Cerrar Sesión</button>
+        <button class="theme-toggle" onclick="toggleDarkMode()">🌙 MODO</button>
+        <button class="print-btn" id="print-btn" onclick="printCurrentView()" style="display:none">🖨️ IMPRIMIR</button>
+        <div class="user-badge"><div><span>SESIÓN: </span><strong id="display-user">—</strong><span id="display-role-badge" class="badge" style="margin-left:.4rem"></span></div></div>
+        <button class="btn-logout" onclick="doLogout()">⎋ CERRAR SESIÓN</button>
       </div>
     </div>
   </header>
 
   <nav><div class="nav-inner">
-    <a class="active" onclick="showTab('inicio')">Inicio</a>
-    <a onclick="showTab('organico')">Orgánico</a>
-    <a onclick="showTab('orden')">Orden</a>
-    <a onclick="showTab('parametros')">Parámetros</a>
-    <a onclick="showTab('reportes')">Reportes</a>
-    <a onclick="showTab('historia')">Historia</a>
-    <a id="nav-admin" onclick="showTab('admin')" style="display:none">⚙ Admin</a>
+    <a class="active" onclick="showTab('inicio')">INICIO</a>
+    <a onclick="showTab('organico')">ORGÁNICO</a>
+    <a onclick="showTab('orden')">ORDEN</a>
+    <a onclick="showTab('parametros')">PARÁMETROS</a>
+    <a onclick="showTab('reportes')">REPORTES</a>
+    <a onclick="showTab('historia')">HISTORIA</a>
+    <a id="nav-admin" onclick="showTab('admin')" style="display:none">⚙ ADMIN</a>
   </div></nav>
 
   <main>
     <div class="tab active" id="tab-inicio">
-      <div class="stats-row"><div class="stat-card"><div class="lbl">Usuarios</div><div class="val" id="stat-total">—</div></div><div class="stat-card"><div class="lbl">Accesos hoy</div><div class="val" id="stat-hoy">—</div></div><div class="stat-card"><div class="lbl">Intentos fallidos</div><div class="val" id="stat-fail">—</div></div><div class="stat-card"><div class="lbl">Último acceso</div><div class="val" style="font-size:1rem" id="stat-last">—</div><div class="sub" id="stat-last-time">—</div></div></div>
-      <div class="section-title">Secciones del Sistema</div><div class="grid">
-        <div class="card" onclick="showTab('organico')"><div class="card-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div><h3>Orgánico</h3><p>Estructura organizacional.</p></div>
-        <div class="card" onclick="showTab('orden')"><div class="card-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div><h3>Orden del Cuerpo</h3><p>Órdenes oficiales.</p></div>
-        <div class="card" onclick="showTab('parametros')"><div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M12 2v2M12 20v2M4.93 4.93l1.41 1.41M18.66 18.66l1.41 1.41M2 12h2M20 12h2"/></svg></div><h3>Parámetros</h3><p>Configuración.</p></div>
-        <div class="card" onclick="showTab('reportes')"><div class="card-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg></div><h3>Reportes Diarios</h3><p>Registro operativo.</p></div>
-        <div class="card" onclick="showTab('historia')"><div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><h3>Historia</h3><p>Historial institucional.</p></div>
+      <div class="stats-row"><div class="stat-card"><div class="lbl">USUARIOS</div><div class="val" id="stat-total">—</div></div><div class="stat-card"><div class="lbl">ACCESOS HOY</div><div class="val" id="stat-hoy">—</div></div><div class="stat-card"><div class="lbl">INTENTOS FALLIDOS</div><div class="val" id="stat-fail">—</div></div><div class="stat-card"><div class="lbl">ÚLTIMO ACCESO</div><div class="val" style="font-size:1rem" id="stat-last">—</div><div class="sub" id="stat-last-time">—</div></div></div>
+      <div class="section-title">SECCIONES DEL SISTEMA</div><div class="grid">
+        <div class="card" onclick="showTab('organico')"><div class="card-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div><h3>ORGÁNICO</h3><p>ESTRUCTURA ORGANIZACIONAL.</p></div>
+        <div class="card" onclick="showTab('orden')"><div class="card-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div><h3>ORDEN DEL CUERPO</h3><p>ÓRDENES OFICIALES.</p></div>
+        <div class="card" onclick="showTab('parametros')"><div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M12 2v2M12 20v2M4.93 4.93l1.41 1.41M18.66 18.66l1.41 1.41M2 12h2M20 12h2"/></svg></div><h3>PARÁMETROS</h3><p>CONFIGURACIÓN.</p></div>
+        <div class="card" onclick="showTab('reportes')"><div class="card-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg></div><h3>REPORTES DIARIOS</h3><p>REGISTRO OPERATIVO.</p></div>
+        <div class="card" onclick="showTab('historia')"><div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><h3>HISTORIA</h3><p>HISTORIAL INSTITUCIONAL.</p></div>
       </div>
-      <div class="section-title">Registro de Accesos Recientes</div><div id="dashboard-bitacora" style="display:none"><div class="log-wrap"><div class="log-header"><h3>🔒 Bitácora de Ingresos</h3><span id="log-count-label">—</span></div><div style="overflow-x:auto"><table class="log-table"><thead><tr><th>Usuario</th><th>Nombre</th><th>Fecha y Hora</th><th>Dispositivo</th><th>Estado</th></tr></thead><tbody id="log-tbody"></tbody></table></div></div></div>
-      <div id="dashboard-no-admin" style="display:none;background:var(--white);border:1px solid #dde0e8;border-radius:8px;padding:1.5rem;text-align:center">🔒 La bitácora de accesos está disponible solo para administradores.</div>
+      <div class="section-title">REGISTRO DE ACCESOS RECIENTES</div><div id="dashboard-bitacora" style="display:none"><div class="log-wrap"><div class="log-header"><h3>🔒 BITÁCORA DE INGRESOS</h3><span id="log-count-label">—</span></div><div style="overflow-x:auto"><table class="log-table"><thead><tr><th>USUARIO</th><th>NOMBRE</th><th>FECHA Y HORA</th><th>DISPOSITIVO</th><th>ESTADO</th></tr></thead><tbody id="log-tbody"></tbody></table></div></div></div>
+      <div id="dashboard-no-admin" style="display:none;background:var(--white);border:1px solid #dde0e8;border-radius:8px;padding:1.5rem;text-align:center">🔒 LA BITÁCORA DE ACCESOS ESTÁ DISPONIBLE SOLO PARA ADMINISTRADORES.</div>
     </div>
 
-    <div class="tab" id="tab-organico"><div class="section-title">Orgánico – Estructura del Cuerpo</div><div id="files-toolbar-organico"></div><div id="files-grid-organico"></div></div>
-    <div class="tab" id="tab-orden"><div class="section-title">Orden del Cuerpo</div><div id="files-toolbar-orden"></div><div id="files-grid-orden"></div></div>
-    <div class="tab" id="tab-parametros"><div class="section-title">Parámetros del Sistema</div><div id="files-toolbar-parametros"></div><div id="files-grid-parametros"></div></div>
-    <div class="tab" id="tab-reportes"><div class="section-title">Reportes Diarios</div><div id="files-toolbar-reportes"></div><div id="files-grid-reportes"></div></div>
+    <div class="tab" id="tab-organico"><div class="section-title">ORGÁNICO – ESTRUCTURA DEL CUERPO</div><div id="files-toolbar-organico"></div><div id="files-grid-organico"></div></div>
+    <div class="tab" id="tab-orden"><div class="section-title">ORDEN DEL CUERPO</div><div id="files-toolbar-orden"></div><div id="files-grid-orden"></div></div>
+    <div class="tab" id="tab-parametros"><div class="section-title">PARÁMETROS DEL SISTEMA</div><div id="files-toolbar-parametros"></div><div id="files-grid-parametros"></div></div>
+    <div class="tab" id="tab-reportes"><div class="section-title">REPORTES DIARIOS</div><div id="files-toolbar-reportes"></div><div id="files-grid-reportes"></div></div>
     <div class="tab" id="tab-historia">
-      <div class="section-title">Historia Institucional</div><div style="background:var(--white);border-radius:8px;padding:2rem;margin-bottom:1.5rem"><p>La <strong>Comisión de Tránsito del Ecuador</strong> dispone de Talento Humano capacitado. <em>"De la mano de Nuestro Señor Jesucristo."</em></p><div style="display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1rem"><span class="badge badge-ok">Responsabilidad</span><span class="badge badge-ok">Excelencia</span><span class="badge badge-ok">Eficiencia</span></div></div>
-      <div class="info-grid"><div class="info-box"><h3>Correo</h3><p><a href="mailto:ctepersonal067@gmail.com">ctepersonal067@gmail.com</a></p></div><div class="info-box"><h3>Teléfono</h3><p>3731750 Ext. 1137</p></div><div class="info-box"><h3>Institución</h3><p><a href="https://www.comisiontransito.gob.ec/" target="_blank">Comisión de Tránsito →</a></p></div><div class="info-box"><h3>Redes CTE</h3><div class="social-row"><a class="social-btn" href="https://www.facebook.com/ctecuador" target="_blank">Facebook</a><a class="social-btn" href="https://twitter.com/CTEcuador" target="_blank">Twitter</a><a class="social-btn" href="https://www.tiktok.com/@ctecuador" target="_blank">TikTok</a></div></div></div>
+      <div class="section-title">HISTORIA INSTITUCIONAL</div><div style="background:var(--white);border-radius:8px;padding:2rem;margin-bottom:1.5rem"><p>LA <strong>COMISIÓN DE TRÁNSITO DEL ECUADOR</strong> DISPONE DE TALENTO HUMANO CAPACITADO. <em>"DE LA MANO DE NUESTRO SEÑOR JESUCRISTO."</em></p><div style="display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1rem"><span class="badge badge-ok">RESPONSABILIDAD</span><span class="badge badge-ok">EXCELENCIA</span><span class="badge badge-ok">EFICIENCIA</span></div></div>
+      <div class="info-grid"><div class="info-box"><h3>CORREO</h3><p><a href="mailto:ctepersonal067@gmail.com">ctepersonal067@gmail.com</a></p></div><div class="info-box"><h3>TELÉFONO</h3><p>3731750 EXT. 1137</p></div><div class="info-box"><h3>INSTITUCIÓN</h3><p><a href="https://www.comisiontransito.gob.ec/" target="_blank">COMISIÓN DE TRÁNSITO →</a></p></div><div class="info-box"><h3>REDES CTE</h3><div class="social-row"><a class="social-btn" href="https://www.facebook.com/ctecuador" target="_blank">FACEBOOK</a><a class="social-btn" href="https://twitter.com/CTEcuador" target="_blank">TWITTER</a><a class="social-btn" href="https://www.tiktok.com/@ctecuador" target="_blank">TIKTOK</a></div></div></div>
     </div>
 
     <div class="tab" id="tab-admin">
-      <div class="section-title">⚙ Panel de Administración</div>
+      <div class="section-title">⚙ PANEL DE ADMINISTRACIÓN</div>
       
       <!-- Solicitudes Pendientes -->
-      <div class="section-title">📋 Solicitudes de Registro Pendientes</div>
+      <div class="section-title">📋 SOLICITUDES DE REGISTRO PENDIENTES</div>
       <div class="admin-card"><div class="admin-card-body" id="solicitudes-list"></div></div>
       
-      <div class="chart-wrap"><div class="chart-head"><h3>📈 Ingresos por Día (últimos 14 días)</h3></div><div class="chart-body"><div class="chart-bars" id="chart-bars"></div><div class="chart-labels" id="chart-labels"></div><div class="chart-legend"><div class="chart-legend-item"><div class="chart-legend-dot" style="background:#1a7a4a"></div>Exitosos</div><div class="chart-legend-item"><div class="chart-legend-dot" style="background:#c0392b"></div>Fallidos</div></div></div></div>
+      <div class="chart-wrap"><div class="chart-head"><h3>📈 INGRESOS POR DÍA (ÚLTIMOS 14 DÍAS)</h3></div><div class="chart-body"><div class="chart-bars" id="chart-bars"></div><div class="chart-labels" id="chart-labels"></div><div class="chart-legend"><div class="chart-legend-item"><div class="chart-legend-dot" style="background:#1a7a4a"></div>EXITOSOS</div><div class="chart-legend-item"><div class="chart-legend-dot" style="background:#c0392b"></div>FALLIDOS</div></div></div></div>
       
-      <div class="section-title">📁 Gestión de Archivos por Sección</div>
-      <div class="admin-card" style="margin-bottom:1.5rem"><div class="admin-card-head"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e8c96a" stroke-width="1.8"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg><h3>Agregar Archivo de Google Drive</h3></div><div class="admin-card-body"><p style="font-size:.82rem;margin-bottom:1rem">Sube el archivo a Drive, compártelo como "Cualquiera con el enlace", pega el enlace aquí.</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem"><div class="form-field"><label>Nombre</label><input type="text" id="af-nombre"/></div><div class="form-field"><label>Sección</label><select id="af-seccion"><option value="organico">Orgánico</option><option value="orden">Orden</option><option value="parametros">Parámetros</option><option value="reportes">Reportes</option><option value="historia">Historia</option></select></div></div>
-        <div class="form-field"><label>Enlace de Google Drive</label><input type="text" id="af-url"/><div class="help-text">⚠️ Debe estar compartido como "Cualquiera con el enlace". <button type="button" onclick="verifyDriveLink(document.getElementById('af-url').value)" style="background:none;border:none;color:var(--gold);cursor:pointer">🔍 Verificar enlace</button></div></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem"><div class="form-field"><label>Tipo</label><select id="af-tipo"><option value="pdf">📄 PDF</option><option value="word">📝 Word</option><option value="excel">📊 Excel</option><option value="img">🖼️ Imagen</option><option value="other">📎 Otro</option></select></div><div class="form-field"><label>Descripción</label><input type="text" id="af-desc"/></div></div>
-        <button class="btn-add-file" onclick="addFile()">➕ Agregar Archivo</button>
-        <div id="af-code-box" style="display:none;margin-top:1rem;background:#0a1628;border-radius:7px;padding:1rem"><div style="font-size:.75rem;color:#e8c96a">📋 Copia esta línea para el HTML permanente</div><code id="af-code-text" style="font-size:.78rem;color:#a8d8a8;display:block"></code><button onclick="copiarCodigo()" style="margin-top:.7rem;background:var(--gold);color:var(--navy);padding:.35rem .9rem;border:none;border-radius:4px;cursor:pointer">📋 Copiar</button></div>
+      <div class="section-title">📁 GESTIÓN DE ARCHIVOS POR SECCIÓN</div>
+      <div class="admin-card" style="margin-bottom:1.5rem"><div class="admin-card-head"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e8c96a" stroke-width="1.8"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg><h3>AGREGAR ARCHIVO DE GOOGLE DRIVE</h3></div><div class="admin-card-body"><p style="font-size:.82rem;margin-bottom:1rem">SUBE EL ARCHIVO A DRIVE, COMPÁRTELO COMO "CUALQUIERA CON EL ENLACE", PEGA EL ENLACE AQUÍ.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem"><div class="form-field"><label>NOMBRE DEL ARCHIVO</label><input type="text" id="af-nombre"/></div><div class="form-field"><label>SECCIÓN</label><select id="af-seccion"><option value="organico">ORGÁNICO</option><option value="orden">ORDEN</option><option value="parametros">PARÁMETROS</option><option value="reportes">REPORTES</option><option value="historia">HISTORIA</option></select></div></div>
+        <div class="form-field"><label>ENLACE DE GOOGLE DRIVE</label><input type="text" id="af-url"/><div class="help-text">⚠️ DEBE ESTAR COMPARTIDO COMO "CUALQUIERA CON EL ENLACE". <button type="button" onclick="verifyDriveLink(document.getElementById('af-url').value)" style="background:none;border:none;color:var(--gold);cursor:pointer">🔍 VERIFICAR ENLACE</button></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem"><div class="form-field"><label>TIPO</label><select id="af-tipo"><option value="pdf">📄 PDF</option><option value="word">📝 WORD</option><option value="excel">📊 EXCEL</option><option value="img">🖼️ IMAGEN</option><option value="other">📎 OTRO</option></select></div><div class="form-field"><label>DESCRIPCIÓN</label><input type="text" id="af-desc"/></div></div>
+        <button class="btn-add-file" onclick="addFile()">➕ AGREGAR ARCHIVO</button>
+        <div id="af-code-box" style="display:none;margin-top:1rem;background:#0a1628;border-radius:7px;padding:1rem"><div style="font-size:.75rem;color:#e8c96a">📋 COPIA ESTA LÍNEA PARA EL HTML PERMANENTE</div><code id="af-code-text" style="font-size:.78rem;color:#a8d8a8;display:block"></code><button onclick="copiarCodigo()" style="margin-top:.7rem;background:var(--gold);color:var(--navy);padding:.35rem .9rem;border:none;border-radius:4px;cursor:pointer">📋 COPIAR</button></div>
       </div></div>
 
-      <div class="section-title">👥 Gestión de Usuarios</div>
-      <div class="admin-card" style="margin-bottom:1.5rem"><div class="admin-card-head"><h3>➕ Agregar / Editar Usuario</h3></div><div class="admin-card-body">
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:.8rem;align-items:end"><div class="form-field"><label>Usuario</label><input type="text" id="new-user-login" placeholder="ej: j.doe"/></div><div class="form-field"><label>Nombre</label><input type="text" id="new-user-name" placeholder="Juan Pérez"/></div><div class="form-field"><label>Contraseña</label><input type="password" id="new-user-pass" placeholder="****"/></div><div class="form-field"><label>Rol</label><select id="new-user-rol"><option value="user">Usuario</option><option value="admin">Admin</option></select></div></div>
-        <div style="display:flex;gap:.5rem;margin-top:.5rem"><button class="btn-add-file" onclick="addEditUser()">➕ Agregar / Actualizar</button><button class="btn-danger" onclick="deleteSelectedUser()">🗑 Eliminar Seleccionado</button></div>
-        <div class="form-field" style="margin-top:1rem"><label>Seleccionar Usuario para Editar/Eliminar</label><select id="user-selector" style="width:100%" onchange="loadUserToEdit()"></select></div>
+      <div class="section-title">👥 GESTIÓN DE USUARIOS</div>
+      <div class="admin-card" style="margin-bottom:1.5rem"><div class="admin-card-head"><h3>➕ AGREGAR / EDITAR USUARIO</h3></div><div class="admin-card-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:.8rem;align-items:end"><div class="form-field"><label>USUARIO</label><input type="text" id="new-user-login" placeholder="ej: j.doe"/></div><div class="form-field"><label>NOMBRE COMPLETO</label><input type="text" id="new-user-name" placeholder="JUAN PÉREZ"/></div><div class="form-field"><label>CONTRASEÑA</label><input type="password" id="new-user-pass" placeholder="****"/></div><div class="form-field"><label>ROL</label><select id="new-user-rol"><option value="user">USUARIO</option><option value="admin">ADMIN</option></select></div></div>
+        <div style="display:flex;gap:.5rem;margin-top:.5rem"><button class="btn-add-file" onclick="addEditUser()">➕ AGREGAR / ACTUALIZAR</button><button class="btn-danger" onclick="deleteSelectedUser()">🗑 ELIMINAR SELECCIONADO</button></div>
+        <div class="form-field" style="margin-top:1rem"><label>SELECCIONAR USUARIO PARA EDITAR/ELIMINAR</label><select id="user-selector" style="width:100%" onchange="loadUserToEdit()"></select></div>
       </div></div>
 
-      <div class="section-title">📋 Todos los Archivos</div>
+      <div class="section-title">📋 TODOS LOS ARCHIVOS</div>
       <div id="admin-files-list"></div>
 
-      <div class="section-title">Usuarios y Bitácora</div>
-      <div class="admin-card"><div class="admin-card-head"><h3>Usuarios del Sistema</h3><button class="btn-excel" onclick="exportUsersToExcel()" style="margin-left:auto">📎 Exportar Usuarios</button></div><div class="admin-card-body" id="admin-users-list"></div></div>
-      <div class="admin-card"><div class="admin-card-head"><h3>Estadísticas por Usuario</h3></div><div class="admin-card-body" id="admin-stats"></div></div>
+      <div class="section-title">USUARIOS Y BITÁCORA</div>
+      <div class="admin-card"><div class="admin-card-head"><h3>USUARIOS DEL SISTEMA</h3><button class="btn-excel" onclick="exportUsersToExcel()" style="margin-left:auto">📎 EXPORTAR USUARIOS</button></div><div class="admin-card-body" id="admin-users-list"></div></div>
+      <div class="admin-card"><div class="admin-card-head"><h3>ESTADÍSTICAS POR USUARIO</h3></div><div class="admin-card-body" id="admin-stats"></div></div>
       
-      <div class="section-title">Bitácora Completa</div>
-      <div class="log-wrap"><div class="log-header"><h3>🔒 Todos los Registros</h3><div><span id="admin-log-total">—</span><button class="btn-danger" onclick="confirmClearLogs()" style="margin-left:.8rem">🗑 Borrar Bitácora</button><button class="btn-add-file" onclick="exportLogsToCSV()" style="margin-left:.8rem">📎 Exportar CSV</button><button class="btn-excel" onclick="exportLogsToExcel()" style="margin-left:.8rem">📊 Exportar Excel</button></div></div><div style="overflow-x:auto"><table class="log-table"><thead><tr><th>Usuario</th><th>Nombre</th><th>Fecha/Hora</th><th>Dispositivo</th><th>Estado</th></tr></thead><tbody id="admin-log-tbody"></tbody></table></div></div>
-      <div class="section-title">🔍 Búsqueda Global de Archivos</div>
-      <div class="admin-card"><div class="admin-card-body"><input type="text" id="global-search-input" placeholder="Buscar en todas las secciones..." class="files-search" style="width:100%" oninput="globalSearchFiles()"/><div id="global-search-results" style="margin-top:1rem"></div></div></div>
+      <div class="section-title">BITÁCORA COMPLETA</div>
+      <div class="log-wrap"><div class="log-header"><h3>🔒 TODOS LOS REGISTROS</h3><div><span id="admin-log-total">—</span><button class="btn-danger" onclick="confirmClearLogs()" style="margin-left:.8rem">🗑 BORRAR BITÁCORA</button><button class="btn-add-file" onclick="exportLogsToCSV()" style="margin-left:.8rem">📎 EXPORTAR CSV</button><button class="btn-excel" onclick="exportLogsToExcel()" style="margin-left:.8rem">📊 EXPORTAR EXCEL</button></div></div><div style="overflow-x:auto"><table class="log-table"><thead><tr><th>USUARIO</th><th>NOMBRE</th><th>FECHA/HORA</th><th>DISPOSITIVO</th><th>ESTADO</th></tr></thead><tbody id="admin-log-tbody"></tbody></table></div></div>
+      <div class="section-title">🔍 BÚSQUEDA GLOBAL DE ARCHIVOS</div>
+      <div class="admin-card"><div class="admin-card-body"><input type="text" id="global-search-input" placeholder="BUSCAR EN TODAS LAS SECCIONES..." class="files-search" style="width:100%" oninput="globalSearchFiles()"/><div id="global-search-results" style="margin-top:1rem"></div></div></div>
     </div>
   </main>
   <div class="footer-stripe"></div>
-  <footer><p><strong>Unidad de Personal y Movilidad – Cuerpo de Vigilancia</strong><br>Comisión de Tránsito del Ecuador · 3731750 Ext. 1137<br><a href="mailto:ctepersonal067@gmail.com">ctepersonal067@gmail.com</a></p></footer>
+  <footer><p><strong>UNIDAD DE PERSONAL Y MOVILIDAD – CUERPO DE VIGILANCIA</strong><br>COMISIÓN DE TRÁNSITO DEL ECUADOR · 3731750 EXT. 1137<br><a href="mailto:ctepersonal067@gmail.com">ctepersonal067@gmail.com</a></p></footer>
 </div>
 
-<div class="modal-overlay" id="confirm-modal"><div class="modal-box"><h3 id="modal-title">Confirmar</h3><p id="modal-msg">¿Estás seguro?</p><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">Cancelar</button><button class="btn-confirm" id="modal-ok-btn">Confirmar</button></div></div></div>
+<div class="modal-overlay" id="confirm-modal"><div class="modal-box"><h3 id="modal-title">CONFIRMAR</h3><p id="modal-msg">¿ESTÁS SEGURO?</p><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">CANCELAR</button><button class="btn-confirm" id="modal-ok-btn">CONFIRMAR</button></div></div></div>
 
 <script>
 // ==================== CONFIGURACIÓN INICIAL ====================
@@ -350,7 +355,7 @@ const GOOGLE_CLIENT_ID = '571154981190-e83q5clu440b0p8jqikrqkq3r6v2qrdt.apps.goo
 
 // Usuarios por defecto (solo admin)
 const DEFAULT_USERS = [
-  { user:'admin', passHash:'', nombre:'Administrador Sistema', rol:'admin', email:'ctepersonal0@gmail.com', blocked: false },
+  { user:'admin', passHash:'', nombre:'ADMINISTRADOR SISTEMA', rol:'admin', email:'ctepersonal0@gmail.com', blocked: false, area:'', provincia:'', codigo:'' },
 ];
 
 const FILES_BASE = [
@@ -412,20 +417,18 @@ function toggleBlockUser(username, block) {
 
 async function addEditUser() {
   const login = document.getElementById('new-user-login').value.trim();
-  let name = document.getElementById('new-user-name').value.trim();
+  let name = document.getElementById('new-user-name').value.trim().toUpperCase();
   const pass = document.getElementById('new-user-pass').value;
   const rol = document.getElementById('new-user-rol').value;
-  if (!login || !name) { alert("Usuario y nombre son obligatorios"); return; }
-  // Formatear nombre a mayúsculas iniciales
-  name = name.split(' ').map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
+  if (!login || !name) { alert("USUARIO Y NOMBRE SON OBLIGATORIOS"); return; }
   const existing = USERS.find(u => u.user === login);
   if (existing) {
     if (pass) existing.passHash = await hashPass(pass);
     existing.nombre = name;
     existing.rol = rol;
   } else {
-    if (!pass) { alert("Contraseña requerida para nuevo usuario"); return; }
-    USERS.push({ user: login, passHash: await hashPass(pass), nombre: name, rol: rol, email: '', blocked: false });
+    if (!pass) { alert("CONTRASEÑA REQUERIDA PARA NUEVO USUARIO"); return; }
+    USERS.push({ user: login, passHash: await hashPass(pass), nombre: name, rol: rol, email: '', blocked: false, area: '', provincia: '', codigo: '' });
   }
   saveUsers();
   document.getElementById('new-user-pass').value = '';
@@ -440,8 +443,8 @@ function deleteSelectedUser() {
   const username = selector.value;
   if (!username) return;
   const user = USERS.find(u => u.user === username);
-  if (user && user.rol === 'admin') { alert("No se puede eliminar al administrador principal"); return; }
-  openModal("Eliminar Usuario", `¿Eliminar a ${user.nombre}?`, () => {
+  if (user && user.rol === 'admin') { alert("NO SE PUEDE ELIMINAR AL ADMINISTRADOR PRINCIPAL"); return; }
+  openModal("ELIMINAR USUARIO", `¿ELIMINAR A ${user.nombre}?`, () => {
     USERS = USERS.filter(u => u.user !== username);
     saveUsers();
     populateUserSelector();
@@ -465,7 +468,7 @@ function loadUserToEdit() {
 function populateUserSelector() {
   const select = document.getElementById('user-selector');
   if (!select) return;
-  select.innerHTML = '<option value="">Seleccione un usuario...</option>' + USERS.map(u => `<option value="${u.user}">${u.user} - ${u.nombre}</option>`).join('');
+  select.innerHTML = '<option value="">SELECCIONE UN USUARIO...</option>' + USERS.map(u => `<option value="${u.user}">${u.user} - ${u.nombre}</option>`).join('');
 }
 
 // ==================== SOLICITUDES DE REGISTRO ====================
@@ -479,44 +482,38 @@ function saveSolicitudes(solicitudes) {
   localStorage.setItem('cte_solicitudes', JSON.stringify(solicitudes));
 }
 
-function formatNombreApellido(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-}
-
 function solicitarRegistro() {
-  let nombre = document.getElementById('reg-nombre').value.trim();
-  let apellido = document.getElementById('reg-apellido').value.trim();
+  const area = document.getElementById('reg-area').value.trim().toUpperCase();
+  const provincia = document.getElementById('reg-provincia').value.trim().toUpperCase();
+  const codigo = document.getElementById('reg-codigo').value.trim().toUpperCase();
   const email = document.getElementById('reg-email').value.trim().toLowerCase();
   
-  // Formatear nombre y apellido a mayúsculas iniciales
-  nombre = formatNombreApellido(nombre);
-  apellido = formatNombreApellido(apellido);
-  
-  if (!nombre || !apellido || !email) {
-    mostrarError('Completa todos los campos');
+  if (!area || !provincia || !codigo || !email) {
+    mostrarError('COMPLETA TODOS LOS CAMPOS');
     return;
   }
   
   if (!email.endsWith('@gmail.com')) {
-    mostrarError('Solo se permiten correos de Gmail');
+    mostrarError('SOLO SE PERMITEN CORREOS DE GMAIL');
     return;
   }
   
   if (getUserByEmail(email)) {
-    mostrarError('Este correo ya está registrado y aprobado en el sistema');
+    mostrarError('ESTE CORREO YA ESTÁ REGISTRADO Y APROBADO EN EL SISTEMA');
     return;
   }
   
   const solicitudes = getSolicitudes();
   if (solicitudes.find(s => s.email === email)) {
-    mostrarError('Ya tienes una solicitud pendiente. Espera la aprobación del administrador.');
+    mostrarError('YA TIENES UNA SOLICITUD PENDIENTE. ESPERA LA APROBACIÓN DEL ADMINISTRADOR.');
     return;
   }
   
   const nuevaSolicitud = {
     id: Date.now(),
-    nombre: nombre,
-    apellido: apellido,
+    area: area,
+    provincia: provincia,
+    codigo: codigo,
     email: email,
     fecha: new Date().toLocaleDateString('es-EC'),
     estado: 'pendiente'
@@ -525,9 +522,10 @@ function solicitarRegistro() {
   solicitudes.push(nuevaSolicitud);
   saveSolicitudes(solicitudes);
   
-  mostrarExito('✅ Solicitud enviada. Espera la aprobación del administrador para poder ingresar.');
-  document.getElementById('reg-nombre').value = '';
-  document.getElementById('reg-apellido').value = '';
+  mostrarExito('✅ SOLICITUD ENVIADA. ESPERA LA APROBACIÓN DEL ADMINISTRADOR PARA PODER INGRESAR.');
+  document.getElementById('reg-area').value = '';
+  document.getElementById('reg-provincia').value = '';
+  document.getElementById('reg-codigo').value = '';
   document.getElementById('reg-email').value = '';
 }
 
@@ -537,7 +535,7 @@ function aprobarSolicitud(id) {
   
   if (!solicitud) return;
   
-  const nombreCompleto = `${solicitud.nombre} ${solicitud.apellido}`;
+  const nombreCompleto = `${solicitud.area} - ${solicitud.provincia} (${solicitud.codigo})`;
   const baseUsername = solicitud.email.split('@')[0];
   let username = baseUsername;
   let counter = 1;
@@ -552,7 +550,10 @@ function aprobarSolicitud(id) {
     nombre: nombreCompleto,
     rol: 'user',
     email: solicitud.email,
-    blocked: false
+    blocked: false,
+    area: solicitud.area,
+    provincia: solicitud.provincia,
+    codigo: solicitud.codigo
   };
   
   USERS.push(nuevoUsuario);
@@ -561,10 +562,10 @@ function aprobarSolicitud(id) {
   const nuevasSolicitudes = solicitudes.filter(s => s.id !== id);
   saveSolicitudes(nuevasSolicitudes);
   
-  addLog(username, nombreCompleto, 'aprobacion', solicitud.email, `Cuenta aprobada por administrador`);
+  addLog(username, nombreCompleto, 'aprobacion', solicitud.email, `CUENTA APROBADA POR ADMINISTRADOR - ÁREA: ${solicitud.area}, PROVINCIA: ${solicitud.provincia}, CÓDIGO: ${solicitud.codigo}`);
   
   renderAdmin();
-  alert(`✅ Usuario ${nombreCompleto} aprobado correctamente.`);
+  alert(`✅ USUARIO ${nombreCompleto} APROBADO CORRECTAMENTE.`);
 }
 
 function rechazarSolicitud(id) {
@@ -573,7 +574,7 @@ function rechazarSolicitud(id) {
   
   if (!solicitud) return;
   
-  openModal('Rechazar Solicitud', `¿Rechazar la solicitud de ${solicitud.nombre} ${solicitud.apellido}?`, () => {
+  openModal('RECHAZAR SOLICITUD', `¿RECHAZAR LA SOLICITUD DE ${solicitud.area} - ${solicitud.provincia} (${solicitud.codigo})?`, () => {
     const nuevasSolicitudes = getSolicitudes().filter(s => s.id !== id);
     saveSolicitudes(nuevasSolicitudes);
     renderAdmin();
@@ -587,7 +588,7 @@ function renderSolicitudes() {
   if (!container) return;
   
   if (solicitudes.length === 0) {
-    container.innerHTML = '<div class="file-empty">📭 No hay solicitudes pendientes</div>';
+    container.innerHTML = '<div class="file-empty">📭 NO HAY SOLICITUDES PENDIENTES</div>';
     return;
   }
   
@@ -598,13 +599,13 @@ function renderSolicitudes() {
           <div class="file-card-top">
             <div class="file-type-icon file-type-other">📧</div>
             <div>
-              <div class="file-card-name">${esc(s.nombre)} ${esc(s.apellido)}</div>
-              <div class="file-card-meta">${esc(s.email)}<br>Solicitado: ${s.fecha}</div>
+              <div class="file-card-name">${esc(s.area)}</div>
+              <div class="file-card-meta">PROVINCIA: ${esc(s.provincia)}<br>CÓDIGO: ${esc(s.codigo)}<br>CORREO: ${esc(s.email)}<br>SOLICITADO: ${s.fecha}</div>
             </div>
           </div>
           <div class="file-card-actions">
-            <button class="file-card-btn file-card-btn-open btn-approve" onclick="aprobarSolicitud(${s.id})">✓ Aprobar</button>
-            <button class="file-card-btn file-card-btn-del btn-reject" onclick="rechazarSolicitud(${s.id})">✗ Rechazar</button>
+            <button class="file-card-btn file-card-btn-open btn-approve" onclick="aprobarSolicitud(${s.id})">✓ APROBAR</button>
+            <button class="file-card-btn file-card-btn-del btn-reject" onclick="rechazarSolicitud(${s.id})">✗ RECHAZAR</button>
           </div>
         </div>
       `).join('')}
@@ -618,16 +619,16 @@ function saveLogs(l) { localStorage.setItem('cte_logs', JSON.stringify(l.slice(-
 function addLog(usuario, nombre, estado, email='', details=''){
   const logs = getLogs();
   const now = new Date();
-  const dev = /Mobi|Android/i.test(navigator.userAgent) ? 'Móvil' : 'Computadora';
+  const dev = /Mobi|Android/i.test(navigator.userAgent) ? 'MÓVIL' : 'COMPUTADORA';
   logs.push({ usuario, nombre, estado, email, details, fecha: now.toLocaleDateString('es-EC'), hora: now.toLocaleTimeString('es-EC'), device: dev, timestamp: now.getTime() });
   saveLogs(logs);
 }
 
 // ==================== EXPORTAR A EXCEL ====================
 function exportUsersToExcel() {
-  let csv = "NOMBRE,USUARIO,ROL,EMAIL,ESTADO\n";
+  let csv = "NOMBRE,USUARIO,ROL,EMAIL,ÁREA,PROVINCIA,CÓDIGO INSTITUCIONAL,ESTADO\n";
   USERS.forEach(u => {
-    csv += `"${u.nombre}","${u.user}","${u.rol === 'admin' ? 'ADMINISTRADOR' : 'USUARIO'}","${u.email || ''}","${u.blocked ? 'BLOQUEADO' : 'ACTIVO'}"\n`;
+    csv += `"${u.nombre}","${u.user}","${u.rol === 'admin' ? 'ADMINISTRADOR' : 'USUARIO'}","${u.email || ''}","${u.area || ''}","${u.provincia || ''}","${u.codigo || ''}","${u.blocked ? 'BLOQUEADO' : 'ACTIVO'}"\n`;
   });
   downloadCSV(csv, `usuarios_cte_${new Date().toISOString().slice(0,19)}.csv`);
 }
@@ -640,15 +641,6 @@ function exportLogsToExcel() {
     csv += `"${l.usuario}","${l.nombre}","${l.email || ''}","${l.fecha}","${l.hora}","${l.device}","${estadoTexto}","${l.details || ''}"\n`;
   });
   downloadCSV(csv, `bitacora_cte_${new Date().toISOString().slice(0,19)}.csv`);
-}
-
-function exportSolicitudesToExcel() {
-  const solicitudes = getSolicitudes();
-  let csv = "NOMBRE,APELLIDO,EMAIL,FECHA_SOLICITUD\n";
-  solicitudes.forEach(s => {
-    csv += `"${s.nombre}","${s.apellido}","${s.email}","${s.fecha}"\n`;
-  });
-  downloadCSV(csv, `solicitudes_cte_${new Date().toISOString().slice(0,19)}.csv`);
 }
 
 function downloadCSV(csv, filename) {
@@ -697,8 +689,8 @@ function driveDownloadUrl(url){
 }
 function verifyDriveLink(url){
   const id = extractDriveId(url);
-  if(id) alert(`✅ ID de Drive detectado: ${id}\nEl archivo será accesible.`);
-  else alert('❌ No se pudo extraer el ID. Asegúrate de usar un enlace estándar de Drive.');
+  if(id) alert(`✅ ID DE DRIVE DETECTADO: ${id}\nEL ARCHIVO SERÁ ACCESIBLE.`);
+  else alert('❌ NO SE PUDO EXTRAER EL ID. ASEGÚRATE DE USAR UN ENLACE ESTÁNDAR DE DRIVE.');
 }
 
 // ==================== SESIÓN Y UI ====================
@@ -737,7 +729,7 @@ function entrarAlSistema(found, foto){
 }
 
 function loginConGoogle(){
-  if(GOOGLE_CLIENT_ID === 'TU_CLIENT_ID_AQUI.apps.googleusercontent.com'){ mostrarError('Google Login no configurado.'); return; }
+  if(GOOGLE_CLIENT_ID === 'TU_CLIENT_ID_AQUI.apps.googleusercontent.com'){ mostrarError('GOOGLE LOGIN NO CONFIGURADO.'); return; }
   google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: onGoogleToken });
   google.accounts.id.prompt();
 }
@@ -752,12 +744,12 @@ function onGoogleToken(response){
     const user = getUserByEmail(email);
     
     if (!user) {
-      mostrarError('❌ No tienes una cuenta aprobada. Solicita registro primero y espera la aprobación del administrador.');
+      mostrarError('❌ NO TIENES UNA CUENTA APROBADA. SOLICITA REGISTRO PRIMERO Y ESPERA LA APROBACIÓN DEL ADMINISTRADOR.');
       return;
     }
     
     if(user.blocked){ 
-      mostrarError('Cuenta bloqueada. Contacte al administrador.'); 
+      mostrarError('CUENTA BLOQUEADA. CONTACTE AL ADMINISTRADOR.'); 
       addLog(user.user, user.nombre, 'fail', email);
       return; 
     }
@@ -767,7 +759,7 @@ function onGoogleToken(response){
     
   }catch(e){ 
     console.error(e);
-    mostrarError('Error al procesar la respuesta de Google.'); 
+    mostrarError('ERROR AL PROCESAR LA RESPUESTA DE GOOGLE.'); 
   }
 }
 
@@ -797,8 +789,8 @@ function renderDashboard(){
   document.getElementById('dashboard-no-admin').style.display = isAdmin ? 'none' : 'block';
   if(isAdmin){
     const recent = [...logs].reverse().slice(0,15);
-    document.getElementById('log-count-label').textContent = logs.length+' registros';
-    document.getElementById('log-tbody').innerHTML = recent.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':'badge-fail'}">${l.estado==='ok'?'✓ Exitoso':'✗ Fallido'}</span></td></tr>`).join('');
+    document.getElementById('log-count-label').textContent = logs.length+' REGISTROS';
+    document.getElementById('log-tbody').innerHTML = recent.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':'badge-fail'}">${l.estado==='ok'?'✓ EXITOSO':'✗ FALLIDO'}</span></td></tr>`).join('');
   }
 }
 
@@ -810,18 +802,19 @@ function renderAdmin(){
   
   document.getElementById('admin-users-list').innerHTML = USERS.map(u => {
     const isAdm = u.rol==='admin';
-    const btnHtml = isAdm ? '' : (u.blocked ? `<button class="btn-unblock" onclick="toggleBlockUser('${u.user}',false)">✓ Desbloquear</button>` : `<button class="btn-block" onclick="toggleBlockUser('${u.user}',true)">⊘ Bloquear</button>`);
-    return `<div class="user-row"><div class="avatar">${(u.nombre.split(' ').map(x=>x[0]).slice(0,2).join(''))}</div><div class="user-info"><strong>${esc(u.nombre)}${u.blocked?'<span class="blocked-badge">● Bloqueado</span>':''}</strong><span>${esc(u.user)} · <span class="badge ${u.rol==='admin'?'badge-admin':'badge-user'}">${u.rol}</span> · 📧 ${u.email || 'Sin correo'}</span></div>${btnHtml}</div>`;
+    const btnHtml = isAdm ? '' : (u.blocked ? `<button class="btn-unblock" onclick="toggleBlockUser('${u.user}',false)">✓ DESBLOQUEAR</button>` : `<button class="btn-block" onclick="toggleBlockUser('${u.user}',true)">⊘ BLOQUEAR</button>`);
+    const datosExtra = u.area ? `<br><span style="font-size:.7rem">📍 ${u.area} | ${u.provincia} | CÓD: ${u.codigo}</span>` : '';
+    return `<div class="user-row"><div class="avatar">${(u.nombre.split(' ').map(x=>x[0]).slice(0,2).join(''))}</div><div class="user-info"><strong>${esc(u.nombre)}${u.blocked?'<span class="blocked-badge">● BLOQUEADO</span>':''}</strong><span>${esc(u.user)} · <span class="badge ${u.rol==='admin'?'badge-admin':'badge-user'}">${u.rol}</span> · 📧 ${u.email || 'SIN CORREO'}${datosExtra}</span></div>${btnHtml}</div>`;
   }).join('');
   
   const byUser={};
-  USERS.forEach(u=>{ byUser[u.user]={ok:0,fail:0,last:'Nunca'}; });
+  USERS.forEach(u=>{ byUser[u.user]={ok:0,fail:0,last:'NUNCA'}; });
   logs.forEach(l=>{ if(byUser[l.usuario]) { if(l.estado==='ok'){ byUser[l.usuario].ok++; byUser[l.usuario].last=l.fecha+' '+l.hora; } else if(l.estado==='fail') byUser[l.usuario].fail++; } });
-  document.getElementById('admin-stats').innerHTML = USERS.map(u=>`<div style="padding:.5rem 0;border-bottom:1px solid #f0f2f6"><strong>${esc(u.nombre)}</strong><br><span>Ingresos: <strong style="color:var(--success)">${byUser[u.user]?.ok||0}</strong> · Fallidos: <strong style="color:var(--danger)">${byUser[u.user]?.fail||0}</strong></span><br><span style="font-size:.73rem">Último: ${byUser[u.user]?.last}</span></div>`).join('');
+  document.getElementById('admin-stats').innerHTML = USERS.map(u=>`<div style="padding:.5rem 0;border-bottom:1px solid #f0f2f6"><strong>${esc(u.nombre)}</strong><br><span>INGRESOS: <strong style="color:var(--success)">${byUser[u.user]?.ok||0}</strong> · FALLIDOS: <strong style="color:var(--danger)">${byUser[u.user]?.fail||0}</strong></span><br><span style="font-size:.73rem">ÚLTIMO: ${byUser[u.user]?.last}</span></div>`).join('');
   
   const all=[...logs].reverse();
   document.getElementById('admin-log-total').textContent = all.length;
-  document.getElementById('admin-log-tbody').innerHTML = all.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':(l.estado==='aprobacion'?'badge-admin':'badge-fail')}">${l.estado==='ok'?'✓ Exitoso':(l.estado==='aprobacion'?'✅ Aprobación':'✗ Fallido')}</span>${l.details?`<br><small>${esc(l.details)}</small>`:''}</td></tr>`).join('');
+  document.getElementById('admin-log-tbody').innerHTML = all.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':(l.estado==='aprobacion'?'badge-admin':'badge-fail')}">${l.estado==='ok'?'✓ EXITOSO':(l.estado==='aprobacion'?'✅ APROBACIÓN':'✗ FALLIDO')}</span>${l.details?`<br><small>${esc(l.details)}</small>`:''}</td></tr>`).join('');
   renderChart(logs);
   renderAdminFiles();
 }
@@ -842,7 +835,7 @@ function renderChart(logs){
 }
 
 // ==================== ARCHIVOS UI ====================
-const SECCIONES = { organico:'Orgánico', orden:'Orden del Cuerpo', parametros:'Parámetros', reportes:'Reportes', historia:'Historia' };
+const SECCIONES = { organico:'ORGÁNICO', orden:'ORDEN DEL CUERPO', parametros:'PARÁMETROS', reportes:'REPORTES', historia:'HISTORIA' };
 const TIPO_ICONS = { pdf:'📄', word:'📝', excel:'📊', img:'🖼️', other:'📎' };
 const TIPO_CSS = { pdf:'file-type-pdf', word:'file-type-word', excel:'file-type-excel', img:'file-type-img', other:'file-type-other' };
 
@@ -851,7 +844,7 @@ function renderSectionFiles(seccion){
   const grid = document.getElementById('files-grid-'+seccion);
   if(!toolbar) return;
   const isAdmin = currentUser && currentUser.rol==='admin';
-  toolbar.innerHTML = `<div class="files-toolbar"><input class="files-search" type="text" placeholder="Buscar..." oninput="filterFiles('${seccion}',this.value)"/>${isAdmin ? `<button class="btn-add-file" onclick="showTab('admin');document.getElementById('af-seccion').value='${seccion}'">➕ Agregar</button>` : ''}</div>`;
+  toolbar.innerHTML = `<div class="files-toolbar"><input class="files-search" type="text" placeholder="BUSCAR..." oninput="filterFiles('${seccion}',this.value)"/>${isAdmin ? `<button class="btn-add-file" onclick="showTab('admin');document.getElementById('af-seccion').value='${seccion}'">➕ AGREGAR</button>` : ''}</div>`;
   const files = getFiles().filter(f=>f.seccion===seccion);
   renderFilesGrid(grid, files);
 }
@@ -861,24 +854,24 @@ function filterFiles(seccion, q){
 }
 function renderFilesGrid(el, files){
   if(!el) return;
-  if(!files.length){ el.innerHTML = `<div class="file-empty">📁 No hay archivos en esta sección.</div>`; return; }
+  if(!files.length){ el.innerHTML = `<div class="file-empty">📁 NO HAY ARCHIVOS EN ESTA SECCIÓN.</div>`; return; }
   el.innerHTML = `<div class="files-grid">${files.map(f=>{
     const viewUrl = driveViewUrl(f.urlOriginal, f.tipo);
     const dlUrl = driveDownloadUrl(f.urlOriginal);
-    return `<div class="file-card"><div class="file-card-top"><div class="file-type-icon ${TIPO_CSS[f.tipo]}">${TIPO_ICONS[f.tipo]}</div><div><div class="file-card-name">${esc(f.nombre)}</div><div class="file-card-meta">${f.desc?esc(f.desc)+'<br>':''}${f.fecha}</div></div></div><div class="file-card-actions"><a class="file-card-btn file-card-btn-open" href="${viewUrl}" target="_blank">👁️ Ver</a><a class="file-card-btn file-card-btn-open" href="${dlUrl}" target="_blank">⬇️ Bajar</a>${currentUser?.rol==='admin' ? `<button class="file-card-btn file-card-btn-del" onclick="deleteFile(${f.id})">🗑</button>` : ''}</div></div>`;
+    return `<div class="file-card"><div class="file-card-top"><div class="file-type-icon ${TIPO_CSS[f.tipo]}">${TIPO_ICONS[f.tipo]}</div><div><div class="file-card-name">${esc(f.nombre)}</div><div class="file-card-meta">${f.desc?esc(f.desc)+'<br>':''}${f.fecha}</div></div></div><div class="file-card-actions"><a class="file-card-btn file-card-btn-open" href="${viewUrl}" target="_blank">👁️ VER</a><a class="file-card-btn file-card-btn-open" href="${dlUrl}" target="_blank">⬇️ BAJAR</a>${currentUser?.rol==='admin' ? `<button class="file-card-btn file-card-btn-del" onclick="deleteFile(${f.id})">🗑</button>` : ''}</div></div>`;
   }).join('')}</div>`;
 }
 function renderAllSectionFiles(){ Object.keys(SECCIONES).forEach(s=>renderSectionFiles(s)); }
 function renderAdminFiles(){
   const files = getFiles();
-  if(!files.length){ document.getElementById('admin-files-list').innerHTML = '<div class="file-empty">Sin archivos.</div>'; return; }
+  if(!files.length){ document.getElementById('admin-files-list').innerHTML = '<div class="file-empty">SIN ARCHIVOS.</div>'; return; }
   const bySection = {};
   files.forEach(f=>{ if(!bySection[f.seccion]) bySection[f.seccion]=[]; bySection[f.seccion].push(f); });
-  document.getElementById('admin-files-list').innerHTML = Object.keys(bySection).map(s=>`<div style="margin-bottom:1rem"><div class="section-badge" style="margin-bottom:.5rem">${SECCIONES[s]||s}</div><div class="files-grid">${bySection[s].map(f=>`<div class="file-card"><div class="file-card-top"><div class="file-type-icon ${TIPO_CSS[f.tipo]}">${TIPO_ICONS[f.tipo]}</div><div><div class="file-card-name">${esc(f.nombre)}</div><div class="file-card-meta">${f.fecha}</div></div></div><div class="file-card-actions"><button class="file-card-btn file-card-btn-del" onclick="deleteFile(${f.id})">🗑 Eliminar</button></div></div>`).join('')}</div></div>`).join('');
+  document.getElementById('admin-files-list').innerHTML = Object.keys(bySection).map(s=>`<div style="margin-bottom:1rem"><div class="section-badge" style="margin-bottom:.5rem">${SECCIONES[s]||s}</div><div class="files-grid">${bySection[s].map(f=>`<div class="file-card"><div class="file-card-top"><div class="file-type-icon ${TIPO_CSS[f.tipo]}">${TIPO_ICONS[f.tipo]}</div><div><div class="file-card-name">${esc(f.nombre)}</div><div class="file-card-meta">${f.fecha}</div></div></div><div class="file-card-actions"><button class="file-card-btn file-card-btn-del" onclick="deleteFile(${f.id})">🗑 ELIMINAR</button></div></div>`).join('')}</div></div>`).join('');
 }
 function deleteFile(id){
   const file = getFiles().find(f=>f.id===id);
-  openModal('Eliminar Archivo', `¿Eliminar "${file?.nombre}"?`, ()=>{
+  openModal('ELIMINAR ARCHIVO', `¿ELIMINAR "${file?.nombre}"?`, ()=>{
     const newFiles = getFiles().filter(f=>f.id!==id);
     saveFiles(newFiles);
     if (currentUser && currentUser.rol === 'admin') {
@@ -888,15 +881,15 @@ function deleteFile(id){
   });
 }
 async function addFile(){
-  const nombre = document.getElementById('af-nombre').value.trim();
+  const nombre = document.getElementById('af-nombre').value.trim().toUpperCase();
   const seccion = document.getElementById('af-seccion').value;
   const url = document.getElementById('af-url').value.trim();
   const tipo = document.getElementById('af-tipo').value;
-  const desc = document.getElementById('af-desc').value.trim();
-  if(!nombre || !url){ alert('Completa nombre y enlace.'); return; }
+  const desc = document.getElementById('af-desc').value.trim().toUpperCase();
+  if(!nombre || !url){ alert('COMPLETA NOMBRE Y ENLACE.'); return; }
   const newId = Date.now();
   const fecha = new Date().toLocaleDateString('es-EC');
-  const entry = { id:newId, nombre, seccion, urlOriginal: url, tipo, desc, fecha, subidoPor: currentUser ? currentUser.nombre : 'admin' };
+  const entry = { id:newId, nombre, seccion, urlOriginal: url, tipo, desc, fecha, subidoPor: currentUser ? currentUser.nombre : 'ADMIN' };
   const files = getFiles();
   files.push(entry);
   saveFiles(files);
@@ -912,28 +905,28 @@ async function addFile(){
 function copiarCodigo(){
   const txt = document.getElementById('af-code-text').textContent;
   navigator.clipboard.writeText(txt);
-  alert('Código copiado. Pégalo en FILES_BASE en el HTML.');
+  alert('CÓDIGO COPIADO. PÉGALO EN FILES_BASE EN EL HTML.');
 }
 
 function globalSearchFiles(){
   const query = document.getElementById('global-search-input').value.toLowerCase();
   if(!query) { document.getElementById('global-search-results').innerHTML = ''; return; }
   const files = getFiles().filter(f=>f.nombre.toLowerCase().includes(query) || (f.desc||'').toLowerCase().includes(query));
-  if(!files.length) { document.getElementById('global-search-results').innerHTML = '<div class="file-empty">No se encontraron archivos.</div>'; return; }
-  document.getElementById('global-search-results').innerHTML = `<div class="files-grid">${files.map(f=>`<div class="file-card"><div class="file-card-top"><div class="file-type-icon ${TIPO_CSS[f.tipo]}">${TIPO_ICONS[f.tipo]}</div><div><div class="file-card-name">${esc(f.nombre)}</div><div class="file-card-meta">${SECCIONES[f.seccion]} · ${f.fecha}</div></div></div><div class="file-card-actions"><a class="file-card-btn file-card-btn-open" href="${driveViewUrl(f.urlOriginal, f.tipo)}" target="_blank">Ver</a></div></div>`).join('')}</div>`;
+  if(!files.length) { document.getElementById('global-search-results').innerHTML = '<div class="file-empty">NO SE ENCONTRARON ARCHIVOS.</div>'; return; }
+  document.getElementById('global-search-results').innerHTML = `<div class="files-grid">${files.map(f=>`<div class="file-card"><div class="file-card-top"><div class="file-type-icon ${TIPO_CSS[f.tipo]}">${TIPO_ICONS[f.tipo]}</div><div><div class="file-card-name">${esc(f.nombre)}</div><div class="file-card-meta">${SECCIONES[f.seccion]} · ${f.fecha}</div></div></div><div class="file-card-actions"><a class="file-card-btn file-card-btn-open" href="${driveViewUrl(f.urlOriginal, f.tipo)}" target="_blank">VER</a></div></div>`).join('')}</div>`;
 }
 
 // ==================== EXTRAS ====================
 function exportLogsToCSV(){
   const logs = getLogs();
-  let csv = "Usuario,Nombre,Email,Fecha,Hora,Dispositivo,Estado\n";
+  let csv = "USUARIO,NOMBRE,EMAIL,FECHA,HORA,DISPOSITIVO,ESTADO\n";
   logs.forEach(l=>{ csv += `"${l.usuario}","${l.nombre}","${l.email||''}","${l.fecha}","${l.hora}","${l.device}","${l.estado}"\n`; });
   downloadCSV(csv, `bitacora_cte_${new Date().toISOString().slice(0,19)}.csv`);
 }
 function printCurrentView(){
   const tab = document.querySelector('.tab.active');
   const win = window.open('', '_blank');
-  win.document.write(`<html><head><title>Reporte CTE</title><link href="https://fonts.googleapis.com/css2?family=Source+Sans+3&display=swap" rel="stylesheet"/><style>body{font-family:'Source Sans 3';padding:2rem;}</style></head><body>${tab.innerHTML}</body></html>`);
+  win.document.write(`<html><head><title>REPORTE CTE</title><link href="https://fonts.googleapis.com/css2?family=Source+Sans+3&display=swap" rel="stylesheet"/><style>body{font-family:'Source Sans 3';padding:2rem;}</style></head><body>${tab.innerHTML}</body></html>`);
   win.document.close(); win.print();
 }
 function toggleDarkMode(){
@@ -942,7 +935,7 @@ function toggleDarkMode(){
 }
 
 function confirmClearLogs(){
-  openModal('🗑 Borrar Bitácora', '¿Eliminar TODOS los registros?', ()=>{ saveLogs([]); renderDashboard(); if(currentUser && currentUser.rol === 'admin') { renderAdmin(); } });
+  openModal('🗑 BORRAR BITÁCORA', '¿ELIMINAR TODOS LOS REGISTROS?', ()=>{ saveLogs([]); renderDashboard(); if(currentUser && currentUser.rol === 'admin') { renderAdmin(); } });
 }
 
 // ==================== MODAL Y UTILS ====================
