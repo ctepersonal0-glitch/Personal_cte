@@ -486,17 +486,33 @@ async function hashPass(pass) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// ==================== GESTIÓN DE USUARIOS ====================
+// ==================== GESTIÓN DE USUARIOS (Google Sheets) ====================
 let USERS = [];
 
-function loadUsersFromStorage() {
-  const saved = localStorage.getItem('cte_users');
-  if (saved) return JSON.parse(saved);
+// ⚠️ REEMPLAZA esta URL con la de tu Apps Script desplegado
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby07BwnyZ_euCz5ZJ0eUfzPYeV0xzKYnTcg0FqTBEj4Z31OmPl_q-dLCktJIAYRwK2ExA/exec';
+
+async function loadUsersFromCloud() {
+  try {
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=getUsers`);
+    const data = await res.json();
+    if (data.ok && data.users && data.users.length > 0) {
+      // Guardar copia local como cache
+      localStorage.setItem('cte_users_cache', JSON.stringify(data.users));
+      return data.users;
+    }
+  } catch(e) {
+    console.warn('No se pudo conectar a la nube, usando caché local:', e);
+  }
+  // Fallback: caché local
+  const cache = localStorage.getItem('cte_users_cache');
+  if (cache) return JSON.parse(cache);
   return JSON.parse(JSON.stringify(DEFAULT_USERS));
 }
 
 async function initializeUsers() {
-  USERS = loadUsersFromStorage();
+  showToast('Cargando usuarios...', 'info', 2000);
+  USERS = await loadUsersFromCloud();
   let needsSave = false;
   for (let u of USERS) {
     if (!u.passHash) {
@@ -508,8 +524,16 @@ async function initializeUsers() {
   if (needsSave) saveUsers();
 }
 
-function saveUsers() {
-  localStorage.setItem('cte_users', JSON.stringify(USERS));
+async function saveUsers() {
+  // Guardar siempre en caché local (instantáneo)
+  localStorage.setItem('cte_users_cache', JSON.stringify(USERS));
+  // Guardar en la nube (persistente)
+  try {
+    await fetch(`${APPS_SCRIPT_URL}?action=saveUsers&users=${encodeURIComponent(JSON.stringify(USERS))}`);
+  } catch(e) {
+    console.warn('No se pudo guardar en la nube:', e);
+    showToast('⚠️ Sin conexión: cambios guardados localmente', 'info', 4000);
+  }
 }
 
 function getUserByEmail(email) {
