@@ -22,7 +22,44 @@ body.dark-mode {
   --silver: #6b7280;
   --navy: #0f172a;
   --navy2: #1e293b;
+  --navy3: #2d3a52;
+  --gold: #c8a84b;
+  --gold2: #e8c96a;
+  --danger: #e05555;
+  --success: #2aaa6a;
 }
+body.dark-mode .stat-card{border-color:#2d3a52;background:var(--white)}
+body.dark-mode .stat-card .val{color:var(--gold2)}
+body.dark-mode .card{border-color:#2d3a52}
+body.dark-mode .card h3{color:var(--gold2)}
+body.dark-mode .log-table th{background:#1a1f2e;color:var(--muted);border-color:#2d3a52}
+body.dark-mode .log-table td{border-color:#2d3a52;color:var(--text)}
+body.dark-mode .log-table tr:hover td{background:#2d3a52}
+body.dark-mode .log-wrap{border-color:#2d3a52}
+body.dark-mode .admin-card{border-color:#2d3a52}
+body.dark-mode .user-row{border-color:#2d3a52}
+body.dark-mode .info-box{border-color:#2d3a52}
+body.dark-mode .file-card{border-color:#2d3a52}
+body.dark-mode .file-card-actions{border-color:#2d3a52}
+body.dark-mode .file-card-btn-del{border-color:#2d3a52}
+body.dark-mode .files-search{background:var(--white);border-color:#2d3a52;color:var(--text)}
+body.dark-mode .form-field input,body.dark-mode .form-field select,body.dark-mode .form-field textarea{background:var(--white);border-color:#2d3a52;color:var(--text)}
+body.dark-mode .modal-box{background:var(--white)}
+body.dark-mode .modal-box h3{color:var(--gold2)}
+body.dark-mode .btn-cancel-modal{background:#2d3a52;color:var(--silver);border-color:#2d3a52}
+body.dark-mode .section-title{color:var(--gold2)}
+body.dark-mode .badge-ok{background:#1a3a2a;color:#4ade80}
+body.dark-mode .badge-fail{background:#3a1a1a;color:#f87171}
+body.dark-mode .badge-admin{background:#3a3010;color:#fbbf24}
+body.dark-mode .badge-user{background:#1e2540;color:#93c5fd}
+body.dark-mode .file-type-pdf{background:#3a1f1f}
+body.dark-mode .file-type-word{background:#1f2a3a}
+body.dark-mode .file-type-excel{background:#1a2e20}
+body.dark-mode .file-type-img{background:#2e2a10}
+body.dark-mode .file-type-other{background:#2a1a3a}
+body.dark-mode .chart-wrap{border-color:#2d3a52}
+body.dark-mode .file-empty{border-color:#2d3a52;background:var(--white)}
+body.dark-mode .info-box a{color:var(--gold2)}
 body{font-family:'Source Sans 3',sans-serif;background:var(--light);color:var(--text);min-height:100vh;transition:background 0.3s, color 0.2s}
 
 /* LOGIN */
@@ -37,7 +74,7 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--light);color:var(--
 .login-logo p{font-size:.78rem;color:var(--gold2);margin-top:.3rem;letter-spacing:.1em;text-transform:uppercase}
 .field{margin-bottom:1.2rem}
 .field label{display:block;font-size:.8rem;font-weight:600;color:var(--silver);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem}
-.field input{width:100%;padding:.75rem 1rem;background:rgba(255,255,255,.08);border:1px solid rgba(200,168,75,.2);border-radius:6px;color:#fff;font-family:'Source Sans 3',sans-serif;font-size:.95rem;outline:none;transition:border-color .2s,background .2s;text-transform:uppercase}
+.field input{width:100%;padding:.75rem 1rem;background:rgba(255,255,255,.08);border:1px solid rgba(200,168,75,.2);border-radius:6px;color:#fff;font-family:'Source Sans 3',sans-serif;font-size:.95rem;outline:none;transition:border-color .2s,background .2s}
 .field input::placeholder{color:rgba(255,255,255,.35);text-transform:none}
 .field input:focus{border-color:var(--gold);background:rgba(255,255,255,.12)}
 .btn-login{width:100%;padding:.85rem;background:var(--gold);color:var(--navy);font-family:'Oswald',sans-serif;font-size:1rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;border:none;border-radius:6px;cursor:pointer;transition:background .2s,transform .1s;margin-top:.5rem}
@@ -51,6 +88,16 @@ body{font-family:'Source Sans 3',sans-serif;background:var(--light);color:var(--
 .login-divider{display:flex;align-items:center;gap:.8rem;margin:1.2rem 0;color:rgba(255,255,255,.3)}.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.12)}
 .btn-google{width:100%;padding:.8rem 1rem;background:#fff;color:#1a2035;font-size:.95rem;font-weight:600;border:none;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.7rem}
 .btn-google:hover{background:#f5f5f5}
+
+/* LOGIN/REGISTER TABS */
+.login-tabs{display:flex;border-radius:8px;overflow:hidden;margin-bottom:1.8rem;border:1px solid rgba(200,168,75,.25)}
+.login-tab-btn{flex:1;padding:.65rem;background:transparent;border:none;cursor:pointer;font-family:'Oswald',sans-serif;font-size:.82rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.45);transition:background .2s,color .2s}
+.login-tab-btn.active{background:var(--gold);color:var(--navy)}
+.login-panel{display:none}.login-panel.active{display:block}
+.login-user-field{margin-bottom:1.2rem}
+.login-user-field label{display:block;font-size:.8rem;font-weight:600;color:var(--silver);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem}
+.login-user-field input{width:100%;padding:.75rem 1rem;background:rgba(255,255,255,.08);border:1px solid rgba(200,168,75,.2);border-radius:6px;color:#fff;font-family:'Source Sans 3',sans-serif;font-size:.95rem;outline:none;transition:border-color .2s,background .2s}
+.login-user-field input:focus{border-color:var(--gold);background:rgba(255,255,255,.12)}
 
 #screen-main{display:none}
 .header-stripe{background:var(--gold);height:5px}
@@ -190,7 +237,7 @@ footer a{color:var(--gold2);text-decoration:none}
 .file-empty{text-align:center;padding:2.5rem;color:var(--muted);font-size:.9rem;background:var(--white);border:1px dashed #dde0e8;border-radius:8px}
 .form-field{margin-bottom:1rem}
 .form-field label{display:block;font-size:.75rem;font-weight:600;color:var(--muted);letter-spacing:.09em;text-transform:uppercase;margin-bottom:.35rem}
-.form-field input,.form-field select,.form-field textarea{width:100%;padding:.6rem .85rem;border:1px solid #dde0e8;border-radius:5px;font-family:'Source Sans 3',sans-serif;font-size:.9rem;color:var(--text);outline:none;background:var(--white);text-transform:uppercase}
+.form-field input,.form-field select,.form-field textarea{width:100%;padding:.6rem .85rem;border:1px solid #dde0e8;border-radius:5px;font-family:'Source Sans 3',sans-serif;font-size:.9rem;color:var(--text);outline:none;background:var(--white)}
 .form-field input::placeholder,.form-field select::placeholder,.form-field textarea::placeholder{text-transform:none}
 .form-field input:focus,.form-field select:focus{border-color:var(--gold)}
 .help-text{font-size:.75rem;color:var(--muted);margin-top:.3rem}
@@ -209,8 +256,27 @@ footer a{color:var(--gold2);text-decoration:none}
 .chart-legend{display:flex;gap:1.2rem;margin-top:.8rem}
 .chart-legend-item{display:flex;align-items:center;gap:.4rem;font-size:.74rem}
 .chart-legend-dot{width:10px;height:10px;border-radius:2px}
+
+/* TOAST NOTIFICATIONS */
+#toast-container{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:.5rem;pointer-events:none}
+.toast{background:var(--navy2);border:1px solid rgba(200,168,75,.3);color:#fff;font-family:'Oswald',sans-serif;font-size:.82rem;letter-spacing:.06em;padding:.7rem 1.1rem;border-radius:7px;box-shadow:0 4px 20px rgba(0,0,0,.35);display:flex;align-items:center;gap:.6rem;max-width:320px;animation:toastIn .3s ease forwards;pointer-events:all}
+.toast.toast-success{border-color:rgba(26,122,74,.6);background:#0f2a1a}
+.toast.toast-error{border-color:rgba(192,57,43,.6);background:#2a0f0f}
+.toast.toast-info{border-color:rgba(200,168,75,.5);background:var(--navy2)}
+.toast.toast-out{animation:toastOut .3s ease forwards}
+@keyframes toastIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+@keyframes toastOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(30px)}}
+
+/* PAGINATION */
+.pagination{display:flex;align-items:center;gap:.4rem;padding:.8rem 1rem;border-top:1px solid #f0f2f6;flex-wrap:wrap}
+.page-btn{background:none;border:1px solid #dde0e8;color:var(--muted);font-family:'Oswald',sans-serif;font-size:.72rem;font-weight:600;letter-spacing:.06em;padding:.3rem .65rem;border-radius:4px;cursor:pointer;transition:background .15s,color .15s}
+.page-btn:hover,.page-btn.active{background:var(--gold);color:var(--navy);border-color:var(--gold)}
+.page-info{font-size:.74rem;color:var(--muted);margin-left:auto}
+body.dark-mode .page-btn{border-color:#2d3a52;color:var(--muted)}
+body.dark-mode .pagination{border-color:#2d3a52}
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -225,34 +291,54 @@ footer a{color:var(--gold2);text-decoration:none}
       </div>
       <div class="login-error" id="login-error"></div>
       <div class="login-success" id="login-success"></div>
-      
-      <!-- Formulario de Registro -->
-      <div class="field">
-        <label>ÁREA ACTUAL</label>
-        <input type="text" id="reg-area" placeholder="EJ: OPERACIONES" oninput="this.value = this.value.toUpperCase()"/>
+
+      <!-- Tabs -->
+      <div class="login-tabs">
+        <button class="login-tab-btn active" onclick="switchLoginTab('ingresar')">🔑 INGRESAR</button>
+        <button class="login-tab-btn" onclick="switchLoginTab('registrar')">📝 SOLICITAR REGISTRO</button>
       </div>
-      <div class="field">
-        <label>PROVINCIA</label>
-        <input type="text" id="reg-provincia" placeholder="EJ: PICHINCHA" oninput="this.value = this.value.toUpperCase()"/>
+
+      <!-- Panel Ingreso -->
+      <div class="login-panel active" id="panel-ingresar">
+        <button class="btn-google" onclick="loginConGoogle()">
+          <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+          INGRESAR CON GOOGLE
+        </button>
+        <div class="login-divider">o con usuario y contraseña</div>
+        <div class="login-user-field">
+          <label>USUARIO</label>
+          <input type="text" id="login-user" placeholder="usuario" autocomplete="username"/>
+        </div>
+        <div class="login-user-field">
+          <label>CONTRASEÑA</label>
+          <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLoginPass()"/>
+        </div>
+        <button class="btn-login" onclick="doLoginPass()">⎋ INGRESAR AL SISTEMA</button>
       </div>
-      <div class="field">
-        <label>CÓDIGO INSTITUCIONAL</label>
-        <input type="text" id="reg-codigo" placeholder="EJ: CTE-001" oninput="this.value = this.value.toUpperCase()"/>
+
+      <!-- Panel Registro -->
+      <div class="login-panel" id="panel-registrar">
+        <div class="field">
+          <label>ÁREA ACTUAL</label>
+          <input type="text" id="reg-area" placeholder="EJ: OPERACIONES" />
+        </div>
+        <div class="field">
+          <label>PROVINCIA</label>
+          <input type="text" id="reg-provincia" placeholder="EJ: PICHINCHA" />
+        </div>
+        <div class="field">
+          <label>CÓDIGO INSTITUCIONAL</label>
+          <input type="text" id="reg-codigo" placeholder="EJ: CTE-001" />
+        </div>
+        <div class="field">
+          <label>CORREO GMAIL</label>
+          <input type="email" id="reg-email" placeholder="ejemplo@gmail.com" oninput="this.value = this.value.toLowerCase()"/>
+        </div>
+        <button class="btn-register" onclick="solicitarRegistro()">📝 ENVIAR SOLICITUD</button>
+        <div class="login-footer" style="margin-top:1rem">EL REGISTRO REQUIERE APROBACIÓN DEL ADMINISTRADOR</div>
       </div>
-      <div class="field">
-        <label>CORREO GMAIL</label>
-        <input type="email" id="reg-email" placeholder="ejemplo@gmail.com" oninput="this.value = this.value.toLowerCase()"/>
-      </div>
-      <button class="btn-register" onclick="solicitarRegistro()">📝 SOLICITAR REGISTRO</button>
-      
-      <div class="login-divider">o</div>
-      
-      <button class="btn-google" onclick="loginConGoogle()">
-        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-        INGRESAR CON GOOGLE (SOLO USUARIOS APROBADOS)
-      </button>
-      
-      <div class="login-footer">COMISIÓN DE TRÁNSITO DEL ECUADOR · REGISTRO REQUIERE APROBACIÓN DEL ADMINISTRADOR</div>
+
+      <div class="login-footer" style="margin-top:1.2rem">COMISIÓN DE TRÁNSITO DEL ECUADOR</div>
     </div>
   </div>
 </div>
@@ -312,7 +398,7 @@ footer a{color:var(--gold2);text-decoration:none}
       <div class="section-title">📋 SOLICITUDES DE REGISTRO PENDIENTES</div>
       <div class="admin-card"><div class="admin-card-body" id="solicitudes-list"></div></div>
       
-      <div class="chart-wrap"><div class="chart-head"><h3>📈 INGRESOS POR DÍA (ÚLTIMOS 14 DÍAS)</h3></div><div class="chart-body"><div class="chart-bars" id="chart-bars"></div><div class="chart-labels" id="chart-labels"></div><div class="chart-legend"><div class="chart-legend-item"><div class="chart-legend-dot" style="background:#1a7a4a"></div>EXITOSOS</div><div class="chart-legend-item"><div class="chart-legend-dot" style="background:#c0392b"></div>FALLIDOS</div></div></div></div>
+      <div class="chart-wrap"><div class="chart-head"><h3>📈 INGRESOS POR DÍA (ÚLTIMOS 14 DÍAS)</h3></div><div class="chart-body"><canvas id="accesos-chart" height="120"></canvas><div class="chart-legend"><div class="chart-legend-item"><div class="chart-legend-dot" style="background:#1a7a4a"></div>EXITOSOS</div><div class="chart-legend-item"><div class="chart-legend-dot" style="background:#c0392b"></div>FALLIDOS</div></div></div></div>
       
       <div class="section-title">📁 GESTIÓN DE ARCHIVOS POR SECCIÓN</div>
       <div class="admin-card" style="margin-bottom:1.5rem"><div class="admin-card-head"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e8c96a" stroke-width="1.8"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg><h3>AGREGAR ARCHIVO DE GOOGLE DRIVE</h3></div><div class="admin-card-body"><p style="font-size:.82rem;margin-bottom:1rem">SUBE EL ARCHIVO A DRIVE, COMPÁRTELO COMO "CUALQUIERA CON EL ENLACE", PEGA EL ENLACE AQUÍ.</p>
@@ -338,7 +424,7 @@ footer a{color:var(--gold2);text-decoration:none}
       <div class="admin-card"><div class="admin-card-head"><h3>ESTADÍSTICAS POR USUARIO</h3></div><div class="admin-card-body" id="admin-stats"></div></div>
       
       <div class="section-title">BITÁCORA COMPLETA</div>
-      <div class="log-wrap"><div class="log-header"><h3>🔒 TODOS LOS REGISTROS</h3><div><span id="admin-log-total">—</span><button class="btn-danger" onclick="confirmClearLogs()" style="margin-left:.8rem">🗑 BORRAR BITÁCORA</button><button class="btn-add-file" onclick="exportLogsToCSV()" style="margin-left:.8rem">📎 EXPORTAR CSV</button><button class="btn-excel" onclick="exportLogsToExcel()" style="margin-left:.8rem">📊 EXPORTAR EXCEL</button></div></div><div style="overflow-x:auto"><table class="log-table"><thead><tr><th>USUARIO</th><th>NOMBRE</th><th>FECHA/HORA</th><th>DISPOSITIVO</th><th>ESTADO</th></tr></thead><tbody id="admin-log-tbody"></tbody></table></div></div>
+      <div class="log-wrap"><div class="log-header"><h3>🔒 TODOS LOS REGISTROS</h3><div><span id="admin-log-total">—</span><button class="btn-danger" onclick="confirmClearLogs()" style="margin-left:.8rem">🗑 BORRAR BITÁCORA</button><button class="btn-add-file" onclick="exportLogsToCSV()" style="margin-left:.8rem">📎 EXPORTAR CSV</button><button class="btn-excel" onclick="exportLogsToExcel()" style="margin-left:.8rem">📊 EXPORTAR EXCEL</button></div></div><div style="overflow-x:auto"><table class="log-table"><thead><tr><th>USUARIO</th><th>NOMBRE</th><th>FECHA/HORA</th><th>DISPOSITIVO</th><th>ESTADO</th></tr></thead><tbody id="admin-log-tbody"></tbody></table></div><div id="log-pagination" class="pagination"></div></div>
       <div class="section-title">🔍 BÚSQUEDA GLOBAL DE ARCHIVOS</div>
       <div class="admin-card"><div class="admin-card-body"><input type="text" id="global-search-input" placeholder="BUSCAR EN TODAS LAS SECCIONES..." class="files-search" style="width:100%" oninput="globalSearchFiles()"/><div id="global-search-results" style="margin-top:1rem"></div></div></div>
     </div>
@@ -349,9 +435,47 @@ footer a{color:var(--gold2);text-decoration:none}
 
 <div class="modal-overlay" id="confirm-modal"><div class="modal-box"><h3 id="modal-title">CONFIRMAR</h3><p id="modal-msg">¿ESTÁS SEGURO?</p><div class="modal-actions"><button class="btn-cancel-modal" onclick="closeModal()">CANCELAR</button><button class="btn-confirm" id="modal-ok-btn">CONFIRMAR</button></div></div></div>
 
+<div id="toast-container"></div>
+
 <script>
 // ==================== CONFIGURACIÓN INICIAL ====================
 const GOOGLE_CLIENT_ID = '571154981190-e83q5clu440b0p8jqikrqkq3r6v2qrdt.apps.googleusercontent.com';
+
+// ==================== TOASTS ====================
+function showToast(msg, type='info', duration=3500){
+  const icons = {success:'✅', error:'❌', info:'ℹ️'};
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `<span>${icons[type]||'•'}</span><span>${msg}</span>`;
+  container.appendChild(toast);
+  setTimeout(()=>{
+    toast.classList.add('toast-out');
+    toast.addEventListener('animationend',()=>toast.remove());
+  }, duration);
+}
+
+// ==================== LOGIN TABS ====================
+function switchLoginTab(tab){
+  document.querySelectorAll('.login-tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.login-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  [...document.querySelectorAll('.login-tab-btn')].find(b=>b.textContent.toLowerCase().includes(tab==='ingresar'?'ingresar':'registr')).classList.add('active');
+}
+
+// ==================== LOGIN CON USUARIO/CONTRASEÑA ====================
+async function doLoginPass(){
+  const user = document.getElementById('login-user').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if(!user||!pass){ mostrarError('INGRESA USUARIO Y CONTRASEÑA'); return; }
+  const found = USERS.find(u=>u.user===user);
+  if(!found){ mostrarError('USUARIO NO ENCONTRADO'); addLog(user,'DESCONOCIDO','fail'); return; }
+  if(isBlocked(found)){ mostrarError('CUENTA BLOQUEADA. CONTACTE AL ADMINISTRADOR.'); addLog(user,found.nombre,'fail'); return; }
+  const hashed = await hashPass(pass);
+  if(hashed !== found.passHash){ mostrarError('CONTRASEÑA INCORRECTA'); addLog(user,found.nombre,'fail'); return; }
+  addLog(found.user,found.nombre,'ok',found.email||'');
+  entrarAlSistema(found, null);
+}
 
 // Usuarios por defecto (solo admin)
 const DEFAULT_USERS = [
@@ -420,14 +544,14 @@ async function addEditUser() {
   let name = document.getElementById('new-user-name').value.trim().toUpperCase();
   const pass = document.getElementById('new-user-pass').value;
   const rol = document.getElementById('new-user-rol').value;
-  if (!login || !name) { alert("USUARIO Y NOMBRE SON OBLIGATORIOS"); return; }
+  if (!login || !name) { showToast('USUARIO Y NOMBRE SON OBLIGATORIOS', 'error'); return; }
   const existing = USERS.find(u => u.user === login);
   if (existing) {
     if (pass) existing.passHash = await hashPass(pass);
     existing.nombre = name;
     existing.rol = rol;
   } else {
-    if (!pass) { alert("CONTRASEÑA REQUERIDA PARA NUEVO USUARIO"); return; }
+    if (!pass) { showToast('CONTRASEÑA REQUERIDA PARA NUEVO USUARIO', 'error'); return; }
     USERS.push({ user: login, passHash: await hashPass(pass), nombre: name, rol: rol, email: '', blocked: false, area: '', provincia: '', codigo: '' });
   }
   saveUsers();
@@ -443,7 +567,7 @@ function deleteSelectedUser() {
   const username = selector.value;
   if (!username) return;
   const user = USERS.find(u => u.user === username);
-  if (user && user.rol === 'admin') { alert("NO SE PUEDE ELIMINAR AL ADMINISTRADOR PRINCIPAL"); return; }
+  if (user && user.rol === 'admin') { showToast('NO SE PUEDE ELIMINAR AL ADMINISTRADOR PRINCIPAL', 'error'); return; }
   openModal("ELIMINAR USUARIO", `¿ELIMINAR A ${user.nombre}?`, () => {
     USERS = USERS.filter(u => u.user !== username);
     saveUsers();
@@ -565,7 +689,7 @@ function aprobarSolicitud(id) {
   addLog(username, nombreCompleto, 'aprobacion', solicitud.email, `CUENTA APROBADA POR ADMINISTRADOR - ÁREA: ${solicitud.area}, PROVINCIA: ${solicitud.provincia}, CÓDIGO: ${solicitud.codigo}`);
   
   renderAdmin();
-  alert(`✅ USUARIO ${nombreCompleto} APROBADO CORRECTAMENTE.`);
+  showToast(`USUARIO ${nombreCompleto} APROBADO CORRECTAMENTE.`, 'success');
 }
 
 function rechazarSolicitud(id) {
@@ -689,8 +813,8 @@ function driveDownloadUrl(url){
 }
 function verifyDriveLink(url){
   const id = extractDriveId(url);
-  if(id) alert(`✅ ID DE DRIVE DETECTADO: ${id}\nEL ARCHIVO SERÁ ACCESIBLE.`);
-  else alert('❌ NO SE PUDO EXTRAER EL ID. ASEGÚRATE DE USAR UN ENLACE ESTÁNDAR DE DRIVE.');
+  if(id) showToast(`ID DE DRIVE DETECTADO: ${id} — ARCHIVO ACCESIBLE`, 'success');
+  else showToast('NO SE PUDO EXTRAER EL ID. USA UN ENLACE ESTÁNDAR DE DRIVE.', 'error');
 }
 
 // ==================== SESIÓN Y UI ====================
@@ -726,6 +850,7 @@ function entrarAlSistema(found, foto){
     renderAdmin();
   }
   resetInactivityTimer();
+  showToast(`BIENVENIDO, ${found.nombre.split(' ')[0]}`, 'success', 3000);
 }
 
 function loginConGoogle(){
@@ -814,24 +939,68 @@ function renderAdmin(){
   
   const all=[...logs].reverse();
   document.getElementById('admin-log-total').textContent = all.length;
-  document.getElementById('admin-log-tbody').innerHTML = all.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':(l.estado==='aprobacion'?'badge-admin':'badge-fail')}">${l.estado==='ok'?'✓ EXITOSO':(l.estado==='aprobacion'?'✅ APROBACIÓN':'✗ FALLIDO')}</span>${l.details?`<br><small>${esc(l.details)}</small>`:''}</td></tr>`).join('');
+  renderLogPage(all, 1);
   renderChart(logs);
   renderAdminFiles();
 }
 
+let _allLogs = [], _logPage = 1;
+const LOG_PAGE_SIZE = 15;
+function renderLogPage(logs, page){
+  _allLogs = logs; _logPage = page;
+  const total = logs.length;
+  const pages = Math.ceil(total / LOG_PAGE_SIZE) || 1;
+  const start = (page-1)*LOG_PAGE_SIZE;
+  const slice = logs.slice(start, start+LOG_PAGE_SIZE);
+  document.getElementById('admin-log-tbody').innerHTML = slice.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':(l.estado==='aprobacion'?'badge-admin':'badge-fail')}">${l.estado==='ok'?'✓ EXITOSO':(l.estado==='aprobacion'?'✅ APROBACIÓN':'✗ FALLIDO')}</span>${l.details?`<br><small>${esc(l.details)}</small>`:''}</td></tr>`).join('');
+  // Paginación
+  const pag = document.getElementById('log-pagination');
+  if(pages <= 1){ pag.innerHTML=''; return; }
+  let btns = '';
+  if(page>1) btns += `<button class="page-btn" onclick="renderLogPage(_allLogs,${page-1})">‹</button>`;
+  for(let p=Math.max(1,page-2);p<=Math.min(pages,page+2);p++)
+    btns += `<button class="page-btn${p===page?' active':''}" onclick="renderLogPage(_allLogs,${p})">${p}</button>`;
+  if(page<pages) btns += `<button class="page-btn" onclick="renderLogPage(_allLogs,${page+1})">›</button>`;
+  btns += `<span class="page-info">PÁGINA ${page} DE ${pages} · ${total} REGISTROS</span>`;
+  pag.innerHTML = btns;
+}
+
+let _accesosChart = null;
 function renderChart(logs){
   const days = 14, labels = [], okC = [], failC = [];
   for(let i=days-1;i>=0;i--){
     const d = new Date(); d.setDate(d.getDate()-i);
     const label = d.toLocaleDateString('es-EC');
-    labels.push(label);
+    const short = d.toLocaleDateString('es-EC',{day:'2-digit',month:'2-digit'});
+    labels.push(short);
     const dayLogs = logs.filter(l=>l.fecha===label);
     okC.push(dayLogs.filter(l=>l.estado==='ok').length);
     failC.push(dayLogs.filter(l=>l.estado==='fail').length);
   }
-  const maxVal = Math.max(...okC, ...failC, 1);
-  document.getElementById('chart-bars').innerHTML = labels.map((_,i)=>`<div class="chart-bar-group"><div style="display:flex;align-items:flex-end;gap:2px;height:100%"><div class="chart-bar chart-bar-ok" style="height:${Math.round((okC[i]/maxVal)*100)}%;flex:1"></div><div class="chart-bar chart-bar-fail" style="height:${Math.round((failC[i]/maxVal)*100)}%;flex:1"></div></div></div>`).join('');
-  document.getElementById('chart-labels').innerHTML = labels.map(l=>`<div class="chart-label">${l}</div>`).join('');
+  const canvas = document.getElementById('accesos-chart');
+  if(!canvas) return;
+  if(_accesosChart){ _accesosChart.destroy(); }
+  const isDark = document.body.classList.contains('dark-mode');
+  const gridColor = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)';
+  const tickColor = isDark ? '#9ca3af' : '#5a6278';
+  _accesosChart = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label:'EXITOSOS', data:okC, backgroundColor:'rgba(26,122,74,0.8)', borderColor:'#1a7a4a', borderWidth:1, borderRadius:3 },
+        { label:'FALLIDOS', data:failC, backgroundColor:'rgba(192,57,43,0.8)', borderColor:'#c0392b', borderWidth:1, borderRadius:3 }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:true,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ title:t=>t[0].label, label:c=>`${c.dataset.label}: ${c.parsed.y}` } } },
+      scales:{
+        x:{ grid:{color:gridColor}, ticks:{color:tickColor, font:{size:10}} },
+        y:{ beginAtZero:true, grid:{color:gridColor}, ticks:{color:tickColor, stepSize:1, font:{size:10}} }
+      }
+    }
+  });
 }
 
 // ==================== ARCHIVOS UI ====================
@@ -886,7 +1055,7 @@ async function addFile(){
   const url = document.getElementById('af-url').value.trim();
   const tipo = document.getElementById('af-tipo').value;
   const desc = document.getElementById('af-desc').value.trim().toUpperCase();
-  if(!nombre || !url){ alert('COMPLETA NOMBRE Y ENLACE.'); return; }
+  if(!nombre || !url){ showToast('COMPLETA NOMBRE Y ENLACE.', 'error'); return; }
   const newId = Date.now();
   const fecha = new Date().toLocaleDateString('es-EC');
   const entry = { id:newId, nombre, seccion, urlOriginal: url, tipo, desc, fecha, subidoPor: currentUser ? currentUser.nombre : 'ADMIN' };
@@ -905,7 +1074,7 @@ async function addFile(){
 function copiarCodigo(){
   const txt = document.getElementById('af-code-text').textContent;
   navigator.clipboard.writeText(txt);
-  alert('CÓDIGO COPIADO. PÉGALO EN FILES_BASE EN EL HTML.');
+  showToast('CÓDIGO COPIADO. PÉGALO EN FILES_BASE EN EL HTML.', 'success');
 }
 
 function globalSearchFiles(){
@@ -932,6 +1101,7 @@ function printCurrentView(){
 function toggleDarkMode(){
   document.body.classList.toggle('dark-mode');
   localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+  if(_accesosChart) renderChart(getLogs());
 }
 
 function confirmClearLogs(){
@@ -949,8 +1119,8 @@ function openModal(title, msg, onConfirm){
 function closeModal(){ document.getElementById('confirm-modal').classList.remove('open'); _modalCallback = null; }
 document.getElementById('modal-ok-btn').onclick = () => { if(_modalCallback) _modalCallback(); closeModal(); };
 document.getElementById('confirm-modal').addEventListener('click', e=>{ if(e.target === e.currentTarget) closeModal(); });
-function mostrarError(msg){ const el = document.getElementById('login-error'); el.textContent = msg; el.style.display = 'block'; setTimeout(()=>el.style.display='none', 5000); }
-function mostrarExito(msg){ const el = document.getElementById('login-success'); el.textContent = msg; el.style.display = 'block'; setTimeout(()=>el.style.display='none', 5000); }
+function mostrarError(msg){ const el = document.getElementById('login-error'); el.textContent = msg; el.style.display = 'block'; showToast(msg,'error'); setTimeout(()=>el.style.display='none', 5000); }
+function mostrarExito(msg){ const el = document.getElementById('login-success'); el.textContent = msg; el.style.display = 'block'; showToast(msg,'success'); setTimeout(()=>el.style.display='none', 5000); }
 function showTab(id){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
