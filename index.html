@@ -11,7 +11,7 @@
   <!-- Firebase SDK for solicitudes -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, serverTimestamp, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDy42qQ9DUtRA9cCT9qblFl7evMcjdLCMc",
@@ -25,6 +25,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
+    // Enviar nueva solicitud de registro
     window._enviarSolicitudFirebase = async function(nombre, correo, motivo) {
       const docRef = await addDoc(collection(db, "solicitudes"), {
         nombre,
@@ -34,6 +35,47 @@
         fecha: serverTimestamp()
       });
       return docRef.id;
+    };
+
+    // Escuchar solicitudes en tiempo real (para el panel admin)
+    window._escucharSolicitudes = function(callback) {
+      const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"));
+      return onSnapshot(q, (snapshot) => {
+        const solicitudes = [];
+        snapshot.forEach((docSnap) => {
+          solicitudes.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        callback(solicitudes);
+      });
+    };
+
+    // Obtener solicitudes una sola vez
+    window._obtenerSolicitudes = async function() {
+      const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"));
+      const snapshot = await getDocs(q);
+      const solicitudes = [];
+      snapshot.forEach((docSnap) => {
+        solicitudes.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      return solicitudes;
+    };
+
+    // Aprobar solicitud (cambiar estado)
+    window._aprobarSolicitud = async function(id) {
+      const ref = doc(db, "solicitudes", id);
+      await updateDoc(ref, { estado: "aprobada" });
+    };
+
+    // Rechazar solicitud
+    window._rechazarSolicitud = async function(id) {
+      const ref = doc(db, "solicitudes", id);
+      await updateDoc(ref, { estado: "rechazada" });
+    };
+
+    // Eliminar solicitud
+    window._eliminarSolicitud = async function(id) {
+      const ref = doc(db, "solicitudes", id);
+      await deleteDoc(ref);
     };
   </script>
 </head>
@@ -206,6 +248,80 @@
 <div id="toast-container"></div>
 
     <script src="app.js"></script>
+
+<script>
+// ── PANEL ADMIN: SOLICITUDES DE REGISTRO ──────────────────────────────────────
+let _unsubSolicitudes = null;
+
+function _renderSolicitudes(lista) {
+  const el = document.getElementById('solicitudes-list');
+  if (!el) return;
+
+  const pendientes = lista.filter(s => s.estado === 'pendiente');
+
+  // Actualizar badge en nav-admin
+  const navAdmin = document.getElementById('nav-admin');
+  if (navAdmin) {
+    navAdmin.textContent = pendientes.length > 0
+      ? '\u2699 ADMIN (' + pendientes.length + ' \u26a0\ufe0f)'
+      : '\u2699 ADMIN';
+  }
+
+  if (lista.length === 0) {
+    el.innerHTML = '<p style="color:#888;text-align:center">No hay solicitudes de registro.</p>';
+    return;
+  }
+
+  const colores = { pendiente: '#e67e22', aprobada: '#27ae60', rechazada: '#c0392b' };
+
+  el.innerHTML = lista.map(function(s) {
+    const fecha = s.fecha && s.fecha.toDate ? s.fecha.toDate().toLocaleString('es-EC') : '\u2014';
+    const color = colores[s.estado] || '#888';
+    const btns = s.estado === 'pendiente'
+      ? '<button onclick="_accionSolicitud(\'aprobar\',\''+s.id+'\')">\u2705 APROBAR</button>' +
+        '<button onclick="_accionSolicitud(\'rechazar\',\''+s.id+'\')">\u274c RECHAZAR</button>' +
+        '<button onclick="_accionSolicitud(\'eliminar\',\''+s.id+'\')">\ud83d\uddd1 ELIMINAR</button>'
+      : '<button onclick="_accionSolicitud(\'eliminar\',\''+s.id+'\')">\ud83d\uddd1 ELIMINAR</button>';
+    return '<div style="border:1px solid #dde0e8;border-radius:7px;padding:1rem;margin-bottom:.8rem;border-left:4px solid '+color+'">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">' +
+        '<div><strong>'+s.nombre+'</strong>' +
+        '<span style="margin-left:.7rem;padding:.2rem .7rem;border-radius:20px;background:'+color+';color:#fff;font-size:.75rem">'+(s.estado||'').toUpperCase()+'</span></div>' +
+        '<span style="font-size:.78rem;color:#888">'+fecha+'</span>' +
+      '</div>' +
+      '<div style="margin-top:.5rem;font-size:.85rem;color:#555"><strong>Correo:</strong> '+s.correo+'<br><strong>Motivo:</strong> '+s.motivo+'</div>' +
+      '<div style="margin-top:.8rem;display:flex;gap:.5rem;flex-wrap:wrap">'+btns+'</div>' +
+    '</div>';
+  }).join('');
+
+  // Estilo de botones inline
+  el.querySelectorAll('button').forEach(function(b) {
+    b.style.cssText = 'border:none;padding:.4rem 1rem;border-radius:5px;cursor:pointer;font-size:.82rem;color:#fff;background:#555';
+  });
+}
+
+window._accionSolicitud = async function(accion, id) {
+  try {
+    if (accion === 'aprobar' && window._aprobarSolicitud) await window._aprobarSolicitud(id);
+    else if (accion === 'rechazar' && window._rechazarSolicitud) await window._rechazarSolicitud(id);
+    else if (accion === 'eliminar' && window._eliminarSolicitud) await window._eliminarSolicitud(id);
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+};
+
+function _iniciarListenerSolicitudes() {
+  if (typeof window._escucharSolicitudes !== 'function') {
+    setTimeout(_iniciarListenerSolicitudes, 400);
+    return;
+  }
+  if (_unsubSolicitudes) return;
+  _unsubSolicitudes = window._escucharSolicitudes(_renderSolicitudes);
+}
+
+window.addEventListener('load', function() {
+  setTimeout(_iniciarListenerSolicitudes, 900);
+});
+</script>
 
 <script>
 window.solicitarRegistroFirebase = async function() {
