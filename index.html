@@ -8,6 +8,34 @@
     <link rel="stylesheet" href="styles.css"/>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <!-- Firebase SDK for solicitudes -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDy42qQ9DUtRA9cCT9qblFl7evMcjdLCMc",
+      authDomain: "mi-sistema-acceso.firebaseapp.com",
+      projectId: "mi-sistema-acceso",
+      storageBucket: "mi-sistema-acceso.firebasestorage.app",
+      messagingSenderId: "1028821858681",
+      appId: "1:1028821858681:web:841c4aa683077502c5d7a8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    window._enviarSolicitudFirebase = async function(nombre, correo, motivo) {
+      const docRef = await addDoc(collection(db, "solicitudes"), {
+        nombre,
+        correo,
+        motivo,
+        estado: "pendiente",
+        fecha: serverTimestamp()
+      });
+      return docRef.id;
+    };
+  </script>
 </head>
 <body>
 
@@ -40,24 +68,42 @@
 
       <!-- Panel Registro -->
       <div class="login-panel" id="panel-registrar">
-        <div class="field">
-          <label>ÁREA ACTUAL</label>
-          <input type="text" id="reg-area" placeholder="EJ: OPERACIONES" />
+        <div id="reg-form-wrap">
+          <div class="field">
+            <label>NOMBRE COMPLETO</label>
+            <input type="text" id="reg-nombre" placeholder="Tu nombre completo"/>
+          </div>
+          <div class="field">
+            <label>CORREO ELECTRÓNICO</label>
+            <input type="email" id="reg-email" placeholder="correo@ejemplo.com" oninput="this.value = this.value.toLowerCase()"/>
+          </div>
+          <div class="field">
+            <label>ÁREA ACTUAL</label>
+            <input type="text" id="reg-area" placeholder="EJ: OPERACIONES" />
+          </div>
+          <div class="field">
+            <label>PROVINCIA</label>
+            <input type="text" id="reg-provincia" placeholder="EJ: PICHINCHA" />
+          </div>
+          <div class="field">
+            <label>CÓDIGO INSTITUCIONAL</label>
+            <input type="text" id="reg-codigo" placeholder="EJ: 12345" maxlength="5" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,5)"/>
+          </div>
+          <div class="field">
+            <label>MOTIVO DE ACCESO</label>
+            <textarea id="reg-motivo" placeholder="Describe brevemente para qué necesitas acceso..." style="width:100%;background:rgba(0,0,0,.04);border:1px solid #dde0e8;border-radius:5px;padding:.6rem .8rem;font-family:inherit;font-size:.93rem;resize:vertical;min-height:70px"></textarea>
+          </div>
+          <button class="btn-register" id="btn-enviar-solicitud" onclick="solicitarRegistroFirebase()">📝 ENVIAR SOLICITUD</button>
+          <div id="reg-status-loading" style="display:none;margin-top:.8rem;padding:.6rem 1rem;background:#e8f4fd;border:1px solid #b3d7f0;border-radius:5px;color:#1a5276;font-size:.85rem">⏳ Enviando solicitud...</div>
+          <div id="reg-status-error" style="display:none;margin-top:.8rem;padding:.6rem 1rem;background:#fdecea;border:1px solid #f5c6cb;border-radius:5px;color:#721c24;font-size:.85rem"></div>
+          <div class="login-footer" style="margin-top:1rem">EL REGISTRO REQUIERE APROBACIÓN DEL ADMINISTRADOR</div>
         </div>
-        <div class="field">
-          <label>PROVINCIA</label>
-          <input type="text" id="reg-provincia" placeholder="EJ: PICHINCHA" />
+        <div id="reg-success-wrap" style="display:none;text-align:center;padding:1.2rem 0">
+          <div style="font-size:3rem;margin-bottom:.8rem">⏳</div>
+          <div style="font-weight:700;font-size:1.1rem;letter-spacing:2px;color:#e67e22;text-transform:uppercase;margin-bottom:.5rem">Solicitud Enviada</div>
+          <div style="font-size:.85rem;color:#555;line-height:1.6">Tu solicitud fue enviada en línea.<br/>El administrador la revisará y aprobará pronto.</div>
+          <div id="reg-solicitud-id" style="margin-top:1rem;padding:.6rem 1rem;background:#fef9ec;border:1px solid #f0c040;border-radius:5px;font-size:.8rem;color:#b7770d;letter-spacing:1px"></div>
         </div>
-        <div class="field">
-          <label>CÓDIGO INSTITUCIONAL</label>
-          <input type="text" id="reg-codigo" placeholder="EJ: 12345" maxlength="5" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,5)"/>
-        </div>
-        <div class="field">
-          <label>CORREO GMAIL</label>
-          <input type="email" id="reg-email" placeholder="ejemplo@gmail.com" oninput="this.value = this.value.toLowerCase()"/>
-        </div>
-        <button class="btn-register" onclick="solicitarRegistro()">📝 ENVIAR SOLICITUD</button>
-        <div class="login-footer" style="margin-top:1rem">EL REGISTRO REQUIERE APROBACIÓN DEL ADMINISTRADOR</div>
       </div>
 
       <div class="login-footer" style="margin-top:1.2rem">COMISIÓN DE TRÁNSITO DEL ECUADOR</div>
@@ -160,5 +206,49 @@
 <div id="toast-container"></div>
 
     <script src="app.js"></script>
+
+<script>
+window.solicitarRegistroFirebase = async function() {
+  const nombre = (document.getElementById('reg-nombre')?.value || '').trim();
+  const correo = (document.getElementById('reg-email')?.value || '').trim();
+  const area   = (document.getElementById('reg-area')?.value  || '').trim();
+  const prov   = (document.getElementById('reg-provincia')?.value || '').trim();
+  const codigo = (document.getElementById('reg-codigo')?.value || '').trim();
+  const motivo = (document.getElementById('reg-motivo')?.value || '').trim();
+
+  const errEl = document.getElementById('reg-status-error');
+  errEl.style.display = 'none';
+
+  if (!nombre || !correo || !motivo) {
+    errEl.textContent = '❌ Completa al menos: nombre, correo y motivo.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (!correo.includes('@')) {
+    errEl.textContent = '❌ Ingresa un correo válido.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('btn-enviar-solicitud');
+  btn.disabled = true;
+  document.getElementById('reg-status-loading').style.display = 'block';
+
+  try {
+    const motiCompleto = motivo + (area ? ' | Área: ' + area : '') + (prov ? ' | Provincia: ' + prov : '') + (codigo ? ' | Código: ' + codigo : '');
+    const id = await window._enviarSolicitudFirebase(nombre, correo, motiCompleto);
+    document.getElementById('reg-status-loading').style.display = 'none';
+    document.getElementById('reg-form-wrap').style.display = 'none';
+    document.getElementById('reg-success-wrap').style.display = 'block';
+    document.getElementById('reg-solicitud-id').textContent = 'ID de solicitud: ' + id;
+  } catch (err) {
+    console.error(err);
+    document.getElementById('reg-status-loading').style.display = 'none';
+    errEl.textContent = '❌ No se pudo conectar. Verifica tu internet.';
+    errEl.style.display = 'block';
+    btn.disabled = false;
+  }
+};
+</script>
 </body>
 </html>
