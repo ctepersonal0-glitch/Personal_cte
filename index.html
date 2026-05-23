@@ -237,17 +237,36 @@
     document.getElementById('reg-enviado').style.display = 'none';
   };
 
-  // ── ESCUCHAR SOLICITUDES EN TIEMPO REAL (solo cuando admin está activo) ──
+  // ── ESCUCHAR SOLICITUDES EN TIEMPO REAL ──
   let unsubSolicitudes = null;
+  let _cachedSolicitudes = [];
 
   window.iniciarEscuchaSolicitudes = function() {
-    if (unsubSolicitudes) return; // ya escuchando
-    const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"));
-    unsubSolicitudes = onSnapshot(q, (snap) => {
-      const all = [];
-      snap.forEach(d => all.push({ id: d.id, ...d.data() }));
-      renderSolicitudes(all);
-    });
+    // Si ya hay escucha activa, solo re-renderizar con datos cacheados
+    if (unsubSolicitudes) {
+      renderSolicitudes(_cachedSolicitudes);
+      return;
+    }
+    const container = document.getElementById('solicitudes-list');
+    if (container) container.innerHTML = '<div style="text-align:center;color:#8899aa;padding:1rem;font-size:.85rem">Conectando con Firebase...</div>';
+
+    try {
+      const q = query(collection(db, "solicitudes"), orderBy("fecha", "desc"));
+      unsubSolicitudes = onSnapshot(q, (snap) => {
+        const all = [];
+        snap.forEach(d => all.push({ id: d.id, ...d.data() }));
+        _cachedSolicitudes = all;
+        renderSolicitudes(all);
+      }, (error) => {
+        console.error("Error Firestore:", error);
+        const c = document.getElementById('solicitudes-list');
+        if (c) c.innerHTML = '<div style="color:#ff4444;padding:1rem;font-size:.82rem">Error al cargar solicitudes. Verifica las reglas de Firestore en Firebase Console.</div>';
+        unsubSolicitudes = null;
+      });
+    } catch(e) {
+      console.error("Error iniciando escucha:", e);
+      unsubSolicitudes = null;
+    }
   };
 
   function renderSolicitudes(all) {
@@ -304,14 +323,39 @@
     return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  // Arrancar escucha cuando el tab admin se muestre
-  const origShowTab = window.showTab;
-  if (typeof origShowTab === 'function') {
-    window.showTab = function(tab) {
-      origShowTab(tab);
-      if (tab === 'admin') window.iniciarEscuchaSolicitudes();
-    };
+  // ── ARRANCAR ESCUCHA DE FORMA ROBUSTA ──
+  // 1) Iniciar escucha inmediatamente (no esperar al tab admin)
+  window.iniciarEscuchaSolicitudes();
+
+  // 2) Engancharse a showTab con retry por si app.js carga después
+  function engacharShowTab() {
+    if (typeof window.showTab === 'function' && !window._solicitudesHooked) {
+      window._solicitudesHooked = true;
+      const orig = window.showTab;
+      window.showTab = function(tab) {
+        orig(tab);
+        // La escucha ya está activa, pero re-renderizamos si hay datos cacheados
+        if (tab === 'admin') {
+          window.iniciarEscuchaSolicitudes();
+        }
+      };
+    }
   }
+
+  // Intentar enganchar ahora y cada 200ms hasta lograrlo
+  engacharShowTab();
+  const _hookInterval = setInterval(function() {
+    engacharShowTab();
+    if (window._solicitudesHooked) clearInterval(_hookInterval);
+  }, 200);
+
+  // 3) También escuchar clics en el nav admin directamente
+  document.addEventListener('click', function(e) {
+    if (e.target && e.target.getAttribute('onclick') &&
+        e.target.getAttribute('onclick').includes("'admin'")) {
+      window.iniciarEscuchaSolicitudes();
+    }
+  });
 </script>
 </body>
 </html>
