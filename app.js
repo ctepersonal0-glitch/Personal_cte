@@ -312,7 +312,7 @@ async function rechazarSolicitud(id) {
   });
 }
 
-async function renderSolicitudes() {
+async function renderSolicitudesSheets() {
   const container = document.getElementById('solicitudes-list');
   if (!container) return;
 
@@ -547,7 +547,12 @@ async function renderAdmin(){
   if(!currentUser||currentUser.rol!=='admin') return;
   const logs = getLogs();
   
-  await renderSolicitudes();
+  // Las solicitudes Firebase se renderizan por su propio listener
+  if (typeof window.iniciarEscuchaSolicitudes === "function") {
+    window.iniciarEscuchaSolicitudes();
+  } else {
+    await renderSolicitudesSheets();
+  }
   
   document.getElementById('admin-users-list').innerHTML = USERS.map(u => {
     const isAdm = u.rol==='admin';
@@ -751,7 +756,13 @@ function showTab(id){
   document.querySelectorAll('nav a').forEach(a=>a.classList.remove('active'));
   const lnk = [...document.querySelectorAll('nav a')].find(a=>a.getAttribute('onclick')===`showTab('${id}')`);
   if(lnk) lnk.classList.add('active');
-  if(id === 'admin' && currentUser && currentUser.rol === 'admin') renderAdmin();
+  if(id === 'admin' && currentUser && currentUser.rol === 'admin') {
+    renderAdmin();
+    // Forzar re-render de solicitudes Firebase después de que renderAdmin corra
+    setTimeout(function() {
+      if (typeof window.iniciarEscuchaSolicitudes === 'function') window.iniciarEscuchaSolicitudes();
+    }, 300);
+  }
   if(SECCIONES[id]) renderSectionFiles(id);
 }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
