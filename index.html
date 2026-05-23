@@ -309,14 +309,54 @@
 
   window.aprobarSolicitud = async function(id) {
     try {
-      await updateDoc(doc(db, "solicitudes", id), { estado: 'aprobado', revisado: serverTimestamp() });
-    } catch(e) { alert('Error al aprobar'); }
+      // 1) Obtener datos de la solicitud desde el cache
+      const sol = _cachedSolicitudes.find(s => s.id === id);
+      if (!sol) { alert('No se encontró la solicitud'); return; }
+
+      // 2) Registrar el email en USERS para que pueda entrar con Google
+      if (typeof USERS !== 'undefined' && typeof saveUsers === 'function') {
+        const yaExiste = USERS.find(u => u.email && u.email.toLowerCase() === (sol.email||'').toLowerCase());
+        if (!yaExiste) {
+          const nuevoUsuario = {
+            user: (sol.email || '').split('@')[0].toLowerCase().replace(/[^a-z0-9._]/g, ''),
+            passHash: '',
+            nombre: (sol.nombre || sol.area || sol.email).toUpperCase(),
+            rol: 'user',
+            email: (sol.email || '').toLowerCase(),
+            blocked: false,
+            area: sol.area || '',
+            provincia: sol.provincia || '',
+            codigo: sol.codigo || ''
+          };
+          USERS.push(nuevoUsuario);
+          await saveUsers();
+          if (typeof showToast === 'function') {
+            showToast('✅ ACCESO APROBADO PARA ' + sol.email, 'success', 6000);
+          }
+        } else {
+          if (typeof showToast === 'function') showToast('ℹ️ Este correo ya tiene acceso', 'info', 4000);
+        }
+      }
+
+      // 3) Marcar como aprobado en Firestore
+      await updateDoc(doc(db, "solicitudes", id), {
+        estado: 'aprobado',
+        revisado: serverTimestamp()
+      });
+
+    } catch(e) {
+      console.error('Error al aprobar:', e);
+      alert('Error al aprobar: ' + e.message);
+    }
   };
 
   window.rechazarSolicitud = async function(id) {
     try {
       await updateDoc(doc(db, "solicitudes", id), { estado: 'rechazado', revisado: serverTimestamp() });
-    } catch(e) { alert('Error al rechazar'); }
+      if (typeof showToast === 'function') showToast('Solicitud rechazada', 'info', 3000);
+    } catch(e) {
+      alert('Error al rechazar: ' + e.message);
+    }
   };
 
   function esc(str) {
