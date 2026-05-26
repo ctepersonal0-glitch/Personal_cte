@@ -5,111 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Unidad de Personal y Movilidad – CTE</title>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet"/>
-    <link rel="stylesheet" href="styles.css"/>
+<link rel="stylesheet" href="styles.css"/>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-
-<!-- ==================== FIREBASE SDK ==================== -->
-<!-- PASO 2: Reemplaza los valores de firebaseConfig con los de tu proyecto -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
-  import { getDatabase, ref, push, onChildAdded, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-  // ⚠️ REEMPLAZA con los datos de tu proyecto Firebase
-  const firebaseConfig = {
-    apiKey : "AIzaSyDUg4382VkkbP4CB9YV2wASS0bc9WEcM-U" , 
-  authDomain : "cte-sistema-53d3e.firebaseapp.com" , 
-  ID del proyecto : "cte-sistema-53d3e" , 
-  storageBucket : "cte-sistema-53d3e.firebasestorage.app" , 
-  messagingSenderId : "863608060086" , 
-  appId : "1:863608060086:web:1accb8e23ca865b06f0e17" 
-  };
-
-  // ⚠️ Tu VAPID Key pública (en Firebase Console → Project Settings → Cloud Messaging)
-  const VAPID_KEY = "TU_VAPID_PUBLIC_KEY";
-
-  const app = initializeApp(firebaseConfig);
-  const messaging = getMessaging(app);
-  const db = getDatabase(app);
-
-  // Exponer funciones globalmente para que app.js las use
-  window._firebaseDB = db;
-  window._firebaseRef = ref;
-  window._firebasePush = push;
-  window._firebaseOnChildAdded = onChildAdded;
-  window._firebaseServerTimestamp = serverTimestamp;
-
-  // ==================== SOLICITAR PERMISO Y OBTENER TOKEN FCM ====================
-  window.initFirebaseMessaging = async function() {
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') {
-        console.warn('Permiso de notificaciones denegado');
-        return null;
-      }
-
-      // Registrar service worker
-      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-      
-      const token = await getToken(messaging, {
-        vapidKey: VAPID_KEY,
-        serviceWorkerRegistration: registration
-      });
-
-      if (token) {
-        console.log('Token FCM obtenido:', token);
-        // Guardar token del admin en la base de datos
-        return token;
-      }
-    } catch (err) {
-      console.error('Error al obtener token FCM:', err);
-    }
-    return null;
-  };
-
-  // ==================== ESCUCHAR NOTIFICACIONES EN PRIMER PLANO ====================
-  onMessage(messaging, (payload) => {
-    console.log('Notificación recibida en primer plano:', payload);
-    const { title, body } = payload.notification || {};
-    if (title) {
-      showToast(`🔔 ${title}: ${body}`, 'info', 6000);
-    }
-  });
-
-  // ==================== ESCUCHAR NUEVAS SOLICITUDES EN TIEMPO REAL ====================
-  window.initRealtimeSolicitudes = function(onNuevaSolicitud) {
-    const solicitudesRef = ref(db, 'solicitudes');
-    let initialized = false;
-    onChildAdded(solicitudesRef, (snapshot) => {
-      // Ignorar los datos iniciales al cargar
-      if (!initialized) return;
-      const solicitud = snapshot.val();
-      if (solicitud && solicitud.estado === 'pendiente') {
-        onNuevaSolicitud(solicitud);
-      }
-    });
-    // Marcar como inicializado después de un tick
-    setTimeout(() => { initialized = true; }, 1000);
-  };
-
-  // ==================== GUARDAR SOLICITUD EN FIREBASE REALTIME DB ====================
-  window.saveSolicitudFirebase = async function(solicitud) {
-    try {
-      const solicitudesRef = ref(db, 'solicitudes');
-      await push(solicitudesRef, {
-        ...solicitud,
-        timestamp: serverTimestamp()
-      });
-      return true;
-    } catch (err) {
-      console.error('Error al guardar solicitud en Firebase:', err);
-      return false;
-    }
-  };
-</script>
-<!-- ==================== FIN FIREBASE SDK ==================== -->
-
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -218,7 +119,6 @@
     <div class="tab" id="tab-admin">
       <div class="section-title">⚙ PANEL DE ADMINISTRACIÓN</div>
       
-      <!-- Solicitudes Pendientes -->
       <div class="section-title">📋 SOLICITUDES DE REGISTRO PENDIENTES</div>
       <div class="admin-card"><div class="admin-card-body" id="solicitudes-list"></div></div>
       
@@ -261,6 +161,24 @@
 
 <div id="toast-container"></div>
 
-    <script src="app.js"></script>
+<script>
+  // ==================== CONFIGURACIÓN DE FIREBASE ====================
+  // ⚠️ IMPORTANTE: REEMPLAZA ESTOS VALORES CON LOS DE TU PROYECTO EN FIREBASE ⚠️
+  const firebaseConfig = {
+    apiKey: "AIzaSyDUg4382VkkbP4CB9YV2wASS0bc9WEcM-U",
+  authDomain: "cte-sistema-53d3e.firebaseapp.com",
+  databaseURL: "https://cte-sistema-53d3e-default-rtdb.firebaseio.com",
+  projectId: "cte-sistema-53d3e",
+  storageBucket: "cte-sistema-53d3e.firebasestorage.app",
+  messagingSenderId: "863608060086",
+  appId: "1:863608060086:web:1accb8e23ca865b06f0e17"
+  };
+  
+  // Inicializar Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
+
+<script src="app.js"></script>
 </body>
 </html>
