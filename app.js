@@ -55,54 +55,69 @@ async function hashPass(pass) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// ==================== GESTIÓN DE USUARIOS (Google Sheets) ====================
+// ==================== FIRESTORE CONFIGURACIÓN ====================
 let USERS = [];
+let solicitudesUnsubscribe = null;
 
-// ⚠️ REEMPLAZA esta URL con la de tu Apps Script desplegado
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby07BwnyZ_euCz5ZJ0eUfzPYeV0xzKYnTcg0FqTBEj4Z31OmPl_q-dLCktJIAYRwK2ExA/exec';
-
-async function loadUsersFromCloud() {
-  try {
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=getUsers&token=cte-token-seguro-2026`);
-    const data = await res.json();
-    if (data.ok && data.users && data.users.length > 0) {
-      // Guardar copia local como cache
-      localStorage.setItem('cte_users_cache', JSON.stringify(data.users));
-      return data.users;
-    }
-  } catch(e) {
-    console.warn('No se pudo conectar a la nube, usando caché local:', e);
-  }
-  // Fallback: caché local
-  const cache = localStorage.getItem('cte_users_cache');
-  if (cache) return JSON.parse(cache);
-  return JSON.parse(JSON.stringify(DEFAULT_USERS));
-}
-
+// Cargar usuarios desde Firestore con escucha en tiempo real
 async function initializeUsers() {
-  showToast('Cargando usuarios...', 'info', 2000);
-  USERS = await loadUsersFromCloud();
-  let needsSave = false;
-  for (let u of USERS) {
-    if (!u.passHash) {
-      const defaultPass = u.user === 'admin' ? '@dmin2026' : 'cte2026';
-      u.passHash = await hashPass(defaultPass);
-      needsSave = true;
+  showToast('Conectando a la nube...', 'info', 2000);
+  
+  // Escuchar cambios en tiempo real en la colección 'users'
+  db.collection('users').onSnapshot(async (snapshot) => {
+    const usersFromFirestore = [];
+    snapshot.forEach(doc => {
+      usersFromFirestore.push({ id: doc.id, ...doc.data() });
+    });
+    
+    if (usersFromFirestore.length > 0) {
+      USERS = usersFromFirestore;
+      localStorage.setItem('cte_users_cache', JSON.stringify(USERS));
+      
+      // Aplicar hash a usuarios sin passHash
+      let needsSave = false;
+      for (let u of USERS) {
+        if (!u.passHash) {
+          const defaultPass = u.user === 'admin' ? '@dmin2026' : 'cte2026';
+          u.passHash = await hashPass(defaultPass);
+          needsSave = true;
+        }
+      }
+      if (needsSave) await saveUsers();
+      
+      // Actualizar UI si es necesario
+      if (currentUser && currentUser.rol === 'admin') renderAdmin();
+      if (currentUser) {
+        document.getElementById('stat-total').textContent = USERS.length;
+      }
+    } else if (USERS.length === 0) {
+      // Si no hay usuarios, crear el admin por defecto
+      USERS = JSON.parse(JSON.stringify(DEFAULT_USERS));
+      for (let u of USERS) {
+        if (!u.passHash) {
+          const defaultPass = u.user === 'admin' ? '@dmin2026' : 'cte2026';
+          u.passHash = await hashPass(defaultPass);
+        }
+      }
+      await saveUsers();
     }
-  }
-  if (needsSave) saveUsers();
+  }, (error) => {
+    console.error('Error escuchando usuarios:', error);
+    // Fallback a caché local
+    const cache = localStorage.getItem('cte_users_cache');
+    if (cache) USERS = JSON.parse(cache);
+    else USERS = JSON.parse(JSON.stringify(DEFAULT_USERS));
+  });
 }
 
 async function saveUsers() {
-  // Guardar siempre en caché local (instantáneo)
-  localStorage.setItem('cte_users_cache', JSON.stringify(USERS));
-  // Guardar en la nube (persistente)
-  try {
-    await fetch(`${APPS_SCRIPT_URL}?action=saveUsers&token=cte-token-seguro-2026&users=${encodeURIComponent(JSON.stringify(USERS))}`);
-  } catch(e) {
-    console.warn('No se pudo guardar en la nube:', e);
-    showToast('⚠️ Sin conexión: cambios guardados localmente', 'info', 4000);
+  // Guardar en Firestore
+  for (let user of USERS) {
+    const userData = { ...user };
+    delete userData.id;
+    await db.collection('users').doc(user.user).set(userData, { merge: true });
   }
+  localStorage.setItem('cte_users_cache', JSON.stringify(USERS));
 }
 
 function getUserByEmail(email) {
@@ -138,7 +153,7 @@ async function addEditUser() {
     if (!pass) { showToast('CONTRASEÑA REQUERIDA PARA NUEVO USUARIO', 'error'); return; }
     USERS.push({ user: login, passHash: await hashPass(pass), nombre: name, rol: rol, email: '', blocked: false, area: '', provincia: '', codigo: '' });
   }
-  saveUsers();
+  await saveUsers();
   document.getElementById('new-user-pass').value = '';
   populateUserSelector();
   if (currentUser && currentUser.rol === 'admin') {
@@ -152,9 +167,9 @@ function deleteSelectedUser() {
   if (!username) return;
   const user = USERS.find(u => u.user === username);
   if (user && user.rol === 'admin') { showToast('NO SE PUEDE ELIMINAR AL ADMINISTRADOR PRINCIPAL', 'error'); return; }
-  openModal("ELIMINAR USUARIO", `¿ELIMINAR A ${user.nombre}?`, () => {
+  openModal("ELIMINAR USUARIO", `¿ELIMINAR A ${user.nombre}?`, async () => {
     USERS = USERS.filter(u => u.user !== username);
-    saveUsers();
+    await saveUsers();
     populateUserSelector();
     if (currentUser && currentUser.rol === 'admin') {
       renderAdmin();
@@ -179,43 +194,40 @@ function populateUserSelector() {
   select.innerHTML = '<option value="">SELECCIONE UN USUARIO...</option>' + USERS.map(u => `<option value="${u.user}">${u.user} - ${u.nombre}</option>`).join('');
 }
 
-// ==================== SOLICITUDES DE REGISTRO ====================
+// ==================== SOLICITUDES DE REGISTRO CON NOTIFICACIONES EN TIEMPO REAL ====================
 
-// Cache local para no bloquear la UI mientras carga
-let _solicitudesCache = [];
-
-async function getSolicitudes() {
-  try {
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=getSolicitudes&token=cte-token-seguro-2026`);
-    const data = await res.json();
-    if (data.ok && Array.isArray(data.solicitudes)) {
-      _solicitudesCache = data.solicitudes;
-      // Sincronizar también con localStorage
-      localStorage.setItem('cte_solicitudes_cache', JSON.stringify(data.solicitudes));
-      return data.solicitudes;
-    }
-  } catch(e) {
-    console.warn('Sin conexion al obtener solicitudes:', e);
-  }
-  // Fallback 1: caché en memoria
-  if (_solicitudesCache.length > 0) return _solicitudesCache;
-  // Fallback 2: localStorage
-  try {
-    const local = localStorage.getItem('cte_solicitudes_cache');
-    if (local) {
-      _solicitudesCache = JSON.parse(local);
-      return _solicitudesCache;
-    }
-  } catch(e) {}
-  return [];
-}
-
-async function saveSolicitudes(solicitudes) {
-  _solicitudesCache = solicitudes;
-  localStorage.setItem('cte_solicitudes_cache', JSON.stringify(solicitudes));
-  // Lanzar error para que el llamador decida cómo manejarlo
-  const res = await fetch(`${APPS_SCRIPT_URL}?action=saveSolicitudes&token=cte-token-seguro-2026&solicitudes=${encodeURIComponent(JSON.stringify(solicitudes))}`);
-  return res;
+function listenToSolicitudes() {
+  if (solicitudesUnsubscribe) solicitudesUnsubscribe();
+  
+  solicitudesUnsubscribe = db.collection('solicitudes')
+    .where('estado', '==', 'pendiente')
+    .orderBy('timestamp', 'desc')
+    .onSnapshot((snapshot) => {
+      const solicitudes = [];
+      snapshot.forEach(doc => {
+        solicitudes.push({ id: doc.id, ...doc.data() });
+      });
+      
+      window._solicitudesCache = solicitudes;
+      
+      if (currentUser && currentUser.rol === 'admin') {
+        renderSolicitudes();
+        
+        const existingToast = document.querySelector('.toast-real-time');
+        if (!existingToast && solicitudes.length > 0) {
+          showToast(`📨 ${solicitudes.length} solicitud(es) pendiente(s) de aprobación`, 'info', 5000);
+          
+          // Sonido opcional
+          try {
+            const audio = new Audio('https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3');
+            audio.volume = 0.3;
+            audio.play().catch(e => console.log('Audio no soportado'));
+          } catch(e) {}
+        }
+      }
+    }, (error) => {
+      console.error('Error escuchando solicitudes:', error);
+    });
 }
 
 async function solicitarRegistro() {
@@ -241,82 +253,48 @@ async function solicitarRegistro() {
 
   showToast('ENVIANDO SOLICITUD...', 'info', 2500);
 
-  // Obtener solicitudes con tolerancia a fallos de red
-  let solicitudes = [];
-  try {
-    solicitudes = await getSolicitudes();
-  } catch(e) {
-    const cache = localStorage.getItem('cte_solicitudes_cache');
-    solicitudes = cache ? JSON.parse(cache) : [];
-  }
-
-  if (solicitudes.find(s => s.email === email)) {
+  const existingSolicitud = await db.collection('solicitudes')
+    .where('email', '==', email)
+    .where('estado', '==', 'pendiente')
+    .get();
+  
+  if (!existingSolicitud.empty) {
     mostrarError('YA TIENES UNA SOLICITUD PENDIENTE. ESPERA LA APROBACIÓN DEL ADMINISTRADOR.');
     return;
   }
 
   const nuevaSolicitud = {
-    id: Date.now(),
     area,
     provincia,
     codigo,
     email,
     fecha: new Date().toLocaleDateString('es-EC'),
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
     estado: 'pendiente'
   };
 
-  solicitudes.push(nuevaSolicitud);
+  await db.collection('solicitudes').add(nuevaSolicitud);
 
-  // Guardar localmente primero (nunca falla)
-  localStorage.setItem('cte_solicitudes_cache', JSON.stringify(solicitudes));
-
-  // Intentar guardar en la nube
-  let guardadoEnNube = false;
-  try {
-    await saveSolicitudes(solicitudes);
-    guardadoEnNube = true;
-  } catch(e) {
-    console.warn('Sin conexion nube, guardado local:', e);
-  }
-
-  // Notificar al admin
-  try { await notificarAdminNuevaSolicitud(nuevaSolicitud); } catch(e) {}
-
-  const msg = guardadoEnNube
-    ? '\u2705 SOLICITUD ENVIADA. ESPERA LA APROBACIÓN DEL ADMINISTRADOR PARA PODER INGRESAR.'
-    : '\u2705 SOLICITUD GUARDADA. SE ENVIARÁ AL ADMIN CUANDO HAYA CONEXIÓN.';
-
-  mostrarExito(msg);
+  mostrarExito('✅ SOLICITUD ENVIADA. ESPERA LA APROBACIÓN DEL ADMINISTRADOR PARA PODER INGRESAR.');
   document.getElementById('reg-area').value = '';
   document.getElementById('reg-provincia').value = '';
   document.getElementById('reg-codigo').value = '';
   document.getElementById('reg-email').value = '';
 }
 
-async function notificarAdminNuevaSolicitud(solicitud) {
-  try {
-    await fetch(
-      APPS_SCRIPT_URL + '?action=notificarAdmin&token=cte-token-seguro-2026' +
-      '&area=' + encodeURIComponent(solicitud.area) +
-      '&provincia=' + encodeURIComponent(solicitud.provincia) +
-      '&codigo=' + encodeURIComponent(solicitud.codigo) +
-      '&email=' + encodeURIComponent(solicitud.email)
-    );
-  } catch(e) {
-    console.warn('No se pudo notificar al admin:', e);
-  }
-}
-
 async function aprobarSolicitud(id) {
-  const solicitudes = await getSolicitudes();
-  const solicitud = solicitudes.find(s => s.id === id);
-
-  if (!solicitud) return;
+  const docRef = db.collection('solicitudes').doc(id);
+  const doc = await docRef.get();
+  
+  if (!doc.exists) return;
+  
+  const solicitud = doc.data();
 
   const nombreCompleto = `${solicitud.area} - ${solicitud.provincia} (${solicitud.codigo})`;
   const baseUsername = solicitud.email.split('@')[0];
   let username = baseUsername;
   let counter = 1;
+  
   while (USERS.find(u => u.user === username)) {
     username = `${baseUsername}${counter}`;
     counter++;
@@ -331,33 +309,30 @@ async function aprobarSolicitud(id) {
     blocked: false,
     area: solicitud.area,
     provincia: solicitud.provincia,
-    codigo: solicitud.codigo
+    codigo: solicitud.codigo,
+    creado: firebase.firestore.FieldValue.serverTimestamp()
   };
 
   USERS.push(nuevoUsuario);
-  saveUsers();
-
-  const nuevasSolicitudes = solicitudes.filter(s => s.id !== id);
-  await saveSolicitudes(nuevasSolicitudes);
+  await saveUsers();
+  await docRef.update({ estado: 'aprobada', fechaAprobacion: firebase.firestore.FieldValue.serverTimestamp() });
 
   addLog(username, nombreCompleto, 'aprobacion', solicitud.email,
     `CUENTA APROBADA POR ADMINISTRADOR - ÁREA: ${solicitud.area}, PROVINCIA: ${solicitud.provincia}, CÓDIGO: ${solicitud.codigo}`);
 
-  renderAdmin();
-  showToast(`USUARIO ${nombreCompleto} APROBADO CORRECTAMENTE.`, 'success');
+  if (currentUser && currentUser.rol === 'admin') renderAdmin();
+  showToast(`✅ USUARIO ${nombreCompleto} APROBADO CORRECTAMENTE.`, 'success');
 }
 
 async function rechazarSolicitud(id) {
-  const solicitudes = await getSolicitudes();
-  const solicitud = solicitudes.find(s => s.id === id);
-
-  if (!solicitud) return;
+  const docRef = db.collection('solicitudes').doc(id);
+  const doc = await docRef.get();
+  const solicitud = doc.data();
 
   openModal('RECHAZAR SOLICITUD', `¿RECHAZAR LA SOLICITUD DE ${solicitud.area} - ${solicitud.provincia} (${solicitud.codigo})?`, async () => {
-    const todasSolicitudes = await getSolicitudes();
-    const nuevasSolicitudes = todasSolicitudes.filter(s => s.id !== id);
-    await saveSolicitudes(nuevasSolicitudes);
-    renderAdmin();
+    await docRef.update({ estado: 'rechazada', fechaRechazo: firebase.firestore.FieldValue.serverTimestamp() });
+    if (currentUser && currentUser.rol === 'admin') renderAdmin();
+    showToast('❌ Solicitud rechazada', 'error');
   });
 }
 
@@ -367,7 +342,15 @@ async function renderSolicitudes() {
 
   container.innerHTML = '<div class="file-empty">⏳ CARGANDO SOLICITUDES...</div>';
 
-  const solicitudes = await getSolicitudes();
+  const snapshot = await db.collection('solicitudes')
+    .where('estado', '==', 'pendiente')
+    .orderBy('timestamp', 'desc')
+    .get();
+
+  const solicitudes = [];
+  snapshot.forEach(doc => {
+    solicitudes.push({ id: doc.id, ...doc.data() });
+  });
 
   if (solicitudes.length === 0) {
     container.innerHTML = '<div class="file-empty">📭 NO HAY SOLICITUDES PENDIENTES</div>';
@@ -386,8 +369,8 @@ async function renderSolicitudes() {
             </div>
           </div>
           <div class="file-card-actions">
-            <button class="file-card-btn file-card-btn-open btn-approve" onclick="aprobarSolicitud(${s.id})">✓ APROBAR</button>
-            <button class="file-card-btn file-card-btn-del btn-reject" onclick="rechazarSolicitud(${s.id})">✗ RECHAZAR</button>
+            <button class="file-card-btn file-card-btn-open btn-approve" onclick="aprobarSolicitud('${s.id}')">✓ APROBAR</button>
+            <button class="file-card-btn file-card-btn-del btn-reject" onclick="rechazarSolicitud('${s.id}')">✗ RECHAZAR</button>
           </div>
         </div>
       `).join('')}
@@ -395,15 +378,45 @@ async function renderSolicitudes() {
   `;
 }
 
-// ==================== BITÁCORA ====================
-function getLogs() { try{ return JSON.parse(localStorage.getItem('cte_logs')||'[]'); }catch(e){ return []; } }
-function saveLogs(l) { localStorage.setItem('cte_logs', JSON.stringify(l.slice(-500))); }
-function addLog(usuario, nombre, estado, email='', details=''){
-  const logs = getLogs();
+// ==================== BITÁCORA EN FIRESTORE ====================
+async function addLog(usuario, nombre, estado, email='', details=''){
   const now = new Date();
   const dev = /Mobi|Android/i.test(navigator.userAgent) ? 'MÓVIL' : 'COMPUTADORA';
-  logs.push({ usuario, nombre, estado, email, details, fecha: now.toLocaleDateString('es-EC'), hora: now.toLocaleTimeString('es-EC'), device: dev, timestamp: now.getTime() });
-  saveLogs(logs);
+  
+  const logEntry = {
+    usuario,
+    nombre,
+    estado,
+    email,
+    details,
+    fecha: now.toLocaleDateString('es-EC'),
+    hora: now.toLocaleTimeString('es-EC'),
+    device: dev,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  
+  await db.collection('logs').add(logEntry);
+  
+  // Limpiar logs antiguos (mantener últimos 1000)
+  const oldLogs = await db.collection('logs')
+    .orderBy('timestamp', 'desc')
+    .limit(1000)
+    .get();
+  
+  // No eliminamos, solo limitamos la consulta
+}
+
+async function getLogs() {
+  const snapshot = await db.collection('logs')
+    .orderBy('timestamp', 'desc')
+    .limit(500)
+    .get();
+  
+  const logs = [];
+  snapshot.forEach(doc => {
+    logs.push(doc.data());
+  });
+  return logs;
 }
 
 // ==================== EXPORTAR A EXCEL ====================
@@ -415,8 +428,8 @@ function exportUsersToExcel() {
   downloadCSV(csv, `usuarios_cte_${new Date().toISOString().slice(0,19)}.csv`);
 }
 
-function exportLogsToExcel() {
-  const logs = getLogs();
+async function exportLogsToExcel() {
+  const logs = await getLogs();
   let csv = "USUARIO,NOMBRE,EMAIL,FECHA,HORA,DISPOSITIVO,ESTADO,DETALLES\n";
   logs.forEach(l => {
     let estadoTexto = l.estado === 'ok' ? 'INGRESO EXITOSO' : (l.estado === 'aprobacion' ? 'APROBACIÓN DE CUENTA' : 'INTENTO FALLIDO');
@@ -490,7 +503,6 @@ function entrarAlSistema(found, foto){
   currentUser = found;
   document.getElementById('screen-login').style.display = 'none';
   document.getElementById('screen-main').style.display  = 'block';
-  // El escudo institucional permanece fijo, no se reemplaza
   document.getElementById('display-user').textContent = found.nombre + ' (' + found.user + ')';
   const rb = document.getElementById('display-role-badge');
   rb.textContent = found.rol === 'admin' ? 'ADMIN' : 'USUARIO';
@@ -512,7 +524,6 @@ function entrarAlSistema(found, foto){
 function initGoogle(){
   if(typeof google === 'undefined') { setTimeout(initGoogle, 300); return; }
   google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: onGoogleToken, ux_mode: 'popup' });
-  // Render official Google button
   const wrap = document.getElementById('google-btn-wrap');
   if(wrap){
     google.accounts.id.renderButton(wrap, { theme:'outline', size:'large', width: 320, text:'signin_with', shape:'rectangular', logo_alignment:'left' });
@@ -525,7 +536,6 @@ function loginConGoogle(){
   if(typeof google === 'undefined'){ mostrarError('CARGANDO GOOGLE, INTENTA EN UN MOMENTO.'); return; }
   google.accounts.id.prompt(notification => {
     if(notification.isNotDisplayed() || notification.isSkippedMoment()){
-      // If popup was suppressed, trigger via the rendered button click
       const btn = document.querySelector('#google-btn-wrap div[role=button]');
       if(btn) btn.click();
     }
@@ -567,16 +577,15 @@ function doLogout(){
   document.getElementById('screen-login').style.display = 'flex';
   document.getElementById('nav-admin').style.display = 'none';
   document.getElementById('print-btn').style.display = 'none';
-  // El escudo institucional permanece fijo
 }
 
 // ==================== RENDERIZADO PRINCIPAL ====================
-function renderDashboard(){
-  const logs = getLogs();
+async function renderDashboard(){
+  const logs = await getLogs();
   const hoy = new Date().toLocaleDateString('es-EC');
   const hoyOk = logs.filter(l=>l.fecha===hoy && l.estado==='ok').length;
   const hoyFail = logs.filter(l=>l.fecha===hoy && l.estado==='fail').length;
-  const last = logs.filter(l=>l.estado==='ok').pop();
+  const last = logs.filter(l=>l.estado==='ok')[0];
   document.getElementById('stat-total').textContent = USERS.length;
   document.getElementById('stat-hoy').textContent = hoyOk;
   document.getElementById('stat-fail').textContent = hoyFail;
@@ -586,7 +595,7 @@ function renderDashboard(){
   document.getElementById('dashboard-bitacora').style.display = isAdmin ? 'block' : 'none';
   document.getElementById('dashboard-no-admin').style.display = isAdmin ? 'none' : 'block';
   if(isAdmin){
-    const recent = [...logs].reverse().slice(0,15);
+    const recent = [...logs].slice(0,15);
     document.getElementById('log-count-label').textContent = logs.length+' REGISTROS';
     document.getElementById('log-tbody').innerHTML = recent.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':'badge-fail'}">${l.estado==='ok'?'✓ EXITOSO':'✗ FALLIDO'}</span></td></tr>`).join('');
   }
@@ -594,7 +603,7 @@ function renderDashboard(){
 
 async function renderAdmin(){
   if(!currentUser||currentUser.rol!=='admin') return;
-  const logs = getLogs();
+  const logs = await getLogs();
   
   await renderSolicitudes();
   
@@ -610,7 +619,7 @@ async function renderAdmin(){
   logs.forEach(l=>{ if(byUser[l.usuario]) { if(l.estado==='ok'){ byUser[l.usuario].ok++; byUser[l.usuario].last=l.fecha+' '+l.hora; } else if(l.estado==='fail') byUser[l.usuario].fail++; } });
   document.getElementById('admin-stats').innerHTML = USERS.map(u=>`<div style="padding:.5rem 0;border-bottom:1px solid #f0f2f6"><strong>${esc(u.nombre)}</strong><br><span>INGRESOS: <strong style="color:var(--success)">${byUser[u.user]?.ok||0}</strong> · FALLIDOS: <strong style="color:var(--danger)">${byUser[u.user]?.fail||0}</strong></span><br><span style="font-size:.73rem">ÚLTIMO: ${byUser[u.user]?.last}</span></div>`).join('');
   
-  const all=[...logs].reverse();
+  const all=[...logs];
   document.getElementById('admin-log-total').textContent = all.length;
   renderLogPage(all, 1);
   renderChart(logs);
@@ -626,7 +635,6 @@ function renderLogPage(logs, page){
   const start = (page-1)*LOG_PAGE_SIZE;
   const slice = logs.slice(start, start+LOG_PAGE_SIZE);
   document.getElementById('admin-log-tbody').innerHTML = slice.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':(l.estado==='aprobacion'?'badge-admin':'badge-fail')}">${l.estado==='ok'?'✓ EXITOSO':(l.estado==='aprobacion'?'✅ APROBACIÓN':'✗ FALLIDO')}</span>${l.details?`<br><small>${esc(l.details)}</small>`:''}</td></tr>`).join('');
-  // Paginación
   const pag = document.getElementById('log-pagination');
   if(pages <= 1){ pag.innerHTML=''; return; }
   let btns = '';
@@ -759,8 +767,8 @@ function globalSearchFiles(){
 }
 
 // ==================== EXTRAS ====================
-function exportLogsToCSV(){
-  const logs = getLogs();
+async function exportLogsToCSV(){
+  const logs = await getLogs();
   let csv = "USUARIO,NOMBRE,EMAIL,FECHA,HORA,DISPOSITIVO,ESTADO\n";
   logs.forEach(l=>{ csv += `"${l.usuario}","${l.nombre}","${l.email||''}","${l.fecha}","${l.hora}","${l.device}","${l.estado}"\n`; });
   downloadCSV(csv, `bitacora_cte_${new Date().toISOString().slice(0,19)}.csv`);
@@ -777,8 +785,15 @@ function toggleDarkMode(){
   if(_accesosChart) renderChart(getLogs());
 }
 
-function confirmClearLogs(){
-  openModal('🗑 BORRAR BITÁCORA', '¿ELIMINAR TODOS LOS REGISTROS?', ()=>{ saveLogs([]); renderDashboard(); if(currentUser && currentUser.rol === 'admin') { renderAdmin(); } });
+async function confirmClearLogs(){
+  openModal('🗑 BORRAR BITÁCORA', '¿ELIMINAR TODOS LOS REGISTROS?', async ()=>{ 
+    const snapshot = await db.collection('logs').get();
+    const batch = db.batch();
+    snapshot.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+    renderDashboard(); 
+    if(currentUser && currentUser.rol === 'admin') { renderAdmin(); } 
+  });
 }
 
 // ==================== MODAL Y UTILS ====================
@@ -808,6 +823,7 @@ function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 // ==================== INICIALIZACIÓN ====================
 (async function init(){
   await initializeUsers();
+  listenToSolicitudes();
   if(localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
   populateUserSelector();
   renderAllSectionFiles();
