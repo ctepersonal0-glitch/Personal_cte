@@ -212,12 +212,10 @@ async function getSolicitudes() {
 
 async function saveSolicitudes(solicitudes) {
   _solicitudesCache = solicitudes;
-  try {
-    await fetch(`${APPS_SCRIPT_URL}?action=saveSolicitudes&token=cte-token-seguro-2026&solicitudes=${encodeURIComponent(JSON.stringify(solicitudes))}`);
-  } catch(e) {
-    console.warn('No se pudo guardar solicitudes en la nube:', e);
-    showToast('⚠️ SIN CONEXIÓN: SOLICITUD GUARDADA TEMPORALMENTE', 'info', 4000);
-  }
+  localStorage.setItem('cte_solicitudes_cache', JSON.stringify(solicitudes));
+  // Lanzar error para que el llamador decida cómo manejarlo
+  const res = await fetch(`${APPS_SCRIPT_URL}?action=saveSolicitudes&token=cte-token-seguro-2026&solicitudes=${encodeURIComponent(JSON.stringify(solicitudes))}`);
+  return res;
 }
 
 async function solicitarRegistro() {
