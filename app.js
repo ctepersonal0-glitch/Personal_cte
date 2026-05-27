@@ -63,7 +63,6 @@ let solicitudesUnsubscribe = null;
 async function initializeUsers() {
   showToast('Conectando a la nube...', 'info', 2000);
   
-  // Escuchar cambios en tiempo real en la colección 'users'
   db.collection('users').onSnapshot(async (snapshot) => {
     const usersFromFirestore = [];
     snapshot.forEach(doc => {
@@ -74,7 +73,6 @@ async function initializeUsers() {
       USERS = usersFromFirestore;
       localStorage.setItem('cte_users_cache', JSON.stringify(USERS));
       
-      // Aplicar hash a usuarios sin passHash
       let needsSave = false;
       for (let u of USERS) {
         if (!u.passHash) {
@@ -85,13 +83,11 @@ async function initializeUsers() {
       }
       if (needsSave) await saveUsers();
       
-      // Actualizar UI si es necesario
       if (currentUser && currentUser.rol === 'admin') renderAdmin();
       if (currentUser) {
         document.getElementById('stat-total').textContent = USERS.length;
       }
     } else if (USERS.length === 0) {
-      // Si no hay usuarios, crear el admin por defecto
       USERS = JSON.parse(JSON.stringify(DEFAULT_USERS));
       for (let u of USERS) {
         if (!u.passHash) {
@@ -103,7 +99,6 @@ async function initializeUsers() {
     }
   }, (error) => {
     console.error('Error escuchando usuarios:', error);
-    // Fallback a caché local
     const cache = localStorage.getItem('cte_users_cache');
     if (cache) USERS = JSON.parse(cache);
     else USERS = JSON.parse(JSON.stringify(DEFAULT_USERS));
@@ -111,7 +106,6 @@ async function initializeUsers() {
 }
 
 async function saveUsers() {
-  // Guardar en Firestore
   for (let user of USERS) {
     const userData = { ...user };
     delete userData.id;
@@ -194,18 +188,25 @@ function populateUserSelector() {
   select.innerHTML = '<option value="">SELECCIONE UN USUARIO...</option>' + USERS.map(u => `<option value="${u.user}">${u.user} - ${u.nombre}</option>`).join('');
 }
 
-// ==================== SOLICITUDES DE REGISTRO CON NOTIFICACIONES EN TIEMPO REAL ====================
+// ==================== SOLICITUDES DE REGISTRO ====================
 
 function listenToSolicitudes() {
   if (solicitudesUnsubscribe) solicitudesUnsubscribe();
   
+  // SIN orderBy para evitar error de índice compuesto en Firestore
   solicitudesUnsubscribe = db.collection('solicitudes')
     .where('estado', '==', 'pendiente')
-    .orderBy('timestamp', 'desc')
     .onSnapshot((snapshot) => {
       const solicitudes = [];
       snapshot.forEach(doc => {
         solicitudes.push({ id: doc.id, ...doc.data() });
+      });
+
+      // Ordenar en el cliente por timestamp descendente
+      solicitudes.sort((a, b) => {
+        const ta = a.timestamp ? a.timestamp.seconds : 0;
+        const tb = b.timestamp ? b.timestamp.seconds : 0;
+        return tb - ta;
       });
       
       window._solicitudesCache = solicitudes;
@@ -216,8 +217,6 @@ function listenToSolicitudes() {
         const existingToast = document.querySelector('.toast-real-time');
         if (!existingToast && solicitudes.length > 0) {
           showToast(`📨 ${solicitudes.length} solicitud(es) pendiente(s) de aprobación`, 'info', 5000);
-          
-          // Sonido opcional
           try {
             const audio = new Audio('https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3');
             audio.volume = 0.3;
@@ -342,14 +341,21 @@ async function renderSolicitudes() {
 
   container.innerHTML = '<div class="file-empty">⏳ CARGANDO SOLICITUDES...</div>';
 
+  // SIN orderBy para evitar error de índice compuesto en Firestore
   const snapshot = await db.collection('solicitudes')
     .where('estado', '==', 'pendiente')
-    .orderBy('timestamp', 'desc')
     .get();
 
   const solicitudes = [];
   snapshot.forEach(doc => {
     solicitudes.push({ id: doc.id, ...doc.data() });
+  });
+
+  // Ordenar en el cliente por timestamp descendente
+  solicitudes.sort((a, b) => {
+    const ta = a.timestamp ? a.timestamp.seconds : 0;
+    const tb = b.timestamp ? b.timestamp.seconds : 0;
+    return tb - ta;
   });
 
   if (solicitudes.length === 0) {
@@ -396,14 +402,6 @@ async function addLog(usuario, nombre, estado, email='', details=''){
   };
   
   await db.collection('logs').add(logEntry);
-  
-  // Limpiar logs antiguos (mantener últimos 1000)
-  const oldLogs = await db.collection('logs')
-    .orderBy('timestamp', 'desc')
-    .limit(1000)
-    .get();
-  
-  // No eliminamos, solo limitamos la consulta
 }
 
 async function getLogs() {
