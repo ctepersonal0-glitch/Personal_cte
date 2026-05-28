@@ -132,60 +132,32 @@ function toggleBlockUser(username, block) {
   }
 }
 
-async function addEditUser() {
-  const login = document.getElementById('new-user-login').value.trim();
-  let name = document.getElementById('new-user-name').value.trim().toUpperCase();
-  const pass = document.getElementById('new-user-pass').value;
-  const rol = document.getElementById('new-user-rol').value;
-  if (!login || !name) { showToast('USUARIO Y NOMBRE SON OBLIGATORIOS', 'error'); return; }
-  const existing = USERS.find(u => u.user === login);
-  if (existing) {
-    if (pass) existing.passHash = await hashPass(pass);
-    existing.nombre = name;
-    existing.rol = rol;
-  } else {
-    if (!pass) { showToast('CONTRASEÑA REQUERIDA PARA NUEVO USUARIO', 'error'); return; }
-    USERS.push({ user: login, passHash: await hashPass(pass), nombre: name, rol: rol, email: '', blocked: false, area: '', provincia: '', codigo: '' });
-  }
-  await saveUsers();
-  document.getElementById('new-user-pass').value = '';
-  populateUserSelector();
-  if (currentUser && currentUser.rol === 'admin') {
-    renderAdmin();
-  }
-}
+// ==================== ACCIONES INLINE DE USUARIOS ====================
 
-function deleteSelectedUser() {
-  const selector = document.getElementById('user-selector');
-  const username = selector.value;
-  if (!username) return;
+async function deleteUser(username) {
   const user = USERS.find(u => u.user === username);
-  if (user && user.rol === 'admin') { showToast('NO SE PUEDE ELIMINAR AL ADMINISTRADOR PRINCIPAL', 'error'); return; }
-  openModal("ELIMINAR USUARIO", `¿ELIMINAR A ${user.nombre}?`, async () => {
+  if (!user) return;
+  if (user.rol === 'admin') { showToast('NO SE PUEDE ELIMINAR AL ADMINISTRADOR PRINCIPAL', 'error'); return; }
+  openModal('ELIMINAR USUARIO', `¿ELIMINAR A ${user.nombre}?`, async () => {
     USERS = USERS.filter(u => u.user !== username);
-    await saveUsers();
-    populateUserSelector();
-    if (currentUser && currentUser.rol === 'admin') {
-      renderAdmin();
-    }
+    await db.collection('users').doc(username).delete();
+    localStorage.setItem('cte_users_cache', JSON.stringify(USERS));
+    renderAdmin();
+    showToast(`USUARIO ${user.nombre} ELIMINADO`, 'success');
   });
 }
 
-function loadUserToEdit() {
-  const username = document.getElementById('user-selector').value;
+async function toggleAdminRole(username) {
   const user = USERS.find(u => u.user === username);
-  if (user) {
-    document.getElementById('new-user-login').value = user.user;
-    document.getElementById('new-user-name').value = user.nombre;
-    document.getElementById('new-user-rol').value = user.rol;
-    document.getElementById('new-user-pass').value = '';
-  }
-}
-
-function populateUserSelector() {
-  const select = document.getElementById('user-selector');
-  if (!select) return;
-  select.innerHTML = '<option value="">SELECCIONE UN USUARIO...</option>' + USERS.map(u => `<option value="${u.user}">${u.user} - ${u.nombre}</option>`).join('');
+  if (!user || user.user === currentUser.user) { showToast('NO PUEDES MODIFICAR TU PROPIO ROL', 'error'); return; }
+  const nuevoRol = user.rol === 'admin' ? 'user' : 'admin';
+  const label = nuevoRol === 'admin' ? 'ADMINISTRADOR' : 'USUARIO';
+  openModal('CAMBIAR ROL', `¿CAMBIAR ROL DE ${user.nombre} A ${label}?`, async () => {
+    user.rol = nuevoRol;
+    await saveUsers();
+    renderAdmin();
+    showToast(`ROL DE ${user.nombre} CAMBIADO A ${label}`, 'success');
+  });
 }
 
 // ==================== SOLICITUDES DE REGISTRO ====================
@@ -646,10 +618,40 @@ async function renderAdmin(){
   await renderSolicitudes();
   
   document.getElementById('admin-users-list').innerHTML = USERS.map(u => {
-    const isAdm = u.rol==='admin';
-    const btnHtml = isAdm ? '' : (u.blocked ? `<button class="btn-unblock" onclick="toggleBlockUser('${u.user}',false)">✓ DESBLOQUEAR</button>` : `<button class="btn-block" onclick="toggleBlockUser('${u.user}',true)">⊘ BLOQUEAR</button>`);
+    const isSelf = u.user === currentUser.user;
+    const isAdm  = u.rol === 'admin';
     const datosExtra = u.area ? `<br><span style="font-size:.7rem">📍 ${u.area} | ${u.provincia} | CÓD: ${u.codigo}</span>` : '';
-    return `<div class="user-row"><div class="avatar">${(u.nombre.split(' ').map(x=>x[0]).slice(0,2).join(''))}</div><div class="user-info"><strong>${esc(u.nombre)}${u.blocked?'<span class="blocked-badge">● BLOQUEADO</span>':''}</strong><span>${esc(u.user)} · <span class="badge ${u.rol==='admin'?'badge-admin':'badge-user'}">${u.rol}</span> · 📧 ${u.email || 'SIN CORREO'}${datosExtra}</span></div>${btnHtml}</div>`;
+
+    // Botón bloquear / desbloquear (no aplica al admin principal ni a sí mismo)
+    const btnBlock = (!isSelf && !isAdm)
+      ? (u.blocked
+          ? `<button class="btn-unblock" onclick="toggleBlockUser('${u.user}',false)" title="Desbloquear">✓ DESBLOQUEAR</button>`
+          : `<button class="btn-block"   onclick="toggleBlockUser('${u.user}',true)"  title="Bloquear">⊘ BLOQUEAR</button>`)
+      : '';
+
+    // Botón cambiar rol admin (no aplica a sí mismo)
+    const btnAdmin = !isSelf
+      ? (isAdm
+          ? `<button class="btn-block"   onclick="toggleAdminRole('${u.user}')" title="Quitar admin">👤 QUITAR ADMIN</button>`
+          : `<button class="btn-unblock" onclick="toggleAdminRole('${u.user}')" title="Hacer admin">🛡 HACER ADMIN</button>`)
+      : '';
+
+    // Botón eliminar (no aplica a sí mismo ni al admin principal)
+    const btnDel = (!isSelf && !isAdm)
+      ? `<button class="btn-block" style="background:var(--danger,#c0392b);color:#fff" onclick="deleteUser('${u.user}')" title="Eliminar">🗑 ELIMINAR</button>`
+      : '';
+
+    return `
+      <div class="user-row">
+        <div class="avatar">${u.nombre.split(' ').map(x=>x[0]).slice(0,2).join('')}</div>
+        <div class="user-info">
+          <strong>${esc(u.nombre)}${u.blocked ? '<span class="blocked-badge">● BLOQUEADO</span>' : ''}</strong>
+          <span>${esc(u.user)} · <span class="badge ${isAdm?'badge-admin':'badge-user'}">${u.rol}</span> · 📧 ${u.email || 'SIN CORREO'}${datosExtra}</span>
+        </div>
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center">
+          ${btnBlock}${btnAdmin}${btnDel}
+        </div>
+      </div>`;
   }).join('');
   
   const byUser={};
