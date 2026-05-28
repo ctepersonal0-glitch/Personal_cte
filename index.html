@@ -133,12 +133,7 @@
         <div id="af-code-box" style="display:none;margin-top:1rem;background:#0a1628;border-radius:7px;padding:1rem"><div style="font-size:.75rem;color:#e8c96a">📋 COPIA ESTA LÍNEA PARA EL HTML PERMANENTE</div><code id="af-code-text" style="font-size:.78rem;color:#a8d8a8;display:block"></code><button onclick="copiarCodigo()" style="margin-top:.7rem;background:var(--gold);color:var(--navy);padding:.35rem .9rem;border:none;border-radius:4px;cursor:pointer">📋 COPIAR</button></div>
       </div></div>
 
-      <div class="section-title">👥 GESTIÓN DE USUARIOS</div>
-      <div class="admin-card" style="margin-bottom:1.5rem"><div class="admin-card-head"><h3>➕ AGREGAR / EDITAR USUARIO</h3></div><div class="admin-card-body">
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:.8rem;align-items:end"><div class="form-field"><label>USUARIO</label><input type="text" id="new-user-login" placeholder="ej: j.doe"/></div><div class="form-field"><label>NOMBRE COMPLETO</label><input type="text" id="new-user-name" placeholder="JUAN PÉREZ"/></div><div class="form-field"><label>CONTRASEÑA</label><input type="password" id="new-user-pass" placeholder="****"/></div><div class="form-field"><label>ROL</label><select id="new-user-rol"><option value="user">USUARIO</option><option value="admin">ADMIN</option></select></div></div>
-        <div style="display:flex;gap:.5rem;margin-top:.5rem"><button class="btn-add-file" onclick="addEditUser()">➕ AGREGAR / ACTUALIZAR</button><button class="btn-danger" onclick="deleteSelectedUser()">🗑 ELIMINAR SELECCIONADO</button></div>
-        <div class="form-field" style="margin-top:1rem"><label>SELECCIONAR USUARIO PARA EDITAR/ELIMINAR</label><select id="user-selector" style="width:100%" onchange="loadUserToEdit()"></select></div>
-      </div></div>
+      
 
       <div class="section-title">📋 TODOS LOS ARCHIVOS</div>
       <div id="admin-files-list"></div>
