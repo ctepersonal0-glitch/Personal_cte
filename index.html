@@ -89,7 +89,6 @@
     <a onclick="showTab('orden')">ORDEN</a>
     <a onclick="showTab('parametros')">PARÁMETROS</a>
     <a onclick="showTab('reportes')">REPORTES</a>
-    <a onclick="showTab('historia')">HISTORIA</a>
     <a id="nav-admin" onclick="showTab('admin')" style="display:none">⚙ ADMIN</a>
   </div></nav>
 
@@ -100,8 +99,7 @@
         <div class="card" onclick="showTab('organico')"><div class="card-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div><h3>ORGÁNICO</h3><p>ESTRUCTURA ORGANIZACIONAL.</p></div>
         <div class="card" onclick="showTab('orden')"><div class="card-icon"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div><h3>ORDEN DEL CUERPO</h3><p>ÓRDENES OFICIALES.</p></div>
         <div class="card" onclick="showTab('parametros')"><div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M5.34 18.66l-1.41 1.41M12 2v2M12 20v2M4.93 4.93l1.41 1.41M18.66 18.66l1.41 1.41M2 12h2M20 12h2"/></svg></div><h3>PARÁMETROS</h3><p>CONFIGURACIÓN.</p></div>
-        <div class="card" onclick="showTab('reportes')"><div class="card-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg></div><h3>REPORTES DIARIOS</h3><p>REGISTRO OPERATIVO.</p></div>
-        <div class="card" onclick="showTab('historia')"><div class="card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><h3>HISTORIA</h3><p>HISTORIAL INSTITUCIONAL.</p></div>
+        <div class="card" onclick="showTab('reportes')"><div class="card-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg></div><h3>REPORTES DIARIOS</h3><p>REGISTRO OPERATIVO.</p></div>        
       </div>
       <div class="section-title">REGISTRO DE ACCESOS RECIENTES</div><div id="dashboard-bitacora" style="display:none"><div class="log-wrap"><div class="log-header"><h3>🔒 BITÁCORA DE INGRESOS</h3><span id="log-count-label">—</span></div><div style="overflow-x:auto"><table class="log-table"><thead><tr><th>USUARIO</th><th>NOMBRE</th><th>FECHA Y HORA</th><th>DISPOSITIVO</th><th>ESTADO</th></tr></thead><tbody id="log-tbody"></tbody></table></div></div></div>
       <div id="dashboard-no-admin" style="display:none;background:var(--white);border:1px solid #dde0e8;border-radius:8px;padding:1.5rem;text-align:center">🔒 LA BITÁCORA DE ACCESOS ESTÁ DISPONIBLE SOLO PARA ADMINISTRADORES.</div>
@@ -111,10 +109,7 @@
     <div class="tab" id="tab-orden"><div class="section-title">ORDEN DEL CUERPO</div><div id="files-toolbar-orden"></div><div id="files-grid-orden"></div></div>
     <div class="tab" id="tab-parametros"><div class="section-title">PARÁMETROS DEL SISTEMA</div><div id="files-toolbar-parametros"></div><div id="files-grid-parametros"></div></div>
     <div class="tab" id="tab-reportes"><div class="section-title">REPORTES DIARIOS</div><div id="files-toolbar-reportes"></div><div id="files-grid-reportes"></div></div>
-    <div class="tab" id="tab-historia">
-      <div class="section-title">HISTORIA INSTITUCIONAL</div><div style="background:var(--white);border-radius:8px;padding:2rem;margin-bottom:1.5rem"><p>LA <strong>COMISIÓN DE TRÁNSITO DEL ECUADOR</strong> DISPONE DE TALENTO HUMANO CAPACITADO. <em>"DE LA MANO DE NUESTRO SEÑOR JESUCRISTO."</em></p><div style="display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1rem"><span class="badge badge-ok">RESPONSABILIDAD</span><span class="badge badge-ok">EXCELENCIA</span><span class="badge badge-ok">EFICIENCIA</span></div></div>
-      <div class="info-grid"><div class="info-box"><h3>CORREO</h3><p><a href="mailto:ctepersonal067@gmail.com">ctepersonal067@gmail.com</a></p></div><div class="info-box"><h3>TELÉFONO</h3><p>3731750 EXT. 1137</p></div><div class="info-box"><h3>INSTITUCIÓN</h3><p><a href="https://www.comisiontransito.gob.ec/" target="_blank">COMISIÓN DE TRÁNSITO →</a></p></div><div class="info-box"><h3>REDES CTE</h3><div class="social-row"><a class="social-btn" href="https://www.facebook.com/ctecuador" target="_blank">FACEBOOK</a><a class="social-btn" href="https://twitter.com/CTEcuador" target="_blank">TWITTER</a><a class="social-btn" href="https://www.tiktok.com/@ctecuador" target="_blank">TIKTOK</a></div></div></div>
-    </div>
+    
 
     <div class="tab" id="tab-admin">
       <div class="section-title">⚙ PANEL DE ADMINISTRACIÓN</div>
@@ -126,7 +121,7 @@
       
       <div class="section-title">📁 GESTIÓN DE ARCHIVOS POR SECCIÓN</div>
       <div class="admin-card" style="margin-bottom:1.5rem"><div class="admin-card-head"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e8c96a" stroke-width="1.8"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg><h3>AGREGAR ARCHIVO DE GOOGLE DRIVE</h3></div><div class="admin-card-body"><p style="font-size:.82rem;margin-bottom:1rem">SUBE EL ARCHIVO A DRIVE, COMPÁRTELO COMO "CUALQUIERA CON EL ENLACE", PEGA EL ENLACE AQUÍ.</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem"><div class="form-field"><label>NOMBRE DEL ARCHIVO</label><input type="text" id="af-nombre"/></div><div class="form-field"><label>SECCIÓN</label><select id="af-seccion"><option value="organico">ORGÁNICO</option><option value="orden">ORDEN</option><option value="parametros">PARÁMETROS</option><option value="reportes">REPORTES</option><option value="historia">HISTORIA</option></select></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem"><div class="form-field"><label>NOMBRE DEL ARCHIVO</label><input type="text" id="af-nombre"/></div><div class="form-field"><label>SECCIÓN</label><select id="af-seccion"><option value="organico">ORGÁNICO</option><option value="orden">ORDEN</option><option value="parametros">PARÁMETROS</option><option value="reportes">REPORTES</option></select></div></div>
         <div class="form-field"><label>ENLACE DE GOOGLE DRIVE</label><input type="text" id="af-url"/><div class="help-text">⚠️ DEBE ESTAR COMPARTIDO COMO "CUALQUIERA CON EL ENLACE". <button type="button" onclick="verifyDriveLink(document.getElementById('af-url').value)" style="background:none;border:none;color:var(--gold);cursor:pointer">🔍 VERIFICAR ENLACE</button></div></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem"><div class="form-field"><label>TIPO</label><select id="af-tipo"><option value="pdf">📄 PDF</option><option value="word">📝 WORD</option><option value="excel">📊 EXCEL</option><option value="img">🖼️ IMAGEN</option><option value="other">📎 OTRO</option></select></div><div class="form-field"><label>DESCRIPCIÓN</label><input type="text" id="af-desc"/></div></div>
         <button class="btn-add-file" onclick="addFile()">➕ AGREGAR ARCHIVO</button>
