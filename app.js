@@ -229,6 +229,7 @@ function listenToSolicitudes() {
     });
 }
 
+// ==================== SOLICITAR REGISTRO (CON VALIDACIONES MEJORADAS) ====================
 async function solicitarRegistro() {
   const area = document.getElementById('reg-area').value.trim().toUpperCase();
   const provincia = document.getElementById('reg-provincia').value.trim().toUpperCase();
@@ -245,13 +246,49 @@ async function solicitarRegistro() {
     return;
   }
 
-  if (getUserByEmail(email)) {
-    mostrarError('ESTE CORREO YA ESTÁ REGISTRADO Y APROBADO EN EL SISTEMA');
+  // ── VERIFICACIÓN 1: correo ya existe en USERS (aprobado y activo) ──
+  const usuarioExistente = getUserByEmail(email);
+  if (usuarioExistente) {
+    const nombre = usuarioExistente.nombre || email;
+    mostrarError(
+      `⚠️ EL CORREO ${email.toUpperCase()} YA ESTÁ REGISTRADO COMO "${nombre}". INICIA SESIÓN CON GOOGLE O CONTACTA AL ADMINISTRADOR.`
+    );
+    // Resaltar el botón de Google para guiar al usuario
+    const googleWrap = document.getElementById('google-btn-wrap');
+    if (googleWrap) {
+      googleWrap.style.outline = '2px solid #e67e22';
+      googleWrap.style.borderRadius = '6px';
+      setTimeout(() => {
+        googleWrap.style.outline = '';
+        googleWrap.style.borderRadius = '';
+      }, 5000);
+    }
     return;
   }
 
-  showToast('ENVIANDO SOLICITUD...', 'info', 2500);
+  // ── VERIFICACIÓN 2: ya tiene una solicitud APROBADA en Firestore ──
+  const aprobadaSnap = await db.collection('solicitudes')
+    .where('email', '==', email)
+    .where('estado', '==', 'aprobada')
+    .get();
 
+  if (!aprobadaSnap.empty) {
+    mostrarError(
+      `✅ TU SOLICITUD YA FUE APROBADA. INICIA SESIÓN CON GOOGLE USANDO ${email.toUpperCase()}.`
+    );
+    const googleWrap = document.getElementById('google-btn-wrap');
+    if (googleWrap) {
+      googleWrap.style.outline = '2px solid #27ae60';
+      googleWrap.style.borderRadius = '6px';
+      setTimeout(() => {
+        googleWrap.style.outline = '';
+        googleWrap.style.borderRadius = '';
+      }, 5000);
+    }
+    return;
+  }
+
+  // ── VERIFICACIÓN 3: ya tiene una solicitud PENDIENTE en Firestore ──
   const existingSolicitud = await db.collection('solicitudes')
     .where('email', '==', email)
     .where('estado', '==', 'pendiente')
@@ -261,6 +298,9 @@ async function solicitarRegistro() {
     mostrarError('YA TIENES UNA SOLICITUD PENDIENTE. ESPERA LA APROBACIÓN DEL ADMINISTRADOR.');
     return;
   }
+
+  // ── Todo OK: crear la solicitud ──
+  showToast('ENVIANDO SOLICITUD...', 'info', 2500);
 
   const nuevaSolicitud = {
     area,
