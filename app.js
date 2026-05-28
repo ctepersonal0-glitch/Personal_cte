@@ -165,7 +165,6 @@ async function toggleAdminRole(username) {
 function listenToSolicitudes() {
   if (solicitudesUnsubscribe) solicitudesUnsubscribe();
   
-  // SIN orderBy para evitar error de índice compuesto en Firestore
   solicitudesUnsubscribe = db.collection('solicitudes')
     .where('estado', '==', 'pendiente')
     .onSnapshot((snapshot) => {
@@ -174,7 +173,6 @@ function listenToSolicitudes() {
         solicitudes.push({ id: doc.id, ...doc.data() });
       });
 
-      // Ordenar en el cliente por timestamp descendente
       solicitudes.sort((a, b) => {
         const ta = a.timestamp ? a.timestamp.seconds : 0;
         const tb = b.timestamp ? b.timestamp.seconds : 0;
@@ -201,7 +199,7 @@ function listenToSolicitudes() {
     });
 }
 
-// ==================== SOLICITAR REGISTRO (CON VALIDACIONES MEJORADAS) ====================
+// ==================== SOLICITAR REGISTRO ====================
 async function solicitarRegistro() {
   const area = document.getElementById('reg-area').value.trim().toUpperCase();
   const provincia = document.getElementById('reg-provincia').value.trim().toUpperCase();
@@ -218,14 +216,12 @@ async function solicitarRegistro() {
     return;
   }
 
-  // ── VERIFICACIÓN 1: correo ya existe en USERS (aprobado y activo) ──
   const usuarioExistente = getUserByEmail(email);
   if (usuarioExistente) {
     const nombre = usuarioExistente.nombre || email;
     mostrarError(
       `⚠️ EL CORREO ${email.toUpperCase()} YA ESTÁ REGISTRADO COMO "${nombre}". INICIA SESIÓN CON GOOGLE O CONTACTA AL ADMINISTRADOR.`
     );
-    // Resaltar el botón de Google para guiar al usuario
     const googleWrap = document.getElementById('google-btn-wrap');
     if (googleWrap) {
       googleWrap.style.outline = '2px solid #e67e22';
@@ -238,7 +234,6 @@ async function solicitarRegistro() {
     return;
   }
 
-  // ── VERIFICACIÓN 2: ya tiene una solicitud APROBADA en Firestore ──
   const aprobadaSnap = await db.collection('solicitudes')
     .where('email', '==', email)
     .where('estado', '==', 'aprobada')
@@ -260,7 +255,6 @@ async function solicitarRegistro() {
     return;
   }
 
-  // ── VERIFICACIÓN 3: ya tiene una solicitud PENDIENTE en Firestore ──
   const existingSolicitud = await db.collection('solicitudes')
     .where('email', '==', email)
     .where('estado', '==', 'pendiente')
@@ -271,7 +265,6 @@ async function solicitarRegistro() {
     return;
   }
 
-  // ── Todo OK: crear la solicitud ──
   showToast('ENVIANDO SOLICITUD...', 'info', 2500);
 
   const nuevaSolicitud = {
@@ -353,7 +346,6 @@ async function renderSolicitudes() {
 
   container.innerHTML = '<div class="file-empty">⏳ CARGANDO SOLICITUDES...</div>';
 
-  // SIN orderBy para evitar error de índice compuesto en Firestore
   const snapshot = await db.collection('solicitudes')
     .where('estado', '==', 'pendiente')
     .get();
@@ -363,7 +355,6 @@ async function renderSolicitudes() {
     solicitudes.push({ id: doc.id, ...doc.data() });
   });
 
-  // Ordenar en el cliente por timestamp descendente
   solicitudes.sort((a, b) => {
     const ta = a.timestamp ? a.timestamp.seconds : 0;
     const tb = b.timestamp ? b.timestamp.seconds : 0;
@@ -602,6 +593,11 @@ async function renderDashboard(){
   if(last){ document.getElementById('stat-last').textContent = last.nombre.split(' ')[0]; document.getElementById('stat-last-time').textContent = last.fecha+' '+last.hora; }
   
   const isAdmin = currentUser && currentUser.rol === 'admin';
+
+  // ── OCULTAR STATS CARDS PARA USUARIOS NORMALES ──
+  const statsWrap = document.getElementById('dashboard-stats');
+  if (statsWrap) statsWrap.style.display = isAdmin ? '' : 'none';
+
   document.getElementById('dashboard-bitacora').style.display = isAdmin ? 'block' : 'none';
   document.getElementById('dashboard-no-admin').style.display = isAdmin ? 'none' : 'block';
   if(isAdmin){
@@ -622,21 +618,18 @@ async function renderAdmin(){
     const isAdm  = u.rol === 'admin';
     const datosExtra = u.area ? `<br><span style="font-size:.7rem">📍 ${u.area} | ${u.provincia} | CÓD: ${u.codigo}</span>` : '';
 
-    // Botón bloquear / desbloquear (no aplica al admin principal ni a sí mismo)
     const btnBlock = (!isSelf && !isAdm)
       ? (u.blocked
           ? `<button class="btn-unblock" onclick="toggleBlockUser('${u.user}',false)" title="Desbloquear">✓ DESBLOQUEAR</button>`
           : `<button class="btn-block"   onclick="toggleBlockUser('${u.user}',true)"  title="Bloquear">⊘ BLOQUEAR</button>`)
       : '';
 
-    // Botón cambiar rol admin (no aplica a sí mismo)
     const btnAdmin = !isSelf
       ? (isAdm
           ? `<button class="btn-block"   onclick="toggleAdminRole('${u.user}')" title="Quitar admin">👤 QUITAR ADMIN</button>`
           : `<button class="btn-unblock" onclick="toggleAdminRole('${u.user}')" title="Hacer admin">🛡 HACER ADMIN</button>`)
       : '';
 
-    // Botón eliminar (no aplica a sí mismo ni al admin principal)
     const btnDel = (!isSelf && !isAdm)
       ? `<button class="btn-block" style="background:var(--danger,#c0392b);color:#fff" onclick="deleteUser('${u.user}')" title="Eliminar">🗑 ELIMINAR</button>`
       : '';
@@ -859,6 +852,58 @@ function showTab(id){
   if(SECCIONES[id]) renderSectionFiles(id);
 }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ==================== SELECTOR DE USUARIOS (PANEL ADMIN) ====================
+function populateUserSelector(){
+  const sel = document.getElementById('user-selector');
+  if(!sel) return;
+  sel.innerHTML = '<option value="">— SELECCIONAR USUARIO —</option>' +
+    USERS.map(u=>`<option value="${u.user}">${u.nombre} (${u.user})</option>`).join('');
+}
+function loadUserToEdit(){
+  const username = document.getElementById('user-selector').value;
+  if(!username) return;
+  const u = USERS.find(x=>x.user===username);
+  if(!u) return;
+  document.getElementById('new-user-login').value = u.user;
+  document.getElementById('new-user-name').value = u.nombre;
+  document.getElementById('new-user-pass').value = '';
+  document.getElementById('new-user-rol').value = u.rol;
+}
+async function addEditUser(){
+  const login = document.getElementById('new-user-login').value.trim();
+  const name = document.getElementById('new-user-name').value.trim().toUpperCase();
+  const pass = document.getElementById('new-user-pass').value;
+  const rol = document.getElementById('new-user-rol').value;
+  if(!login||!name){ showToast('COMPLETA USUARIO Y NOMBRE.','error'); return; }
+  let existing = USERS.find(u=>u.user===login);
+  if(existing){
+    existing.nombre = name;
+    existing.rol = rol;
+    if(pass) existing.passHash = await hashPass(pass);
+    await saveUsers();
+    showToast(`USUARIO ${name} ACTUALIZADO.`,'success');
+  } else {
+    if(!pass){ showToast('INGRESA UNA CONTRASEÑA PARA EL NUEVO USUARIO.','error'); return; }
+    const newUser = { user:login, passHash: await hashPass(pass), nombre:name, rol, email:'', blocked:false, area:'', provincia:'', codigo:'' };
+    USERS.push(newUser);
+    await saveUsers();
+    showToast(`USUARIO ${name} CREADO.`,'success');
+  }
+  document.getElementById('new-user-login').value='';
+  document.getElementById('new-user-name').value='';
+  document.getElementById('new-user-pass').value='';
+  populateUserSelector();
+  if(currentUser && currentUser.rol==='admin') renderAdmin();
+}
+async function deleteSelectedUser(){
+  const login = document.getElementById('user-selector').value;
+  if(!login){ showToast('SELECCIONA UN USUARIO PRIMERO.','error'); return; }
+  await deleteUser(login);
+  document.getElementById('new-user-login').value='';
+  document.getElementById('new-user-name').value='';
+  populateUserSelector();
+}
 
 // ==================== INICIALIZACIÓN ====================
 (async function init(){
