@@ -1,5 +1,9 @@
 // ==================== CONFIGURACIÓN INICIAL ====================
 const GOOGLE_CLIENT_ID = '571154981190-e83q5clu440b0p8jqikrqkq3r6v2qrdt.apps.googleusercontent.com';
+// Guardar src original del escudo para restaurarlo al logout
+const ESCUDO_ORIGINAL = document.getElementById('header-escudo-img')
+  ? document.getElementById('header-escudo-img').src
+  : '';
 
 // ==================== TOASTS ====================
 function showToast(msg, type='info', duration=3500){
