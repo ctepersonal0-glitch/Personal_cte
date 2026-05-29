@@ -140,16 +140,47 @@ function toggleBlockUser(username, block) {
 async function deleteUser(username) {
   const user = USERS.find(u => u.user === username);
   if (!user) return;
-  if (user.rol === 'admin') { showToast('NO SE PUEDE ELIMINAR AL ADMINISTRADOR PRINCIPAL', 'error'); return; }
-  openModal('ELIMINAR USUARIO', `¿ELIMINAR A ${user.nombre}?`, async () => {
-    USERS = USERS.filter(u => u.user !== username);
-    await db.collection('users').doc(username).delete();
-    localStorage.setItem('cte_users_cache', JSON.stringify(USERS));
-    renderAdmin();
-    showToast(`USUARIO ${user.nombre} ELIMINADO`, 'success');
+  if (user.rol === 'admin') { 
+    showToast('NO SE PUEDE ELIMINAR AL ADMINISTRADOR PRINCIPAL', 'error'); 
+    return; 
+  }
+  
+  openModal('ELIMINAR USUARIO', `¿ELIMINAR COMPLETAMENTE A ${user.nombre}? SE BORRARÁN TAMBIÉN SUS LOGS Y SOLICITUDES.`, async () => {
+    try {
+      const batch = db.batch();
+
+      // 1. Eliminar documento del usuario
+      batch.delete(db.collection('users').doc(username));
+
+      // 2. Eliminar todos sus logs
+      const logsSnap = await db.collection('logs')
+        .where('usuario', '==', username)
+        .get();
+      logsSnap.forEach(doc => batch.delete(doc.ref));
+
+      // 3. Eliminar todas sus solicitudes (por email)
+      if (user.email) {
+        const solicSnap = await db.collection('solicitudes')
+          .where('email', '==', user.email)
+          .get();
+        solicSnap.forEach(doc => batch.delete(doc.ref));
+      }
+
+      await batch.commit();
+
+      // 4. Limpiar del array local y caché
+      USERS = USERS.filter(u => u.user !== username);
+      localStorage.setItem('cte_users_cache', JSON.stringify(USERS));
+
+      renderAdmin();
+      showToast(`USUARIO ${user.nombre} ELIMINADO COMPLETAMENTE`, 'success');
+
+    } catch (err) {
+      console.error('Error al eliminar usuario:', err);
+      showToast('ERROR AL ELIMINAR. REVISA LA CONSOLA.', 'error');
+    }
   });
 }
-
 async function toggleAdminRole(username) {
   const user = USERS.find(u => u.user === username);
   if (!user || user.user === currentUser.user) { showToast('NO PUEDES MODIFICAR TU PROPIO ROL', 'error'); return; }
