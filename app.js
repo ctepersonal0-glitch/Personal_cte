@@ -596,7 +596,7 @@ async function renderDashboard(){
   const isAdmin = currentUser && currentUser.rol === 'admin';
   // ── Solo admin ve las tarjetas de estadísticas ──
   document.getElementById('dashboard-stats').style.display = isAdmin ? '' : 'none';
-  document.getElementById('dashboard-bitacora').style.display = isAdmin ? 'none' : 'block';
+  document.getElementById('dashboard-bitacora').style.display = isAdmin ? 'block' : 'none';
   document.getElementById('dashboard-no-admin').style.display = isAdmin ? 'none' : 'block';
   if(isAdmin){
     const recent = [...logs].slice(0,15);
