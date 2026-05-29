@@ -770,49 +770,94 @@ function deleteFile(id){
     }
   });
 }
-async function addFile(){
+// 2. FUNCIÓN PARA AGREGAR ARCHIVO (MODIFICADA PARA FIREBASE)
+async function addFile() {
   const nombre = document.getElementById('af-nombre').value.trim().toUpperCase();
   const seccion = document.getElementById('af-seccion').value;
   const url = document.getElementById('af-url').value.trim();
   const tipo = document.getElementById('af-tipo').value;
   const desc = document.getElementById('af-desc').value.trim().toUpperCase();
-  if(!nombre || !url){ showToast('COMPLETA NOMBRE Y ENLACE.', 'error'); return; }
-  const newId = Date.now();
-  const fecha = new Date().toLocaleDateString('es-EC');
-  const entry = { id:newId, nombre, seccion, urlOriginal: url, tipo, desc, fecha, subidoPor: currentUser ? currentUser.nombre : 'ADMIN' };
-  const files = getFiles();
-  files.push(entry);
-  saveFiles(files);
-  document.getElementById('af-nombre').value = '';
-  document.getElementById('af-url').value = '';
-  document.getElementById('af-desc').value = '';
-  const linea = `  { id:${newId}, nombre:'${nombre.replace(/'/g,"\\'")}', seccion:'${seccion}', tipo:'${tipo}', desc:'${desc.replace(/'/g,"\\'")}', fecha:'${fecha}', urlOriginal:'${url}' },`;
-  document.getElementById('af-code-text').textContent = linea;
-  document.getElementById('af-code-box').style.display = 'block';
 
-  // ── COPIA AUTOMÁTICA AL PORTAPAPELES ──
-  try {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      await navigator.clipboard.writeText(linea);
-      showToast('✅ ARCHIVO AGREGADO — CÓDIGO COPIADO AUTOMÁTICAMENTE AL PORTAPAPELES', 'success');
-    } else {
-      const ta = document.createElement('textarea');
-      ta.value = linea;
-      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
-      document.body.appendChild(ta);
-      ta.focus();
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      showToast('✅ ARCHIVO AGREGADO — CÓDIGO COPIADO AUTOMÁTICAMENTE', 'success');
-    }
-  } catch(e) {
-    showToast('⚠️ ARCHIVO AGREGADO. COPIA EL CÓDIGO MANUALMENTE.', 'info');
+  // Validación básica
+  if (!nombre || !url) { 
+    showToast('COMPLETA NOMBRE Y ENLACE.', 'error'); 
+    return; 
   }
 
-  if (currentUser && currentUser.rol === 'admin') {
-    renderAdmin();
-    renderSectionFiles(seccion);
+  const newId = Date.now(); // Lo usamos como ID numérico si lo necesitas, o Firebase creará uno único.
+  const fechaActual = new Date().toLocaleDateString('es-EC');
+
+  // Preparamos el objeto con el formato exacto para Firestore
+  const entry = { 
+    idNum: newId, // Guardamos tu timestamp por si ordenas por él
+    nombre: nombre, 
+    seccion: seccion, 
+    urlOriginal: url, 
+    tipo: tipo, 
+    desc: desc, 
+    fecha: fechaActual, 
+    subidoPor: (typeof currentUser !== 'undefined' && currentUser) ? currentUser.nombre : 'ADMIN',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp() // Fecha precisa del servidor para ordenar
+  };
+
+  try {
+    // ── GUARDADO AUTOMÁTICO EN LA NUBE ──
+    // Guardamos en una colección llamada "archivos"
+    await db.collection("archivos").add(entry);
+
+    // Éxito total: Se eliminó la lógica de portapapeles y textos planos
+    showToast('✅ ARCHIVO REGISTRADO AUTOMÁTICAMENTE EN FIREBASE', 'success');
+
+    // Limpiar el formulario
+    document.getElementById('af-nombre').value = '';
+    document.getElementById('af-url').value = '';
+    document.getElementById('af-desc').value = '';
+
+    // Si tu interfaz tiene las cajas de texto de código antiguo, las ocultamos
+    const codeBox = document.getElementById('af-code-box');
+    if (codeBox) codeBox.style.display = 'none';
+
+    // Renderizar de nuevo la vista si el usuario es administrador
+    if (typeof currentUser !== 'undefined' && currentUser && currentUser.rol === 'admin') {
+      renderAdmin();
+      renderSectionFiles(seccion); 
+    }
+
+  } catch (error) {
+    console.error("Error al guardar en Firebase:", error);
+    showToast('❌ ERROR AL GUARDAR EN LA BASE DE DATOS.', 'error');
+  }
+}
+
+// 3. FUNCIÓN REEMPLAZO PARA OBTENER LOS ARCHIVOS
+// Usa esta función para sustituir tu antigua manera de leer 'getFiles()'
+async function getFiles() {
+  try {
+    // Traemos todos los documentos de la colección "archivos" ordenados por fecha de creación
+    const snapshot = await db.collection("archivos")
+                             .orderBy("createdAt", "desc")
+                             .get();
+    
+    const archivos = [];
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      archivos.push({
+        id: data.idNum || doc.id, // Usa tu id numérico o el ID de documento de Firebase
+        nombre: data.nombre,
+        seccion: data.seccion,
+        urlOriginal: data.urlOriginal,
+        tipo: data.tipo,
+        desc: data.desc,
+        fecha: data.fecha,
+        subidoPor: data.subidoPor
+      });
+    });
+
+    return archivos; // Retorna el array idéntico al formato que tu app ya usaba
+
+  } catch (error) {
+    console.error("Error obteniendo archivos de Firebase:", error);
+    return []; // Retorna un array vacío en caso de falla para evitar romper la app
   }
 }
 function copiarCodigo(){
