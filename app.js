@@ -44,9 +44,7 @@ const DEFAULT_USERS = [
 
 const FILES_BASE = [
   { id:1779224557782, nombre:'HISTORIAL CTE', seccion:'organico', tipo:'excel', desc:'', fecha:'19/05/2026', urlOriginal:'https://drive.google.com/drive/folders/1IKszLxBRMZTpv0CyJYaFJ11KbmaftAlW?usp=sharing' },
-  { id:1780069150402, nombre:'ORGANICO', seccion:'organico', tipo:'excel', desc:'', fecha:'29/5/2026', urlOriginal:'https://drive.google.com/drive/folders/1aiqSt2DEzT7_LTuEVcy19J-Y3_-iRihN?usp=drive_link' },
-  { id:1780069566182, nombre:'LISTADO PARAMETROS 2026', seccion:'parametros', tipo:'excel', desc:'', fecha:'29/5/2026', urlOriginal:'https://drive.google.com/drive/folders/1XPel3aDUBnMdyCMTGpBhIW0GPP98F5dh?usp=drive_link' },
-  { id:1780070483456, nombre:'ORDEN DEL CUERPO 2026', seccion:'orden', tipo:'pdf', desc:'', fecha:'29/5/2026', urlOriginal:'https://drive.google.com/drive/folders/1Np2lvD-Rlgxkkq9_OGPIrlJAHrRyiE3M?usp=drive_link' },
+  { id:1780020641758, nombre:'ORDEN DEL CUERPO 2026', seccion:'orden', tipo:'pdf', desc:'', fecha:'28/5/2026', urlOriginal:'https://drive.google.com/drive/folders/1Np2lvD-Rlgxkkq9_OGPIrlJAHrRyiE3M?usp=drive_link' },
 ];
 
 // ==================== FUNCIONES DE HASH ====================
@@ -140,27 +138,67 @@ function toggleBlockUser(username, block) {
 async function deleteUser(username) {
   const user = USERS.find(u => u.user === username);
   if (!user) return;
-  if (user.rol === 'admin') { showToast('NO SE PUEDE ELIMINAR AL ADMINISTRADOR PRINCIPAL', 'error'); return; }
-  openModal('ELIMINAR USUARIO', `¿ELIMINAR A ${user.nombre}?`, async () => {
-    USERS = USERS.filter(u => u.user !== username);
-    await db.collection('users').doc(username).delete();
-    localStorage.setItem('cte_users_cache', JSON.stringify(USERS));
-    renderAdmin();
-    showToast(`USUARIO ${user.nombre} ELIMINADO`, 'success');
-  });
-}
+  if (user.rol === 'admin') {
+    showToast('NO SE PUEDE ELIMINAR AL ADMINISTRADOR PRINCIPAL', 'error');
+    return;
+  }
 
-async function toggleAdminRole(username) {
-  const user = USERS.find(u => u.user === username);
-  if (!user || user.user === currentUser.user) { showToast('NO PUEDES MODIFICAR TU PROPIO ROL', 'error'); return; }
-  const nuevoRol = user.rol === 'admin' ? 'user' : 'admin';
-  const label = nuevoRol === 'admin' ? 'ADMINISTRADOR' : 'USUARIO';
-  openModal('CAMBIAR ROL', `¿CAMBIAR ROL DE ${user.nombre} A ${label}?`, async () => {
-    user.rol = nuevoRol;
-    await saveUsers();
-    renderAdmin();
-    showToast(`ROL DE ${user.nombre} CAMBIADO A ${label}`, 'success');
-  });
+  openModal(
+    'ELIMINAR USUARIO',
+    `¿ELIMINAR COMPLETAMENTE A ${user.nombre}? SE BORRARÁN SUS LOGS Y SOLICITUDES DE FIREBASE SIN DEJAR RASTRO.`,
+    async () => {
+      try {
+        showToast('ELIMINANDO... ESPERA UN MOMENTO.', 'info', 4000);
+
+        // Función auxiliar: elimina un array de refs en lotes de 500
+        async function deletarEnLotes(refs) {
+          const LOTE = 500;
+          for (let i = 0; i < refs.length; i += LOTE) {
+            const batch = db.batch();
+            refs.slice(i, i + LOTE).forEach(ref => batch.delete(ref));
+            await batch.commit();
+          }
+        }
+
+        // 1. Recopilar refs de logs del usuario
+        const logsSnap = await db.collection('logs')
+          .where('usuario', '==', username)
+          .get();
+        const logsRefs = logsSnap.docs.map(d => d.ref);
+
+        // 2. Recopilar refs de solicitudes por email
+        let solicRefs = [];
+        if (user.email) {
+          const solicSnap = await db.collection('solicitudes')
+            .where('email', '==', user.email)
+            .get();
+          solicRefs = solicSnap.docs.map(d => d.ref);
+        }
+
+        // 3. Borrar todo en lotes
+        await deletarEnLotes(logsRefs);
+        await deletarEnLotes(solicRefs);
+
+        // 4. Borrar el documento del usuario
+        await db.collection('users').doc(username).delete();
+
+        // 5. Limpiar array local y caché
+        USERS = USERS.filter(u => u.user !== username);
+        localStorage.setItem('cte_users_cache', JSON.stringify(USERS));
+
+        renderAdmin();
+        showToast(
+          `USUARIO ${user.nombre} ELIMINADO COMPLETAMENTE (${logsRefs.length} LOGS, ${solicRefs.length} SOLICITUDES BORRADAS)`,
+          'success',
+          5000
+        );
+
+      } catch (err) {
+        console.error('Error al eliminar usuario:', err);
+        showToast('ERROR AL ELIMINAR. REVISA LA CONSOLA.', 'error');
+      }
+    }
+  );
 }
 
 // ==================== SOLICITUDES DE REGISTRO ====================
