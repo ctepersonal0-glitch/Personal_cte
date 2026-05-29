@@ -808,7 +808,7 @@ async function addFile(){
 function copiarCodigo(){
   const txt = document.getElementById('af-code-text').textContent;
   navigator.clipboard.writeText(txt);
-  showToast('CÓDIGO COPIADO. PÉGALO EN FILES_BASE EN EL HTML.', 'success');
+  showToast('CÓDIGO COPIADO. PÉGALO EN FILES_BASE DEL APP.JS.', 'success');
 }
 
 function globalSearchFiles(){
