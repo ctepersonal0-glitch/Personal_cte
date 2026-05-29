@@ -783,10 +783,33 @@ async function addFile(){
   const files = getFiles();
   files.push(entry);
   saveFiles(files);
-  document.getElementById('af-nombre').value = ''; document.getElementById('af-url').value = ''; document.getElementById('af-desc').value = '';
+  document.getElementById('af-nombre').value = '';
+  document.getElementById('af-url').value = '';
+  document.getElementById('af-desc').value = '';
   const linea = `  { id:${newId}, nombre:'${nombre.replace(/'/g,"\\'")}', seccion:'${seccion}', tipo:'${tipo}', desc:'${desc.replace(/'/g,"\\'")}', fecha:'${fecha}', urlOriginal:'${url}' },`;
   document.getElementById('af-code-text').textContent = linea;
   document.getElementById('af-code-box').style.display = 'block';
+
+  // ── COPIA AUTOMÁTICA AL PORTAPAPELES ──
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(linea);
+      showToast('✅ ARCHIVO AGREGADO — CÓDIGO COPIADO AUTOMÁTICAMENTE AL PORTAPAPELES', 'success');
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = linea;
+      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('✅ ARCHIVO AGREGADO — CÓDIGO COPIADO AUTOMÁTICAMENTE', 'success');
+    }
+  } catch(e) {
+    showToast('⚠️ ARCHIVO AGREGADO. COPIA EL CÓDIGO MANUALMENTE.', 'info');
+  }
+
   if (currentUser && currentUser.rol === 'admin') {
     renderAdmin();
     renderSectionFiles(seccion);
