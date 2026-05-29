@@ -23,8 +23,8 @@ messaging.onBackgroundMessage((payload) => {
 
   const { title, body, icon } = payload.notification || {};
   
-  self.registration.showNotification(title || 'NUEVA SOLICITUD CTE', {
-    body: body || 'Hay una nueva solicitud de registro pendiente.',
+  self.registration.showNotification(title || '⚠️ NUEVA SOLICITUD CTE', {
+    body: body || '⚠️ Hay una nueva solicitud de registro pendiente.',
     icon: icon || '/favicon.ico',
     badge: '/favicon.ico',
     tag: 'cte-solicitud-' + Date.now(),
@@ -33,9 +33,8 @@ messaging.onBackgroundMessage((payload) => {
       { action: 'abrir', title: '📋 Ver solicitud' },
       { action: 'cerrar', title: '✕ Cerrar' }
     ],
-    requireInteraction: true // La notificación permanece hasta que el admin la toca
+    requireInteraction: true
   });
-});
 
 // Acción al hacer clic en la notificación
 self.addEventListener('notificationclick', (event) => {
