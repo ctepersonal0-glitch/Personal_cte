@@ -266,3 +266,107 @@ footer a{color:var(--gold2);text-decoration:none}
 .page-info{font-size:.74rem;color:var(--muted);margin-left:auto}
 body.dark-mode .page-btn{border-color:#2d3a52;color:var(--muted)}
 body.dark-mode .pagination{border-color:#2d3a52}
+/* =========================================
+   DISEÑO RESPONSIVE (MÓVILES Y TABLETS)
+========================================= */
+@media screen and (max-width: 768px) {
+  
+  /* 1. Pantalla de Login */
+  .login-box {
+    width: 95%; /* Ocupa casi toda la pantalla */
+    padding: 1.5rem;
+    margin: 1rem auto;
+  }
+  .login-tabs {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .login-tab-btn {
+    width: 100%;
+  }
+
+  /* 2. Encabezado General */
+  .header-inner {
+    flex-direction: column; /* Apila el logo y los botones */
+    text-align: center;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  .header-inner > div:first-child {
+    flex-direction: column;
+  }
+  .header-right {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.5rem;
+  }
+  .header-right button {
+    width: 100%;
+  }
+
+  /* 3. Barra de Navegación */
+  .nav-inner {
+    flex-wrap: wrap; /* Permite que los enlaces bajen a la siguiente línea */
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+  .nav-inner a {
+    flex: 1 1 40%; /* Dos enlaces por fila aproximadamente */
+    text-align: center;
+    font-size: 0.85rem;
+    padding: 0.5rem;
+  }
+
+  /* 4. Tarjetas de Estadísticas */
+  #dashboard-stats {
+    display: flex;
+    flex-direction: column; /* Apila las estadísticas una sobre otra */
+    gap: 1rem;
+  }
+
+  /* 5. Cuadrícula Principal (Secciones del Sistema) */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Pasa de varias columnas a una sola */
+    gap: 1rem;
+  }
+
+  /* 6. Panel de Administración y Formularios */
+  /* Sobrescribe los estilos en línea que tienen 'grid-template-columns: 1fr 1fr' */
+  .admin-card-body > div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important; 
+  }
+  
+  .chart-wrap {
+    padding: 1rem;
+  }
+  
+  /* 7. Tablas y Bitácoras */
+  .log-table th, 
+  .log-table td {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
+  /* Asegura que los contenedores de tabla permitan scroll horizontal si la tabla es muy ancha */
+  div[style*="overflow-x:auto"] {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 8. Iframe del Portal Interno */
+  #portal-frame {
+    height: 60vh !important; /* Reduce la altura en móviles */
+  }
+}
+
+/* =========================================
+   DISEÑO PARA PANTALLAS MUY PEQUEÑAS
+========================================= */
+@media screen and (max-width: 480px) {
+  .nav-inner a {
+    flex: 1 1 100%; /* Un enlace por fila en celulares muy pequeños */
+  }
+  .stat-card {
+    padding: 1rem;
+  }
+}
