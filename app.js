@@ -636,25 +636,12 @@ function doLogout(){
   document.getElementById('nav-admin').style.display = 'none';
   document.getElementById('print-btn').style.display = 'none';
 
-  // ── Foto del usuario en el escudo del header ──
-const escudoImg = document.getElementById('header-escudo-img');
-if(escudoImg){
-  if(foto){
-    const avatarCanvas = document.createElement('canvas');
-    avatarCanvas.width = 80; avatarCanvas.height = 80;
-    const actx = avatarCanvas.getContext('2d');
-    actx.fillStyle = '#1e3a5f';
-    actx.fillRect(0,0,80,80);
-    actx.fillStyle = '#e8c96a';
-    actx.font = 'bold 28px sans-serif';
-    actx.textAlign = 'center';
-    actx.textBaseline = 'middle';
-    const initials = found.nombre.split(' ').map(x=>x[0]).slice(0,2).join('');
-    actx.fillText(initials, 40, 40);
-    escudoImg.src = avatarCanvas.toDataURL();
-    escudoImg.style.border = '2px solid var(--gold, #e8c96a)';
+  // ── Restaurar escudo original al cerrar sesión ──
+  const escudoImg = document.getElementById('header-escudo-img');
+  if(escudoImg){
+    escudoImg.src = ESCUDO_ORIGINAL;
+    escudoImg.style.border = '';
   }
-  // Sin foto → el escudo original se mantiene intacto
 }
 
 // ==================== RENDERIZADO PRINCIPAL ====================
