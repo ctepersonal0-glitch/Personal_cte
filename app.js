@@ -636,12 +636,11 @@ function doLogout(){
   document.getElementById('nav-admin').style.display = 'none';
   document.getElementById('print-btn').style.display = 'none';
 
-  // ── Restaurar escudo original al cerrar sesión ──
-  const escudoImg = document.getElementById('header-escudo-img');
-  if(escudoImg){
-    escudoImg.src = ESCUDO_ORIGINAL;
-    escudoImg.style.border = '';
-  }
+  // ── El escudo del header se mantiene siempre intacto ──
+const escudoImg = document.getElementById('header-escudo-img');
+if(escudoImg){
+  escudoImg.src = ESCUDO_ORIGINAL;
+  escudoImg.style.border = '';
 }
 
 // ==================== RENDERIZADO PRINCIPAL ====================
