@@ -614,13 +614,12 @@ function doLogout(){
   document.getElementById('nav-admin').style.display = 'none';
   document.getElementById('print-btn').style.display = 'none';
 
-  // ── Restaurar escudo original al cerrar sesión ──
-  const escudoImg = document.getElementById('header-escudo-img');
-  if(escudoImg){
-    escudoImg.src = ESCUDO_ORIGINAL;
-    escudoImg.style.border = '';
-  }
-}
+  // ── mantiene escudo original ──
+  let ESCUDO_ORIGINAL = '';
+window.addEventListener('load', () => {
+  const img = document.getElementById('header-escudo-img');
+  if(img) ESCUDO_ORIGINAL = img.src;
+});
 
 // ==================== RENDERIZADO PRINCIPAL ====================
 async function renderDashboard(){
