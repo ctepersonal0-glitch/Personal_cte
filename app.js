@@ -544,28 +544,6 @@ function entrarAlSistema(found, foto){
   document.getElementById('screen-main').style.display  = 'block';
   document.getElementById('display-user').textContent = found.nombre + ' (' + found.user + ')';
 
-  // ── Foto del usuario en el escudo del header ──
-  const escudoImg = document.getElementById('header-escudo-img');
-  if(escudoImg){
-    if(foto){
-      escudoImg.src = foto;
-      escudoImg.style.border = '2px solid var(--gold, #e8c96a)';
-    } else {
-      // Sin foto Google → iniciales del nombre
-      const canvas = document.createElement('canvas');
-      canvas.width = 80; canvas.height = 80;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#1e3a5f';
-      ctx.fillRect(0,0,80,80);
-      ctx.fillStyle = '#e8c96a';
-      ctx.font = 'bold 28px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      const initials = found.nombre.split(' ').map(x=>x[0]).slice(0,2).join('');
-      ctx.fillText(initials, 40, 40);
-      escudoImg.src = canvas.toDataURL();
-    }
-  }  
   const isAdmin = found.rol === 'admin';
   document.getElementById('nav-admin').style.display = isAdmin ? 'block' : 'none';
   document.getElementById('print-btn').style.display = isAdmin ? 'block' : 'none';
