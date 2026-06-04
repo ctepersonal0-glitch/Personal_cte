@@ -73,24 +73,29 @@
   <header>
     <div class="header-inner">
 
-  <!-- FILA 1 -->
-  <div class="header-fila1">
-    <div class="escudo">...</div>
-    <div class="header-text">
-      <h1>UNIDAD DE PERSONAL Y MOVILIDAD</h1>
-      <p>CUERPO DE VIGILANCIA · ...</p>
+  <!-- FILA 1: escudo + título -->
+    <div class="header-fila1">
+      <div class="escudo"><img src="..." /></div>
+      <div class="header-text">
+        <h1>UNIDAD DE PERSONAL Y MOVILIDAD</h1>
+        <p>CUERPO DE VIGILANCIA – CTE</p>
+      </div>
     </div>
-  </div>
 
-  <!-- FILA 2 -->
-  <div class="header-fila2">
-    <button class="theme-toggle">🌙 MODO</button>
-    <button id="print-btn">🖨️ IMPRIMIR</button>
-    <div class="user-badge">...</div>
-    <button class="btn-logout">⎋ CERRAR SESIÓN</button>
-  </div>
+    <!-- FILA 2: botones -->
+    <div class="header-fila2">
+      <button class="theme-toggle" onclick="toggleDarkMode()">🌙 MODO</button>
+      <button class="print-btn" id="print-btn" onclick="printCurrentView()">🖨️ IMPRIMIR</button>
+      <div class="user-badge">
+        <span>SESIÓN: </span>
+        <strong id="display-user">—</strong>
+        <span id="display-role-badge" class="badge"></span>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">⎋ CERRAR SESIÓN</button>
+    </div>
 
-</div>
+  </div>
+</header>
   </header>
 
   <nav><div class="nav-inner">
