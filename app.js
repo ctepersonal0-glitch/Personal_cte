@@ -1,3 +1,19 @@
+// Cargar preferencia de modo al inicio
+document.addEventListener('DOMContentLoaded', function() {
+  const savedMode = localStorage.getItem('darkMode');
+  const btn = document.querySelector('.theme-toggle');
+  
+  if (savedMode === 'false') {
+    // Modo claro
+    document.body.classList.remove('dark-mode');
+    if (btn) btn.textContent = '☀️ MODO';
+  } else {
+    // Modo oscuro (por defecto, como está tu pantalla)
+    document.body.classList.add('dark-mode');
+    if (btn) btn.textContent = '🌙 MODO';
+  }
+});
+
 // ==================== CONFIGURACIÓN INICIAL ====================
 const GOOGLE_CLIENT_ID = '571154981190-e83q5clu440b0p8jqikrqkq3r6v2qrdt.apps.googleusercontent.com';
 
@@ -865,12 +881,27 @@ function printCurrentView(){
   win.document.write(`<html><head><title>REPORTE CTE</title><link href="https://fonts.googleapis.com/css2?family=Source+Sans+3&display=swap" rel="stylesheet"/><style>body{font-family:'Source Sans 3';padding:2rem;}</style></head><body>${tab.innerHTML}</body></html>`);
   win.document.close(); win.print();
 }
-function toggleDarkMode(){
-  document.body.classList.toggle('dark-mode');
-  localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-  if(_accesosChart) renderChart(getLogs());
+function toggleDarkMode() {
+  const body = document.body;
+  const btn = document.querySelector('.theme-toggle');
+  
+  // Alternar clase dark-mode
+  body.classList.toggle('dark-mode');
+  
+  const isDark = body.classList.contains('dark-mode');
+  
+  // Cambiar el botón según el modo
+  if (isDark) {
+    btn.textContent = '🌙 MODO';
+    btn.title = 'Cambiar a modo claro';
+  } else {
+    btn.textContent = '☀️ MODO';
+    btn.title = 'Cambiar a modo oscuro';
+  }
+  
+  // Guardar preferencia
+  localStorage.setItem('darkMode', isDark ? 'true' : 'false');
 }
-
 async function confirmClearLogs(){
   openModal('🗑 BORRAR BITÁCORA', '¿ELIMINAR TODOS LOS REGISTROS?', async ()=>{ 
     const snapshot = await db.collection('logs').get();
