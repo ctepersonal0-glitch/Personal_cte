@@ -1,24 +1,37 @@
-/* HEADER: dos filas */
+/* ===== HEADER ===== */
+header {
+  background: #0d1b2e;
+  color: #fff;
+  padding: 0;
+}
+
 .header-inner {
   display: flex;
-  flex-direction: column;   /* ← apila las dos filas */
+  flex-direction: column;
   padding: .5rem 1.2rem .4rem;
   gap: .35rem;
 }
 
-/* FILA 1: escudo + nombre */
+/* FILA 1: escudo a la izquierda + título */
 .header-fila1 {
   display: flex;
+  flex-direction: row;
   align-items: center;
+  justify-content: flex-start;
   gap: 1rem;
   width: 100%;
+  text-align: left;
 }
 
-.escudo { flex-shrink: 0; }
+.escudo {
+  flex-shrink: 0;
+  /* NO cambies width/height que ya tienes */
+}
 
 .header-text {
   flex: 1;
   min-width: 0;
+  text-align: left;
 }
 
 .header-text h1 {
@@ -27,16 +40,23 @@
   overflow: hidden;
   text-overflow: ellipsis;
   letter-spacing: .12em;
+  text-align: left;
 }
 
-/* FILA 2: botones abajo, alineados a la derecha */
+.header-text p {
+  text-align: left;
+}
+
+/* FILA 2: botones a la derecha */
 .header-fila2 {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  justify-content: flex-end;   /* ← todos a la derecha */
+  justify-content: flex-end;
   gap: .5rem;
   border-top: 1px solid rgba(255,255,255,.07);
   padding-top: .3rem;
+  width: 100%;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
