@@ -1,43 +1,42 @@
-/* HEADER PRINCIPAL */
+/* HEADER: dos filas */
 .header-inner {
   display: flex;
-  flex-direction: column;
-  padding: .5rem 1.2rem .3rem;
+  flex-direction: column;   /* ← apila las dos filas */
+  padding: .5rem 1.2rem .4rem;
+  gap: .35rem;
 }
 
-/* FILA ÚNICA CON ESCUDO + TÍTULO EXPANDIDO + BOTONES */
-/* Cambia el selector que tengas actualmente por esto: */
-.header-inner {
+/* FILA 1: escudo + nombre */
+.header-fila1 {
   display: flex;
-  flex-direction: row;   /* ← fila horizontal */
   align-items: center;
   gap: 1rem;
-  padding: .5rem 1.2rem;
+  width: 100%;
 }
 
-/* EL TÍTULO OCUPA TODO EL ESPACIO DISPONIBLE */
+.escudo { flex-shrink: 0; }
+
 .header-text {
-  flex: 1;                /* ← se expande */
-  white-space: nowrap;    /* ← no rompe en líneas */
-  overflow: hidden;
+  flex: 1;
+  min-width: 0;
 }
 
 .header-text h1 {
-  font-size: clamp(1rem, 2.2vw, 1.6rem);  /* ← se adapta al ancho */
+  font-size: clamp(1rem, 2.2vw, 1.55rem);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   letter-spacing: .12em;
 }
 
-/* EL ESCUDO NO SE ENCOGE */
-.escudo {
-  flex-shrink: 0;
-}
-
-/* LOS BOTONES TAMPOCO SE ENCOGEN */
-.header-right {
-  flex-shrink: 0;
+/* FILA 2: botones abajo, alineados a la derecha */
+.header-fila2 {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;   /* ← todos a la derecha */
+  gap: .5rem;
+  border-top: 1px solid rgba(255,255,255,.07);
+  padding-top: .3rem;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
