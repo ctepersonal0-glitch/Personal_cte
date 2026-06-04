@@ -106,7 +106,20 @@ header::before{content:'';position:absolute;inset:0;background:repeating-linear-
 .user-badge strong{font-size:.82rem;color:var(--gold2);font-family:'Oswald',sans-serif;letter-spacing:.05em;word-break:break-word}
 .btn-logout{background:transparent;border:1px solid rgba(200,168,75,.35);color:var(--gold2);font-family:'Oswald',sans-serif;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;padding:.35rem .8rem;border-radius:4px;cursor:pointer;transition:background .2s}
 .btn-logout:hover{background:rgba(200,168,75,.15)}
-.theme-toggle{background:rgba(255,255,255,.08);border:1px solid rgba(200,168,75,.2);border-radius:6px;padding:.45rem .8rem;cursor:pointer;color:var(--gold2);font-size:.8rem}
+.theme-toggle{
+  background:rgba(255,255,255,.08);
+  border:2px solid var(--gold);
+  border-radius:50%;
+  width:40px;height:40px;
+  font-size:1.25rem;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .3s;
+  padding:0;
+  line-height:1;
+  flex-shrink:0;
+}
+.theme-toggle:hover{background:var(--gold);transform:scale(1.12);box-shadow:0 0 12px rgba(232,201,106,.5);}
 .print-btn{background:rgba(255,255,255,.08);border:1px solid rgba(200,168,75,.2);border-radius:6px;padding:.45rem .8rem;cursor:pointer;color:var(--gold2);font-size:.8rem}
 @media(max-width:500px){
   .header-inner{padding:1rem}
@@ -370,3 +383,12 @@ body.dark-mode .pagination{border-color:#2d3a52}
     padding: 1rem;
   }
 }
+
+/* Dark mode - Login screen */
+body.dark-mode .login-box{background:#0d1b2e;border-color:#2d3a52;}
+body.dark-mode .login-tab-btn{background:#0a1628;color:var(--silver);}
+body.dark-mode .login-tab-btn.active{background:var(--gold);color:#0a1628;}
+body.dark-mode .login-tab-btn:hover:not(.active){background:#1e3a5f;}
+body.dark-mode .login-panel input{background:#0a1628;border-color:#2d3a52;color:var(--text);}
+body.dark-mode .login-wrap{background:rgba(0,0,0,.4);}
+body.dark-mode #screen-login{background:linear-gradient(135deg,#050d1a 0%,#0a1628 50%,#050d1a 100%);}

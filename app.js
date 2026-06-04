@@ -867,8 +867,14 @@ function printCurrentView(){
 }
 function toggleDarkMode(){
   document.body.classList.toggle('dark-mode');
-  localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+  const isDark = document.body.classList.contains('dark-mode');
+  localStorage.setItem('darkMode', isDark);
+  updateThemeIcon(isDark);
   if(_accesosChart) renderChart(getLogs());
+}
+function updateThemeIcon(isDark){
+  const btn = document.getElementById('btn-theme-toggle');
+  if(btn) btn.textContent = isDark ? '☀️' : '🌙';
 }
 
 async function confirmClearLogs(){
@@ -910,6 +916,8 @@ function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 (async function init(){
   await initializeUsers();
   listenToSolicitudes();
-  if(localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
+  const savedDark = localStorage.getItem('darkMode') === 'true';
+  if(savedDark){ document.body.classList.add('dark-mode'); }
+  updateThemeIcon(savedDark);
   renderAllSectionFiles();
 })();
