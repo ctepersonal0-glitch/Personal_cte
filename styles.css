@@ -24,8 +24,19 @@ header {
 }
 
 .escudo {
+  width: 60px;
+  height: 60px;
   flex-shrink: 0;
-  /* NO cambies width/height que ya tienes */
+  border-radius: 50%;
+  overflow: hidden;        /* ← recorta la imagen en círculo */
+  border: 2px solid #e8c96a;
+}
+
+.escudo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 .header-text {
