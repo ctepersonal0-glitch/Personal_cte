@@ -611,7 +611,7 @@ function doLogout(){
   document.getElementById('screen-main').style.display = 'none';
   document.getElementById('screen-login').style.display = 'flex';
   document.getElementById('nav-admin').style.display = 'none';
-  document.getElementById('print-btn').style.display = 'none';
+
 }
 
 // ==================== RENDERIZADO PRINCIPAL ====================
