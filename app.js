@@ -43,10 +43,10 @@ const DEFAULT_USERS = [
 ];
 
 const FILES_BASE = [
-  { id:1779224557782, nombre:'HISTORIAL CTE', seccion:'organico', tipo:'excel', desc:'', fecha:'19/05/2026', urlOriginal:'https://drive.google.com/drive/folders/1IKszLxBRMZTpv0CyJYaFJ11KbmaftAlW?usp=sharing' },
-  { id:1780069150402, nombre:'ORGANICO', seccion:'organico', tipo:'excel', desc:'', fecha:'29/5/2026', urlOriginal:'https://drive.google.com/drive/folders/1aiqSt2DEzT7_LTuEVcy19J-Y3_-iRihN?usp=drive_link' },
-  { id:1780069566182, nombre:'LISTADO PARAMETROS 2026', seccion:'parametros', tipo:'excel', desc:'', fecha:'29/5/2026', urlOriginal:'https://drive.google.com/drive/folders/1XPel3aDUBnMdyCMTGpBhIW0GPP98F5dh?usp=drive_link' },
-  { id:1780070483456, nombre:'ORDEN DEL CUERPO 2026', seccion:'orden', tipo:'pdf', desc:'', fecha:'29/5/2026', urlOriginal:'https://drive.google.com/drive/folders/1Np2lvD-Rlgxkkq9_OGPIrlJAHrRyiE3M?usp=drive_link' },
+  { id:1779224557782, nombre:'HISTORIAL CTE', seccion:'organico', tipo:'excel', desc:'', fecha:'19/05/2026', fechaSubida:'19/05/2026', urlOriginal:'https://drive.google.com/drive/folders/1IKszLxBRMZTpv0CyJYaFJ11KbmaftAlW?usp=sharing' },
+  { id:1780069150402, nombre:'ORGANICO', seccion:'organico', tipo:'excel', desc:'', fecha:'29/05/2026', fechaSubida:'29/05/2026', urlOriginal:'https://drive.google.com/drive/folders/1aiqSt2DEzT7_LTuEVcy19J-Y3_-iRihN?usp=drive_link' },
+  { id:1780069566182, nombre:'LISTADO PARAMETROS 2026', seccion:'parametros', tipo:'excel', desc:'', fecha:'29/05/2026', fechaSubida:'29/05/2026', urlOriginal:'https://drive.google.com/drive/folders/1XPel3aDUBnMdyCMTGpBhIW0GPP98F5dh?usp=drive_link' },
+  { id:1780070483456, nombre:'ORDEN DEL CUERPO 2026', seccion:'orden', tipo:'pdf', desc:'', fecha:'29/05/2026', fechaSubida:'29/05/2026', urlOriginal:'https://drive.google.com/drive/folders/1Np2lvD-Rlgxkkq9_OGPIrlJAHrRyiE3M?usp=drive_link' },
 ];
 
 // ==================== FUNCIONES DE HASH ====================
@@ -500,26 +500,38 @@ function saveFiles(f){
 }
 
 function extractDriveId(url){
+  // Archivo: /d/ID/
   const m1 = url.match(/\/d\/([a-zA-Z0-9_-]{15,})/);
+  // Parámetro id=
   const m2 = url.match(/[?&]id=([a-zA-Z0-9_-]{15,})/);
-  if(m1) return m1[1];
-  if(m2) return m2[1];
+  // Carpeta: /folders/ID
+  const m3 = url.match(/\/folders\/([a-zA-Z0-9_-]{15,})/);
+  if(m1) return { id: m1[1], tipo: 'file' };
+  if(m2) return { id: m2[1], tipo: 'file' };
+  if(m3) return { id: m3[1], tipo: 'folder' };
   return null;
 }
+function isStorageUrl(url){
+  return url && (url.includes('firebasestorage.googleapis.com') || url.includes('storage.googleapis.com'));
+}
 function driveViewUrl(url, tipo){
-  const id = extractDriveId(url);
-  if(!id) return url;
-  if(tipo === 'pdf' || tipo === 'img') return 'https://drive.google.com/file/d/' + id + '/view?usp=sharing';
-  return 'https://docs.google.com/viewer?url=' + encodeURIComponent('https://drive.google.com/uc?id=' + id);
+  if(isStorageUrl(url)) return url; // Firebase Storage: URL directa
+  const match = extractDriveId(url);
+  if(!match) return url;
+  if(match.tipo === 'folder') return 'https://drive.google.com/drive/folders/' + match.id + '?usp=sharing';
+  if(tipo === 'pdf' || tipo === 'img') return 'https://drive.google.com/file/d/' + match.id + '/view?usp=sharing';
+  return 'https://docs.google.com/viewer?url=' + encodeURIComponent('https://drive.google.com/uc?id=' + match.id);
 }
 function driveDownloadUrl(url){
-  const id = extractDriveId(url);
-  if(!id) return url;
-  return 'https://drive.google.com/uc?export=download&id=' + id;
+  if(isStorageUrl(url)) return url; // Firebase Storage: descarga directa
+  const match = extractDriveId(url);
+  if(!match) return url;
+  if(match.tipo === 'folder') return 'https://drive.google.com/drive/folders/' + match.id + '?usp=sharing';
+  return 'https://drive.google.com/uc?export=download&id=' + match.id;
 }
 function verifyDriveLink(url){
-  const id = extractDriveId(url);
-  if(id) showToast(`ID DE DRIVE DETECTADO: ${id} — ARCHIVO ACCESIBLE`, 'success');
+  const match = extractDriveId(url);
+  if(match) showToast(`ID DE DRIVE DETECTADO: ${match.id} (${match.tipo === 'folder' ? 'CARPETA' : 'ARCHIVO'}) — ENLACE VÁLIDO`, 'success');
   else showToast('NO SE PUDO EXTRAER EL ID. USA UN ENLACE ESTÁNDAR DE DRIVE.', 'error');
 }
 
@@ -772,7 +784,26 @@ function renderFilesGrid(el, files){
   el.innerHTML = `<div class="files-grid">${files.map(f=>{
     const viewUrl = driveViewUrl(f.urlOriginal, f.tipo);
     const dlUrl = driveDownloadUrl(f.urlOriginal);
-    return `<div class="file-card"><div class="file-card-top"><div class="file-type-icon ${TIPO_CSS[f.tipo]}">${TIPO_ICONS[f.tipo]}</div><div><div class="file-card-name">${esc(f.nombre)}</div><div class="file-card-meta">${f.desc?esc(f.desc)+'<br>':''}${f.fecha}</div></div></div><div class="file-card-actions"><a class="file-card-btn file-card-btn-open" href="${viewUrl}" target="_blank">👁️ VER</a><a class="file-card-btn file-card-btn-open" href="${dlUrl}" target="_blank">⬇️ BAJAR</a>${currentUser?.rol==='admin' ? `<button class="file-card-btn file-card-btn-del" onclick="deleteFile(${f.id})">🗑</button>` : ''}</div></div>`;
+    const match = extractDriveId(f.urlOriginal);
+    const esCarpeta = match && match.tipo === 'folder';
+    const fechaLabel = f.fechaSubida || f.fecha || '';
+    const dlAttr = esCarpeta ? '' : `download="${esc(f.nombre)}"`;
+    const dlIcon = esCarpeta ? '📂' : '⬇️';
+    const dlTitle = esCarpeta ? 'ABRIR CARPETA' : 'DESCARGAR';
+    return `<div class="file-card">
+      <div class="file-card-top">
+        <div class="file-type-icon ${TIPO_CSS[f.tipo]}">${TIPO_ICONS[f.tipo]}</div>
+        <div>
+          <div class="file-card-name">${esc(f.nombre)}</div>
+          <div class="file-card-meta">${f.desc?esc(f.desc)+'<br>':''}<span class="file-fecha">📅 ACTUALIZADO: ${fechaLabel}</span></div>
+        </div>
+      </div>
+      <div class="file-card-actions">
+        <a class="file-card-btn file-card-btn-open" href="${viewUrl}" target="_blank">👁️ VER</a>
+        <a class="file-card-btn file-card-btn-open" href="${dlUrl}" target="_blank" ${dlAttr}>${dlIcon} ${dlTitle}</a>
+        ${currentUser?.rol==='admin' ? `<button class="file-card-btn file-card-btn-del" onclick="deleteFile(${f.id})">🗑</button>` : ''}
+      </div>
+    </div>`;
   }).join('')}</div>`;
 }
 function renderAllSectionFiles(){ Object.keys(SECCIONES).forEach(s=>renderSectionFiles(s)); }
@@ -781,7 +812,11 @@ function renderAdminFiles(){
   if(!files.length){ document.getElementById('admin-files-list').innerHTML = '<div class="file-empty">SIN ARCHIVOS.</div>'; return; }
   const bySection = {};
   files.forEach(f=>{ if(!bySection[f.seccion]) bySection[f.seccion]=[]; bySection[f.seccion].push(f); });
-  document.getElementById('admin-files-list').innerHTML = Object.keys(bySection).map(s=>`<div style="margin-bottom:1rem"><div class="section-badge" style="margin-bottom:.5rem">${SECCIONES[s]||s}</div><div class="files-grid">${bySection[s].map(f=>`<div class="file-card"><div class="file-card-top"><div class="file-type-icon ${TIPO_CSS[f.tipo]}">${TIPO_ICONS[f.tipo]}</div><div><div class="file-card-name">${esc(f.nombre)}</div><div class="file-card-meta">${f.fecha}</div></div></div><div class="file-card-actions"><button class="file-card-btn file-card-btn-del" onclick="deleteFile(${f.id})">🗑 ELIMINAR</button></div></div>`).join('')}</div></div>`).join('');
+  document.getElementById('admin-files-list').innerHTML = Object.keys(bySection).map(s=>`<div style="margin-bottom:1rem"><div class="section-badge" style="margin-bottom:.5rem">${SECCIONES[s]||s}</div><div class="files-grid">${bySection[s].map(f=>{
+    const origenBadge = f.origen==='storage' ? '<span style="font-size:.65rem;background:#1a7a4a;color:#fff;border-radius:3px;padding:.1rem .35rem;margin-left:.4rem">☁ STORAGE</span>' : '<span style="font-size:.65rem;background:#1565c0;color:#fff;border-radius:3px;padding:.1rem .35rem;margin-left:.4rem">🔗 DRIVE</span>';
+    const fechaLabel = f.fechaSubida || f.fecha || '';
+    return `<div class="file-card"><div class="file-card-top"><div class="file-type-icon ${TIPO_CSS[f.tipo]}">${TIPO_ICONS[f.tipo]}</div><div><div class="file-card-name">${esc(f.nombre)}${origenBadge}</div><div class="file-card-meta"><span class="file-fecha">📅 ${fechaLabel}</span></div></div></div><div class="file-card-actions"><button class="file-card-btn file-card-btn-del" onclick="deleteFile(${f.id})">🗑 ELIMINAR</button></div></div>`;
+  }).join('')}</div></div>`).join('');
 }
 function deleteFile(id){
   const file = getFiles().find(f=>f.id===id);
@@ -794,6 +829,113 @@ function deleteFile(id){
     }
   });
 }
+// ==================== SUBIDA DIRECTA A FIREBASE STORAGE ====================
+let _selectedFile = null;
+
+function switchUploadMode(mode) {
+  document.getElementById('panel-local').style.display = mode === 'local' ? '' : 'none';
+  document.getElementById('panel-drive').style.display = mode === 'drive' ? '' : 'none';
+  document.getElementById('mode-btn-local').classList.toggle('active', mode === 'local');
+  document.getElementById('mode-btn-drive').classList.toggle('active', mode === 'drive');
+}
+
+function handleFileDrop(event) {
+  event.preventDefault();
+  document.getElementById('af-dropzone').classList.remove('dragover');
+  const file = event.dataTransfer.files[0];
+  if (file) onFileSelected(file);
+}
+
+function onFileSelected(file) {
+  if (!file) return;
+  const maxMB = 50;
+  if (file.size > maxMB * 1024 * 1024) {
+    showToast(`EL ARCHIVO SUPERA LOS ${maxMB} MB PERMITIDOS.`, 'error');
+    return;
+  }
+  _selectedFile = file;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const iconMap = { pdf:'📄', xlsx:'📊', xls:'📊', docx:'📝', doc:'📝', png:'🖼️', jpg:'🖼️', jpeg:'🖼️', gif:'🖼️' };
+  document.getElementById('af-file-icon').textContent = iconMap[ext] || '📎';
+  document.getElementById('af-file-name').textContent = file.name;
+  document.getElementById('af-file-size').textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+  document.getElementById('af-dropzone').style.display = 'none';
+  document.getElementById('af-file-preview').style.display = 'flex';
+  // Auto-detectar tipo
+  const tipoMap = { pdf:'pdf', xlsx:'excel', xls:'excel', docx:'word', doc:'word', png:'img', jpg:'img', jpeg:'img', gif:'img' };
+  if (tipoMap[ext]) document.getElementById('af-tipo').value = tipoMap[ext];
+  // Auto-completar nombre si está vacío
+  if (!document.getElementById('af-nombre').value.trim()) {
+    document.getElementById('af-nombre').value = file.name.replace(/\.[^.]+$/, '').toUpperCase();
+  }
+}
+
+function clearFileSelection() {
+  _selectedFile = null;
+  document.getElementById('af-file-input').value = '';
+  document.getElementById('af-dropzone').style.display = '';
+  document.getElementById('af-file-preview').style.display = 'none';
+  document.getElementById('af-upload-progress').style.display = 'none';
+}
+
+async function addFileLocal() {
+  if (!_selectedFile) { showToast('SELECCIONA UN ARCHIVO PRIMERO.', 'error'); return; }
+  const nombre = document.getElementById('af-nombre').value.trim().toUpperCase();
+  const seccion = document.getElementById('af-seccion').value;
+  const tipo = document.getElementById('af-tipo').value;
+  const desc = document.getElementById('af-desc').value.trim().toUpperCase();
+  if (!nombre) { showToast('ESCRIBE UN NOMBRE PARA EL ARCHIVO.', 'error'); return; }
+
+  const newId = Date.now();
+  const ext = _selectedFile.name.split('.').pop().toLowerCase();
+  const storePath = `archivos/${seccion}/${newId}_${nombre.replace(/[^a-zA-Z0-9]/g,'_')}.${ext}`;
+  const storageRef = storage.ref(storePath);
+
+  // Mostrar barra de progreso
+  document.getElementById('af-upload-progress').style.display = 'flex';
+  const fillEl = document.getElementById('af-progress-fill');
+  const labelEl = document.getElementById('af-progress-label');
+
+  const uploadTask = storageRef.put(_selectedFile);
+
+  uploadTask.on('state_changed',
+    (snapshot) => {
+      const pct = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+      fillEl.style.width = pct + '%';
+      labelEl.textContent = pct + '%';
+    },
+    (error) => {
+      console.error('Error subiendo:', error);
+      showToast('ERROR AL SUBIR EL ARCHIVO. REVISA PERMISOS DE STORAGE.', 'error');
+      document.getElementById('af-upload-progress').style.display = 'none';
+    },
+    async () => {
+      const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+      const fecha = new Date().toLocaleDateString('es-EC');
+      const entry = { id: newId, nombre, seccion, urlOriginal: downloadURL, urlStorage: storePath, tipo, desc, fecha, fechaSubida: fecha, subidoPor: currentUser ? currentUser.nombre : 'ADMIN', origen: 'storage' };
+      const files = getFiles();
+      files.push(entry);
+      saveFiles(files);
+
+      // Reset UI
+      clearFileSelection();
+      document.getElementById('af-upload-progress').style.display = 'none';
+      document.getElementById('af-nombre').value = '';
+      document.getElementById('af-desc').value = '';
+
+      const linea = `  { id:${newId}, nombre:'${nombre.replace(/'/g,"\\'")}', seccion:'${seccion}', tipo:'${tipo}', desc:'${desc.replace(/'/g,"\\'")}', fecha:'${fecha}', urlOriginal:'${downloadURL}' },`;
+      document.getElementById('af-code-text').textContent = linea;
+      document.getElementById('af-code-box').style.display = 'block';
+      showToast('✅ ARCHIVO SUBIDO CORRECTAMENTE A FIREBASE STORAGE', 'success');
+
+      if (currentUser && currentUser.rol === 'admin') {
+        renderAdmin();
+        renderSectionFiles(seccion);
+      }
+    }
+  );
+}
+
 async function addFile(){
   const nombre = document.getElementById('af-nombre').value.trim().toUpperCase();
   const seccion = document.getElementById('af-seccion').value;
@@ -803,7 +945,8 @@ async function addFile(){
   if(!nombre || !url){ showToast('COMPLETA NOMBRE Y ENLACE.', 'error'); return; }
   const newId = Date.now();
   const fecha = new Date().toLocaleDateString('es-EC');
-  const entry = { id:newId, nombre, seccion, urlOriginal: url, tipo, desc, fecha, subidoPor: currentUser ? currentUser.nombre : 'ADMIN' };
+  const fechaSubida = fecha;
+  const entry = { id:newId, nombre, seccion, urlOriginal: url, tipo, desc, fecha, fechaSubida, subidoPor: currentUser ? currentUser.nombre : 'ADMIN' };
   const files = getFiles();
   files.push(entry);
   saveFiles(files);
