@@ -235,6 +235,7 @@ footer a{color:var(--gold2);text-decoration:none}
 .file-type-pdf{background:#fde8e8;}.file-type-word{background:#e8f0fe;}.file-type-excel{background:#e6f4ea;}.file-type-img{background:#fff8e1;}.file-type-other{background:#f3e8fd;}
 .file-card-name{font-size:.84rem;font-weight:600;color:var(--text);word-break:break-word}
 .file-card-meta{font-size:.72rem;color:var(--muted);margin-top:.2rem}
+.file-fecha{display:inline-block;margin-top:.25rem;font-size:.7rem;font-weight:600;color:var(--primary,#1a7a4a);background:rgba(26,122,74,.08);border-radius:4px;padding:.1rem .35rem;letter-spacing:.02em}
 .file-card-actions{display:flex;border-top:1px solid #f0f2f6;gap:0}
 .file-card-btn{flex:1;padding:.5rem;background:none;border:none;cursor:pointer;font-family:'Oswald',sans-serif;font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;transition:background .2s;text-align:center;display:flex;align-items:center;justify-content:center;gap:.3rem;text-decoration:none}
 .file-card-btn-open{color:var(--navy)}.file-card-btn-open:hover{background:var(--light);color:var(--gold)}
@@ -392,3 +393,23 @@ body.dark-mode .login-tab-btn:hover:not(.active){background:#1e3a5f;}
 body.dark-mode .login-panel input{background:#0a1628;border-color:#2d3a52;color:var(--text);}
 body.dark-mode .login-wrap{background:rgba(0,0,0,.4);}
 body.dark-mode #screen-login{background:linear-gradient(135deg,#050d1a 0%,#0a1628 50%,#050d1a 100%);}
+
+/* ==================== UPLOAD DIRECTO ==================== */
+.upload-mode-tabs{display:flex;gap:.5rem;margin-bottom:.5rem}
+.upload-mode-btn{flex:1;padding:.55rem 1rem;border:2px solid var(--border,#dde0e8);border-radius:6px;background:transparent;color:var(--text);font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.04em}
+.upload-mode-btn.active{background:var(--navy,#0a1628);color:var(--gold,#e8c96a);border-color:var(--navy,#0a1628)}
+.upload-panel{margin-top:.8rem}
+.upload-dropzone{border:2.5px dashed var(--border,#dde0e8);border-radius:10px;padding:2.2rem 1.5rem;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg,#f5f6fa)}
+.upload-dropzone:hover,.upload-dropzone.dragover{border-color:var(--primary,#1a7a4a);background:rgba(26,122,74,.06)}
+.upload-dropzone-icon{font-size:2.4rem;line-height:1;margin-bottom:.5rem}
+.upload-dropzone-text{font-size:.88rem;font-weight:600;color:var(--text);letter-spacing:.03em}
+.upload-dropzone-text span{font-weight:400;color:var(--primary,#1a7a4a);text-decoration:underline}
+.upload-dropzone-hint{font-size:.72rem;color:var(--muted);margin-top:.4rem}
+.upload-file-preview{display:flex;align-items:center;gap:.8rem;padding:.75rem 1rem;background:var(--white,#fff);border:1.5px solid var(--border,#dde0e8);border-radius:8px;margin-top:.6rem}
+.upload-file-info{display:flex;flex-direction:column;gap:.15rem;flex:1;min-width:0}
+.upload-file-info strong{font-size:.82rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.upload-file-info span{font-size:.72rem;color:var(--muted)}
+.upload-progress-wrap{display:flex;align-items:center;gap:.8rem;margin-top:.6rem}
+.upload-progress-bar-track{flex:1;height:8px;background:var(--border,#dde0e8);border-radius:99px;overflow:hidden}
+.upload-progress-bar-fill{height:100%;width:0%;background:linear-gradient(90deg,#1a7a4a,#2ecc71);border-radius:99px;transition:width .2s}
+.upload-progress-wrap span{font-size:.78rem;font-weight:700;color:var(--primary,#1a7a4a);min-width:3rem;text-align:right}
