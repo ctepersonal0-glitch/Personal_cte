@@ -39,7 +39,7 @@ async function doLoginPass(){
 
 // Usuarios por defecto (solo admin)
 const DEFAULT_USERS = [
-  { user:'admin', passHash:'', nombre:'ADMINISTRADOR SISTEMA', rol:'admin', email:'ctepersonal0@gmail.com', blocked: false, area:'', provincia:'', codigo:'' },
+  { user:'admin', passHash:'', nombre:'ADMINISTRADOR SISTEMA', rol:'admin', email:'ctepersonal0@gmail.com', blocked: false, area:'', codigo:'', grado:'' },
 ];
 
 const FILES_BASE = [
@@ -233,17 +233,218 @@ function listenToSolicitudes() {
     });
 }
 
-// ==================== SOLICITAR REGISTRO ====================
-async function solicitarRegistro() {
-  const area = document.getElementById('reg-area').value.trim().toUpperCase();
-  const provincia = document.getElementById('reg-provincia').value.trim().toUpperCase();
-  const codigo = document.getElementById('reg-codigo').value.trim().toUpperCase();
-  const email = document.getElementById('reg-email').value.trim().toLowerCase();
+// ==================== BASE DE PERSONAL (CÓDIGO → AGENTE) ====================
+const BASE_PERSONAL_COL = 'base_personal';
+const BASE_PERSONAL_META = { col: 'config', doc: 'base_personal' };
+const BASE_LOTE = 400;
 
-  if (!area || !provincia || !codigo || !email) {
-    mostrarError('COMPLETA TODOS LOS CAMPOS');
+let _regAgente = null;
+let _regBuscarTimer = null;
+
+function normalizarCodigo(v){
+  return String(v || '').replace(/[^0-9]/g, '').replace(/^0+/, '');
+}
+
+function limpiarAgenteRegistro(msg, tipo){
+  _regAgente = null;
+  const area = document.getElementById('reg-area');
+  if (area) area.value = '';
+  const el = document.getElementById('reg-codigo-msg');
+  if (el) {
+    el.textContent = msg || '';
+    el.style.color = tipo === 'error' ? '#c0392b' : (tipo === 'ok' ? '#1a7a4a' : '#8899aa');
+  }
+}
+
+function buscarAgentePorCodigo(){
+  clearTimeout(_regBuscarTimer);
+  const codigo = normalizarCodigo(document.getElementById('reg-codigo').value);
+
+  if (codigo.length < 4) {
+    limpiarAgenteRegistro(codigo ? 'INGRESE EL CÓDIGO COMPLETO (4 O 5 DÍGITOS)' : '');
     return;
   }
+
+  limpiarAgenteRegistro('BUSCANDO CÓDIGO...');
+
+  _regBuscarTimer = setTimeout(async () => {
+    try {
+      const doc = await db.collection(BASE_PERSONAL_COL).doc(codigo).get();
+
+      if (!doc.exists) {
+        limpiarAgenteRegistro('❌ CÓDIGO NO REGISTRADO EN LA BASE DE PERSONAL', 'error');
+        return;
+      }
+
+      const d = doc.data();
+      _regAgente = {
+        codigo: codigo,
+        grado: d.grado || '',
+        apellidos: d.apellidos || '',
+        nombres: d.nombres || '',
+        area: d.area || ''
+      };
+      _regAgente.nombreAgente = `${_regAgente.apellidos} ${_regAgente.nombres}`.trim();
+
+      const inputArea = document.getElementById('reg-area');
+      if (inputArea) inputArea.value = _regAgente.area;
+
+      const el = document.getElementById('reg-codigo-msg');
+      if (el) {
+        el.textContent = `✔ ${_regAgente.grado} ${_regAgente.nombreAgente}`.trim();
+        el.style.color = '#1a7a4a';
+      }
+    } catch (err) {
+      console.error('Error consultando base de personal:', err);
+      limpiarAgenteRegistro('⚠ NO SE PUDO CONSULTAR LA BASE. INTENTE NUEVAMENTE.', 'error');
+    }
+  }, 350);
+}
+
+// ---- Actualización de la base (SOLO ADMINISTRADOR) ----
+function _normHeader(h){
+  return String(h || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toUpperCase().replace(/\s+/g, ' ').trim();
+}
+
+async function renderBasePersonalInfo(){
+  const el = document.getElementById('base-personal-info');
+  if (!el) return;
+  try {
+    const doc = await db.collection(BASE_PERSONAL_META.col).doc(BASE_PERSONAL_META.doc).get();
+    if (!doc.exists) { el.textContent = 'BASE AÚN NO CARGADA.'; return; }
+    const d = doc.data();
+    el.innerHTML = `📄 <strong>${d.total || 0}</strong> REGISTROS · ÚLTIMA ACTUALIZACIÓN: ${esc(d.fecha || '—')} · POR: ${esc(d.actualizadoPor || '—')}`;
+  } catch (err) {
+    el.textContent = 'NO SE PUDO LEER LA INFORMACIÓN DE LA BASE.';
+  }
+}
+
+async function subirBasePersonal(){
+  if (!currentUser || currentUser.rol !== 'admin') {
+    showToast('SOLO EL ADMINISTRADOR PUEDE ACTUALIZAR LA BASE DE PERSONAL', 'error');
+    return;
+  }
+
+  const input = document.getElementById('base-file');
+  const estado = document.getElementById('base-estado');
+  const file = input && input.files ? input.files[0] : null;
+
+  if (!file) { showToast('SELECCIONE EL ARCHIVO EXCEL', 'error'); return; }
+  if (typeof XLSX === 'undefined') { showToast('NO SE CARGÓ LA LIBRERÍA DE EXCEL. RECARGUE LA PÁGINA.', 'error'); return; }
+
+  estado.textContent = 'LEYENDO ARCHIVO...';
+
+  let registros = [];
+  try {
+    const buffer = await file.arrayBuffer();
+    const wb = XLSX.read(new Uint8Array(buffer), { type: 'array' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const filas = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+    if (!filas.length) { estado.textContent = '❌ EL ARCHIVO NO TIENE FILAS.'; return; }
+
+    const mapa = {};
+    Object.keys(filas[0]).forEach(k => { mapa[_normHeader(k)] = k; });
+
+    const kCod = mapa['CODIGO'];
+    const kArea = mapa['AREA ACTUAL'] || mapa['AREA'];
+    const kGrado = mapa['GRADO'];
+    const kApe = mapa['APELLIDOS'];
+    const kNom = mapa['NOMBRES'];
+
+    if (!kCod || !kArea) {
+      estado.textContent = '❌ EL ARCHIVO DEBE TENER AL MENOS LAS COLUMNAS CODIGO Y AREA ACTUAL.';
+      return;
+    }
+
+    const vistos = new Set();
+    filas.forEach(f => {
+      const codigo = normalizarCodigo(f[kCod]);
+      if (!codigo || vistos.has(codigo)) return;
+      vistos.add(codigo);
+      registros.push({
+        codigo: codigo,
+        grado: String(kGrado ? f[kGrado] : '').trim().toUpperCase(),
+        apellidos: String(kApe ? f[kApe] : '').trim().toUpperCase(),
+        nombres: String(kNom ? f[kNom] : '').trim().toUpperCase(),
+        area: String(f[kArea] || '').trim().toUpperCase()
+      });
+    });
+  } catch (err) {
+    console.error(err);
+    estado.textContent = '❌ NO SE PUDO LEER EL ARCHIVO: ' + err.message;
+    return;
+  }
+
+  if (!registros.length) { estado.textContent = '❌ NO SE ENCONTRARON REGISTROS VÁLIDOS.'; return; }
+
+  openModal(
+    'ACTUALIZAR BASE DE PERSONAL',
+    `SE REEMPLAZARÁ TODA LA BASE POR ${registros.length} REGISTROS DEL ARCHIVO "${file.name}". ¿CONTINUAR?`,
+    async () => {
+      try {
+        estado.textContent = 'ELIMINANDO BASE ANTERIOR...';
+        const snap = await db.collection(BASE_PERSONAL_COL).get();
+        const docs = snap.docs;
+
+        for (let i = 0; i < docs.length; i += BASE_LOTE) {
+          const batch = db.batch();
+          docs.slice(i, i + BASE_LOTE).forEach(d => batch.delete(d.ref));
+          await batch.commit();
+          estado.textContent = `ELIMINANDO BASE ANTERIOR... ${Math.min(i + BASE_LOTE, docs.length)}/${docs.length}`;
+        }
+
+        for (let i = 0; i < registros.length; i += BASE_LOTE) {
+          const batch = db.batch();
+          registros.slice(i, i + BASE_LOTE).forEach(r => {
+            batch.set(db.collection(BASE_PERSONAL_COL).doc(r.codigo), {
+              grado: r.grado, apellidos: r.apellidos, nombres: r.nombres, area: r.area
+            });
+          });
+          await batch.commit();
+          estado.textContent = `SUBIENDO REGISTROS... ${Math.min(i + BASE_LOTE, registros.length)}/${registros.length}`;
+        }
+
+        await db.collection(BASE_PERSONAL_META.col).doc(BASE_PERSONAL_META.doc).set({
+          total: registros.length,
+          fecha: new Date().toLocaleString('es-EC'),
+          actualizadoPor: currentUser.nombre || currentUser.user,
+          archivo: file.name
+        });
+
+        estado.textContent = `✅ BASE ACTUALIZADA: ${registros.length} REGISTROS.`;
+        input.value = '';
+        addLog(currentUser.user, currentUser.nombre, 'aprobacion', currentUser.email || '',
+          `BASE DE PERSONAL ACTUALIZADA - ${registros.length} REGISTROS (${file.name})`);
+        showToast(`✅ BASE DE PERSONAL ACTUALIZADA (${registros.length} REGISTROS)`, 'success');
+        renderBasePersonalInfo();
+      } catch (err) {
+        console.error(err);
+        estado.textContent = '❌ ERROR AL ACTUALIZAR: ' + err.message;
+        showToast('ERROR AL ACTUALIZAR LA BASE DE PERSONAL', 'error');
+      }
+    }
+  );
+}
+
+// ==================== SOLICITAR REGISTRO ====================
+async function solicitarRegistro() {
+  const codigo = normalizarCodigo(document.getElementById('reg-codigo').value);
+  const email = document.getElementById('reg-email').value.trim().toLowerCase();
+
+  if (!codigo || !email) {
+    mostrarError('INGRESA EL CÓDIGO INSTITUCIONAL Y EL CORREO');
+    return;
+  }
+
+  if (!_regAgente || _regAgente.codigo !== codigo) {
+    mostrarError('CÓDIGO NO REGISTRADO EN LA BASE DE PERSONAL. VERIFÍCALO O CONTACTA AL ADMINISTRADOR.');
+    return;
+  }
+
+  const area = _regAgente.area;
 
   if (!email.endsWith('@gmail.com')) {
     mostrarError('SOLO SE PERMITEN CORREOS DE GMAIL');
@@ -303,8 +504,11 @@ async function solicitarRegistro() {
 
   const nuevaSolicitud = {
     area,
-    provincia,
     codigo,
+    grado: _regAgente.grado,
+    apellidos: _regAgente.apellidos,
+    nombres: _regAgente.nombres,
+    nombreAgente: _regAgente.nombreAgente,
     email,
     fecha: new Date().toLocaleDateString('es-EC'),
     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
@@ -314,10 +518,9 @@ async function solicitarRegistro() {
   await db.collection('solicitudes').add(nuevaSolicitud);
 
   mostrarExito('✅ SOLICITUD ENVIADA. ESPERA LA APROBACIÓN DEL ADMINISTRADOR PARA PODER INGRESAR.');
-  document.getElementById('reg-area').value = '';
-  document.getElementById('reg-provincia').value = '';
   document.getElementById('reg-codigo').value = '';
   document.getElementById('reg-email').value = '';
+  limpiarAgenteRegistro();
 }
 
 async function aprobarSolicitud(id) {
@@ -328,7 +531,9 @@ async function aprobarSolicitud(id) {
   
   const solicitud = doc.data();
 
-  const nombreCompleto = `${solicitud.area} - ${solicitud.provincia} (${solicitud.codigo})`;
+  const nombreCompleto = solicitud.nombreAgente
+    ? `${solicitud.grado ? solicitud.grado + ' ' : ''}${solicitud.nombreAgente}`.trim()
+    : `${solicitud.area} (${solicitud.codigo})`;
   const baseUsername = solicitud.email.split('@')[0];
   let username = baseUsername;
   let counter = 1;
@@ -346,8 +551,10 @@ async function aprobarSolicitud(id) {
     email: solicitud.email,
     blocked: false,
     area: solicitud.area,
-    provincia: solicitud.provincia,
     codigo: solicitud.codigo,
+    grado: solicitud.grado || '',
+    apellidos: solicitud.apellidos || '',
+    nombres: solicitud.nombres || '',
     creado: firebase.firestore.FieldValue.serverTimestamp()
   };
 
@@ -356,7 +563,7 @@ async function aprobarSolicitud(id) {
   await docRef.update({ estado: 'aprobada', fechaAprobacion: firebase.firestore.FieldValue.serverTimestamp() });
 
   addLog(username, nombreCompleto, 'aprobacion', solicitud.email,
-    `CUENTA APROBADA POR ADMINISTRADOR - ÁREA: ${solicitud.area}, PROVINCIA: ${solicitud.provincia}, CÓDIGO: ${solicitud.codigo}`);
+    `CUENTA APROBADA POR ADMINISTRADOR - ÁREA: ${solicitud.area}, CÓDIGO: ${solicitud.codigo}`);
 
   if (currentUser && currentUser.rol === 'admin') renderAdmin();
   showToast(`✅ USUARIO ${nombreCompleto} APROBADO CORRECTAMENTE.`, 'success');
@@ -367,7 +574,7 @@ async function rechazarSolicitud(id) {
   const doc = await docRef.get();
   const solicitud = doc.data();
 
-  openModal('RECHAZAR SOLICITUD', `¿RECHAZAR LA SOLICITUD DE ${solicitud.area} - ${solicitud.provincia} (${solicitud.codigo})?`, async () => {
+  openModal('RECHAZAR SOLICITUD', `¿RECHAZAR LA SOLICITUD DE ${solicitud.nombreAgente || solicitud.area} (CÓD. ${solicitud.codigo})?`, async () => {
     await docRef.update({ estado: 'rechazada', fechaRechazo: firebase.firestore.FieldValue.serverTimestamp() });
     if (currentUser && currentUser.rol === 'admin') renderAdmin();
     showToast('❌ Solicitud rechazada', 'error');
@@ -407,8 +614,8 @@ async function renderSolicitudes() {
           <div class="file-card-top">
             <div class="file-type-icon file-type-other">📧</div>
             <div>
-              <div class="file-card-name">${esc(s.area)}</div>
-              <div class="file-card-meta">PROVINCIA: ${esc(s.provincia)}<br>CÓDIGO: ${esc(s.codigo)}<br>CORREO: ${esc(s.email)}<br>SOLICITADO: ${s.fecha}</div>
+              <div class="file-card-name">${esc(s.nombreAgente || s.area)}</div>
+              <div class="file-card-meta">${s.grado ? esc(s.grado) + '<br>' : ''}ÁREA: ${esc(s.area)}<br>CÓDIGO: ${esc(s.codigo)}<br>CORREO: ${esc(s.email)}<br>SOLICITADO: ${s.fecha}</div>
             </div>
           </div>
           <div class="file-card-actions">
@@ -456,9 +663,9 @@ async function getLogs() {
 
 // ==================== EXPORTAR A EXCEL ====================
 function exportUsersToExcel() {
-  let csv = "NOMBRE,USUARIO,ROL,EMAIL,ÁREA,PROVINCIA,CÓDIGO INSTITUCIONAL,ESTADO\n";
+  let csv = "NOMBRE,USUARIO,ROL,EMAIL,GRADO,ÁREA,CÓDIGO INSTITUCIONAL,ESTADO\n";
   USERS.forEach(u => {
-    csv += `"${u.nombre}","${u.user}","${u.rol === 'admin' ? 'ADMINISTRADOR' : 'USUARIO'}","${u.email || ''}","${u.area || ''}","${u.provincia || ''}","${u.codigo || ''}","${u.blocked ? 'BLOQUEADO' : 'ACTIVO'}"\n`;
+    csv += `"${u.nombre}","${u.user}","${u.rol === 'admin' ? 'ADMINISTRADOR' : 'USUARIO'}","${u.email || ''}","${u.grado || ''}","${u.area || ''}","${u.codigo || ''}","${u.blocked ? 'BLOQUEADO' : 'ACTIVO'}"\n`;
   });
   downloadCSV(csv, `usuarios_cte_${new Date().toISOString().slice(0,19)}.csv`);
 }
@@ -643,11 +850,12 @@ async function renderAdmin(){
   const logs = await getLogs();
   
   await renderSolicitudes();
+  await renderBasePersonalInfo();
   
   document.getElementById('admin-users-list').innerHTML = USERS.map(u => {
     const isSelf = u.user === currentUser.user;
     const isAdm  = u.rol === 'admin';
-    const datosExtra = u.area ? `<br><span style="font-size:.7rem">📍 ${u.area} | ${u.provincia} | CÓD: ${u.codigo}</span>` : '';
+    const datosExtra = u.area ? `<br><span style="font-size:.7rem">📍 ${u.area}${u.grado ? ' | ' + u.grado : ''} | CÓD: ${u.codigo}</span>` : '';
 
     const btnBlock = (!isSelf && !isAdm)
       ? (u.blocked
