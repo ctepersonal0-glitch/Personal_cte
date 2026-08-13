@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="styles.css"/>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -44,16 +45,13 @@
       <!-- Panel Registro -->
       <div class="login-panel" id="panel-registrar">
         <div class="field">
-          <label>ÁREA ACTUAL</label>
-          <input type="text" id="reg-area" placeholder="EJ: OPERACIONES" />
-        </div>
-        <div class="field">
-          <label>PROVINCIA</label>
-          <input type="text" id="reg-provincia" placeholder="EJ: PICHINCHA" />
-        </div>
-        <div class="field">
           <label>CÓDIGO INSTITUCIONAL</label>
-          <input type="text" id="reg-codigo" placeholder="EJ: 12345" maxlength="5" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,5)"/>
+          <input type="text" id="reg-codigo" placeholder="EJ: 12345" maxlength="5" autocomplete="off" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,5); buscarAgentePorCodigo();"/>
+          <div id="reg-codigo-msg" style="font-size:.72rem;margin-top:.35rem;letter-spacing:.5px;min-height:1rem"></div>
+        </div>
+        <div class="field">
+          <label>ÁREA ACTUAL</label>
+          <input type="text" id="reg-area" placeholder="SE COMPLETA CON EL CÓDIGO" readonly tabindex="-1" style="cursor:not-allowed" />
         </div>
         <div class="field">
           <label>CORREO GMAIL</label>
@@ -138,6 +136,18 @@
       
       <div class="section-title">📋 SOLICITUDES DE REGISTRO PENDIENTES</div>
       <div class="admin-card"><div class="admin-card-body" id="solicitudes-list"></div></div>
+      
+      <div class="section-title">👥 BASE DE PERSONAL (CÓDIGO → ÁREA)</div>
+      <div class="admin-card" style="margin-bottom:1.5rem">
+        <div class="admin-card-head"><h3>ACTUALIZAR BASE DESDE EXCEL</h3></div>
+        <div class="admin-card-body">
+          <p style="font-size:.82rem;margin-bottom:.8rem">EL ARCHIVO DEBE TENER LAS COLUMNAS: <strong>CODIGO, GRADO, APELLIDOS, NOMBRES, AREA ACTUAL</strong>. AL SUBIRLO SE <strong>REEMPLAZA TODA LA BASE</strong>.</p>
+          <div id="base-personal-info" style="font-size:.82rem;margin-bottom:.8rem">—</div>
+          <input type="file" id="base-file" accept=".xlsx,.xls" />
+          <button class="btn-register" style="margin-top:.8rem" onclick="subirBasePersonal()">⬆ ACTUALIZAR BASE DE PERSONAL</button>
+          <div id="base-estado" style="font-size:.82rem;margin-top:.8rem"></div>
+        </div>
+      </div>
       
       <div class="chart-wrap"><div class="chart-head"><h3>📈 INGRESOS POR DÍA (ÚLTIMOS 14 DÍAS)</h3></div><div class="chart-body"><canvas id="accesos-chart" height="120"></canvas><div class="chart-legend"><div class="chart-legend-item"><div class="chart-legend-dot" style="background:#1a7a4a"></div>EXITOSOS</div><div class="chart-legend-item"><div class="chart-legend-dot" style="background:#c0392b"></div>FALLIDOS</div></div></div></div>
       
