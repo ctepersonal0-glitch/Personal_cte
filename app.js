@@ -1,5 +1,5 @@
 // ==================== CONFIGURACIÓN INICIAL ====================
-const GOOGLE_CLIENT_ID = '571154981190-e83q5clu440b0p8jqikrqkq3r6v2qrdt.apps.googleusercontent.com';
+// Autenticación: Firebase Authentication (Google). Ver firestore.rules.
 
 // ==================== TOASTS ====================
 function showToast(msg, type='info', duration=3500){
@@ -23,25 +23,6 @@ function switchLoginTab(tab){
   [...document.querySelectorAll('.login-tab-btn')].find(b=>b.textContent.toLowerCase().includes(tab==='ingresar'?'ingresar':'registr')).classList.add('active');
 }
 
-// ==================== LOGIN CON USUARIO/CONTRASEÑA ====================
-async function doLoginPass(){
-  const user = document.getElementById('login-user').value.trim();
-  const pass = document.getElementById('login-pass').value;
-  if(!user||!pass){ mostrarError('INGRESA USUARIO Y CONTRASEÑA'); return; }
-  const found = USERS.find(u=>u.user===user);
-  if(!found){ mostrarError('USUARIO NO ENCONTRADO'); addLog(user,'DESCONOCIDO','fail'); return; }
-  if(isBlocked(found)){ mostrarError('CUENTA BLOQUEADA. CONTACTE AL ADMINISTRADOR.'); addLog(user,found.nombre,'fail'); return; }
-  const hashed = await hashPass(pass);
-  if(hashed !== found.passHash){ mostrarError('CONTRASEÑA INCORRECTA'); addLog(user,found.nombre,'fail'); return; }
-  addLog(found.user,found.nombre,'ok',found.email||'');
-  entrarAlSistema(found, null);
-}
-
-// Usuarios por defecto (solo admin)
-const DEFAULT_USERS = [
-  { user:'admin', passHash:'', nombre:'ADMINISTRADOR SISTEMA', rol:'admin', email:'ctepersonal0@gmail.com', blocked: false, area:'', codigo:'', grado:'' },
-];
-
 const FILES_BASE = [
   { id:1779224557782, nombre:'HISTORIAL CTE', seccion:'organico', tipo:'excel', desc:'', fecha:'19/05/2026', urlOriginal:'https://drive.google.com/drive/folders/1IKszLxBRMZTpv0CyJYaFJ11KbmaftAlW?usp=sharing' },
   { id:1780069150402, nombre:'ORGANICO', seccion:'organico', tipo:'excel', desc:'', fecha:'29/5/2026', urlOriginal:'https://drive.google.com/drive/folders/1aiqSt2DEzT7_LTuEVcy19J-Y3_-iRihN?usp=drive_link' },
@@ -49,72 +30,63 @@ const FILES_BASE = [
   { id:1780070483456, nombre:'ORDEN DEL CUERPO 2026', seccion:'orden', tipo:'pdf', desc:'', fecha:'29/5/2026', urlOriginal:'https://drive.google.com/drive/folders/1Np2lvD-Rlgxkkq9_OGPIrlJAHrRyiE3M?usp=drive_link' },
 ];
 
-// ==================== FUNCIONES DE HASH ====================
-async function hashPass(pass) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(pass);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-// ==================== FIRESTORE CONFIGURACIÓN ====================
-let USERS = [];
+// ==================== USUARIOS (Firestore + Firebase Auth) ====================
+// Cada usuario es el documento users/{correo-en-minúsculas}.
+// El rol y el bloqueo los valida Firestore mediante firestore.rules (no solo este código).
+let USERS = [];                 // solo se llena para el administrador
 let solicitudesUnsubscribe = null;
+let usersUnsubscribe = null;
+let selfUnsubscribe = null;
+let archivosUnsubscribe = null;
+let _loginInteractivo = false;
 
-// Cargar usuarios desde Firestore con escucha en tiempo real
-async function initializeUsers() {
-  showToast('Conectando a la nube...', 'info', 2000);
-  
-  db.collection('users').onSnapshot(async (snapshot) => {
-    const usersFromFirestore = [];
-    snapshot.forEach(doc => {
-      usersFromFirestore.push({ id: doc.id, ...doc.data() });
-    });
-    
-    if (usersFromFirestore.length > 0) {
-      USERS = usersFromFirestore;
-      localStorage.setItem('cte_users_cache', JSON.stringify(USERS));
-      
-      let needsSave = false;
-      for (let u of USERS) {
-        if (!u.passHash) {
-          const defaultPass = u.user === 'admin' ? '@dmin2026' : 'cte2026';
-          u.passHash = await hashPass(defaultPass);
-          needsSave = true;
-        }
-      }
-      if (needsSave) await saveUsers();
-      
-      if (currentUser && currentUser.rol === 'admin') renderAdmin();
-      if (currentUser) {
-        document.getElementById('stat-total').textContent = USERS.length;
-      }
-    } else if (USERS.length === 0) {
-      USERS = JSON.parse(JSON.stringify(DEFAULT_USERS));
-      for (let u of USERS) {
-        if (!u.passHash) {
-          const defaultPass = u.user === 'admin' ? '@dmin2026' : 'cte2026';
-          u.passHash = await hashPass(defaultPass);
-        }
-      }
-      await saveUsers();
+function userDocId(u){ return String((u && u.email) || '').trim().toLowerCase(); }
+
+// Lista completa de usuarios en tiempo real (SOLO ADMINISTRADOR)
+function listenToUsers() {
+  if (usersUnsubscribe) usersUnsubscribe();
+  usersUnsubscribe = db.collection('users').onSnapshot((snapshot) => {
+    USERS = [];
+    snapshot.forEach(doc => USERS.push({ id: doc.id, ...doc.data() }));
+    if (currentUser && currentUser.rol === 'admin') {
+      const st = document.getElementById('stat-total');
+      if (st) st.textContent = USERS.length;
+      renderAdmin();
     }
-  }, (error) => {
-    console.error('Error escuchando usuarios:', error);
-    const cache = localStorage.getItem('cte_users_cache');
-    if (cache) USERS = JSON.parse(cache);
-    else USERS = JSON.parse(JSON.stringify(DEFAULT_USERS));
-  });
+  }, (error) => { console.error('Error escuchando usuarios:', error); });
 }
 
-async function saveUsers() {
-  for (let user of USERS) {
-    const userData = { ...user };
-    delete userData.id;
-    await db.collection('users').doc(user.user).set(userData, { merge: true });
-  }
-  localStorage.setItem('cte_users_cache', JSON.stringify(USERS));
+// Escucha el propio documento: si el admin bloquea, elimina o cambia el rol, la sesión se cierra
+function listenToSelf(email) {
+  if (selfUnsubscribe) selfUnsubscribe();
+  selfUnsubscribe = db.collection('users').doc(email).onSnapshot((doc) => {
+    if (!currentUser) return;
+    if (!doc.exists || doc.data().blocked === true) {
+      doLogout();
+      mostrarError('SU CUENTA FUE BLOQUEADA O ELIMINADA. CONTACTE AL ADMINISTRADOR.');
+      return;
+    }
+    const d = { id: doc.id, ...doc.data() };
+    if (d.rol !== currentUser.rol) {
+      doLogout();
+      mostrarError('SU ROL CAMBIÓ. INGRESE NUEVAMENTE.');
+      return;
+    }
+    currentUser = d;
+  }, (error) => { console.error('Error escuchando usuario:', error); });
+}
+
+async function saveUser(u) {
+  const data = { ...u };
+  delete data.id;
+  await db.collection('users').doc(userDocId(u)).set(data, { merge: true });
+}
+
+function detenerListeners() {
+  [usersUnsubscribe, solicitudesUnsubscribe, selfUnsubscribe, archivosUnsubscribe].forEach(fn => { if (fn) fn(); });
+  usersUnsubscribe = solicitudesUnsubscribe = selfUnsubscribe = archivosUnsubscribe = null;
+  USERS = [];
+  FILES_REMOTE = [];
 }
 
 function getUserByEmail(email) {
@@ -129,7 +101,7 @@ function toggleBlockUser(username, block) {
   const user = USERS.find(u => u.user === username);
   if (!user || user.rol === 'admin') return;
   user.blocked = block;
-  saveUsers();
+  saveUser(user).catch(() => showToast('NO SE PUDO GUARDAR EL CAMBIO', 'error'));
   if (currentUser && currentUser.rol === 'admin') {
     renderAdmin();
   }
@@ -150,7 +122,7 @@ async function deleteUser(username) {
       const batch = db.batch();
 
       // 1. Eliminar documento del usuario
-      batch.delete(db.collection('users').doc(username));
+      batch.delete(db.collection('users').doc(userDocId(user)));
 
       // 2. Eliminar todos sus logs
       const logsSnap = await db.collection('logs')
@@ -164,13 +136,13 @@ async function deleteUser(username) {
           .where('email', '==', user.email)
           .get();
         solicSnap.forEach(doc => batch.delete(doc.ref));
+        batch.delete(db.collection('solicitudes').doc(userDocId(user)));
       }
 
       await batch.commit();
 
       // 4. Limpiar del array local y caché
       USERS = USERS.filter(u => u.user !== username);
-      localStorage.setItem('cte_users_cache', JSON.stringify(USERS));
 
       renderAdmin();
       showToast(`USUARIO ${user.nombre} ELIMINADO COMPLETAMENTE`, 'success');
@@ -188,7 +160,7 @@ async function toggleAdminRole(username) {
   const label = nuevoRol === 'admin' ? 'ADMINISTRADOR' : 'USUARIO';
   openModal('CAMBIAR ROL', `¿CAMBIAR ROL DE ${user.nombre} A ${label}?`, async () => {
     user.rol = nuevoRol;
-    await saveUsers();
+    try { await saveUser(user); } catch (e) { showToast('NO SE PUDO GUARDAR EL CAMBIO', 'error'); return; }
     renderAdmin();
     showToast(`ROL DE ${user.nombre} CAMBIADO A ${label}`, 'success');
   });
@@ -238,67 +210,22 @@ const BASE_PERSONAL_COL = 'base_personal';
 const BASE_PERSONAL_META = { col: 'config', doc: 'base_personal' };
 const BASE_LOTE = 400;
 
-let _regAgente = null;
-let _regBuscarTimer = null;
-
 function normalizarCodigo(v){
   return String(v || '').replace(/[^0-9]/g, '').replace(/^0+/, '');
 }
 
-function limpiarAgenteRegistro(msg, tipo){
-  _regAgente = null;
-  const area = document.getElementById('reg-area');
-  if (area) area.value = '';
-  const el = document.getElementById('reg-codigo-msg');
-  if (el) {
-    el.textContent = msg || '';
-    el.style.color = tipo === 'error' ? '#c0392b' : (tipo === 'ok' ? '#1a7a4a' : '#8899aa');
-  }
-}
-
-function buscarAgentePorCodigo(){
-  clearTimeout(_regBuscarTimer);
-  const codigo = normalizarCodigo(document.getElementById('reg-codigo').value);
-
-  if (codigo.length < 4) {
-    limpiarAgenteRegistro(codigo ? 'INGRESE EL CÓDIGO COMPLETO (4 O 5 DÍGITOS)' : '');
-    return;
-  }
-
-  limpiarAgenteRegistro('BUSCANDO CÓDIGO...');
-
-  _regBuscarTimer = setTimeout(async () => {
-    try {
-      const doc = await db.collection(BASE_PERSONAL_COL).doc(codigo).get();
-
-      if (!doc.exists) {
-        limpiarAgenteRegistro('❌ CÓDIGO NO REGISTRADO EN LA BASE DE PERSONAL', 'error');
-        return;
-      }
-
-      const d = doc.data();
-      _regAgente = {
-        codigo: codigo,
-        grado: d.grado || '',
-        apellidos: d.apellidos || '',
-        nombres: d.nombres || '',
-        area: d.area || ''
-      };
-      _regAgente.nombreAgente = `${_regAgente.apellidos} ${_regAgente.nombres}`.trim();
-
-      const inputArea = document.getElementById('reg-area');
-      if (inputArea) inputArea.value = _regAgente.area;
-
-      const el = document.getElementById('reg-codigo-msg');
-      if (el) {
-        el.textContent = `✔ ${_regAgente.grado} ${_regAgente.nombreAgente}`.trim();
-        el.style.color = '#1a7a4a';
-      }
-    } catch (err) {
-      console.error('Error consultando base de personal:', err);
-      limpiarAgenteRegistro('⚠ NO SE PUDO CONSULTAR LA BASE. INTENTE NUEVAMENTE.', 'error');
+// Consulta la base de personal (SOLO ADMINISTRADOR, lo exigen las reglas de Firestore)
+async function buscarAgenteBase(codigo, sol = {}) {
+  const cod = normalizarCodigo(codigo);
+  try {
+    const d = await db.collection(BASE_PERSONAL_COL).doc(cod).get();
+    if (d.exists) {
+      const x = d.data();
+      return { enBase: true, completo: true, codigo: cod, grado: x.grado || '', apellidos: x.apellidos || '', nombres: x.nombres || '', area: x.area || '' };
     }
-  }, 350);
+  } catch (e) { console.error('Error consultando base de personal:', e); }
+  // Solicitudes antiguas ya traían los datos copiados
+  return { enBase: false, completo: !!(sol.apellidos || sol.nombres), codigo: cod, grado: sol.grado || '', apellidos: sol.apellidos || '', nombres: sol.nombres || '', area: sol.area || '' };
 }
 
 // ---- Actualización de la base (SOLO ADMINISTRADOR) ----
@@ -430,6 +357,8 @@ async function subirBasePersonal(){
 }
 
 // ==================== SOLICITAR REGISTRO ====================
+// El solicitante NO consulta la base de personal: solo envía código y correo.
+// El administrador verifica el código contra la base al revisar la solicitud.
 async function solicitarRegistro() {
   const codigo = normalizarCodigo(document.getElementById('reg-codigo').value);
   const email = document.getElementById('reg-email').value.trim().toLowerCase();
@@ -438,145 +367,122 @@ async function solicitarRegistro() {
     mostrarError('INGRESA EL CÓDIGO INSTITUCIONAL Y EL CORREO');
     return;
   }
-
-  if (!_regAgente || _regAgente.codigo !== codigo) {
-    mostrarError('CÓDIGO NO REGISTRADO EN LA BASE DE PERSONAL. VERIFÍCALO O CONTACTA AL ADMINISTRADOR.');
+  if (codigo.length < 4 || codigo.length > 5) {
+    mostrarError('EL CÓDIGO INSTITUCIONAL DEBE TENER 4 O 5 DÍGITOS');
     return;
   }
-
-  const area = _regAgente.area;
-
-  if (!email.endsWith('@gmail.com')) {
-    mostrarError('SOLO SE PERMITEN CORREOS DE GMAIL');
-    return;
-  }
-
-  const usuarioExistente = getUserByEmail(email);
-  if (usuarioExistente) {
-    const nombre = usuarioExistente.nombre || email;
-    mostrarError(
-      `⚠️ EL CORREO ${email.toUpperCase()} YA ESTÁ REGISTRADO COMO "${nombre}". INICIA SESIÓN CON GOOGLE O CONTACTA AL ADMINISTRADOR.`
-    );
-    const googleWrap = document.getElementById('google-btn-wrap');
-    if (googleWrap) {
-      googleWrap.style.outline = '2px solid #e67e22';
-      googleWrap.style.borderRadius = '6px';
-      setTimeout(() => {
-        googleWrap.style.outline = '';
-        googleWrap.style.borderRadius = '';
-      }, 5000);
-    }
-    return;
-  }
-
-  const aprobadaSnap = await db.collection('solicitudes')
-    .where('email', '==', email)
-    .where('estado', '==', 'aprobada')
-    .get();
-
-  if (!aprobadaSnap.empty) {
-    mostrarError(
-      `✅ TU SOLICITUD YA FUE APROBADA. INICIA SESIÓN CON GOOGLE USANDO ${email.toUpperCase()}.`
-    );
-    const googleWrap = document.getElementById('google-btn-wrap');
-    if (googleWrap) {
-      googleWrap.style.outline = '2px solid #27ae60';
-      googleWrap.style.borderRadius = '6px';
-      setTimeout(() => {
-        googleWrap.style.outline = '';
-        googleWrap.style.borderRadius = '';
-      }, 5000);
-    }
-    return;
-  }
-
-  const existingSolicitud = await db.collection('solicitudes')
-    .where('email', '==', email)
-    .where('estado', '==', 'pendiente')
-    .get();
-  
-  if (!existingSolicitud.empty) {
-    mostrarError('YA TIENES UNA SOLICITUD PENDIENTE. ESPERA LA APROBACIÓN DEL ADMINISTRADOR.');
+  if (!/^[a-z0-9._%+-]+@gmail\.com$/.test(email)) {
+    mostrarError('SOLO SE PERMITEN CORREOS DE GMAIL VÁLIDOS');
     return;
   }
 
   showToast('ENVIANDO SOLICITUD...', 'info', 2500);
 
-  const nuevaSolicitud = {
-    area,
-    codigo,
-    grado: _regAgente.grado,
-    apellidos: _regAgente.apellidos,
-    nombres: _regAgente.nombres,
-    nombreAgente: _regAgente.nombreAgente,
-    email,
-    fecha: new Date().toLocaleDateString('es-EC'),
-    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-    estado: 'pendiente'
-  };
+  try {
+    // ID = correo: Firestore impide enviar una segunda solicitud con el mismo correo
+    await db.collection('solicitudes').doc(email).set({
+      codigo,
+      email,
+      fecha: new Date().toLocaleDateString('es-EC'),
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      estado: 'pendiente'
+    });
+  } catch (err) {
+    if (err && err.code === 'permission-denied') {
+      mostrarError('YA EXISTE UNA SOLICITUD PARA ESTE CORREO. SI FUE APROBADA, INGRESE CON GOOGLE; SI NO, ESPERE AL ADMINISTRADOR.');
+    } else {
+      console.error('Error enviando solicitud:', err);
+      mostrarError('NO SE PUDO ENVIAR LA SOLICITUD. INTENTE NUEVAMENTE.');
+    }
+    return;
+  }
 
-  await db.collection('solicitudes').add(nuevaSolicitud);
-
-  mostrarExito('✅ SOLICITUD ENVIADA. ESPERA LA APROBACIÓN DEL ADMINISTRADOR PARA PODER INGRESAR.');
+  mostrarExito('✅ SOLICITUD ENVIADA. ESPERE LA APROBACIÓN DEL ADMINISTRADOR PARA PODER INGRESAR.');
   document.getElementById('reg-codigo').value = '';
   document.getElementById('reg-email').value = '';
-  limpiarAgenteRegistro();
 }
 
 async function aprobarSolicitud(id) {
+  if (!currentUser || currentUser.rol !== 'admin') return;
   const docRef = db.collection('solicitudes').doc(id);
   const doc = await docRef.get();
-  
   if (!doc.exists) return;
-  
-  const solicitud = doc.data();
 
-  const nombreCompleto = solicitud.nombreAgente
-    ? `${solicitud.grado ? solicitud.grado + ' ' : ''}${solicitud.nombreAgente}`.trim()
-    : `${solicitud.area} (${solicitud.codigo})`;
-  const baseUsername = solicitud.email.split('@')[0];
-  let username = baseUsername;
-  let counter = 1;
-  
-  while (USERS.find(u => u.user === username)) {
-    username = `${baseUsername}${counter}`;
-    counter++;
+  const solicitud = doc.data();
+  const email = String(solicitud.email || '').trim().toLowerCase();
+
+  if (getUserByEmail(email)) {
+    showToast('ESE CORREO YA TIENE UNA CUENTA ACTIVA.', 'error');
+    return;
   }
 
-  const nuevoUsuario = {
-    user: username,
-    passHash: '',
-    nombre: nombreCompleto,
-    rol: 'user',
-    email: solicitud.email,
-    blocked: false,
-    area: solicitud.area,
-    codigo: solicitud.codigo,
-    grado: solicitud.grado || '',
-    apellidos: solicitud.apellidos || '',
-    nombres: solicitud.nombres || '',
-    creado: firebase.firestore.FieldValue.serverTimestamp()
+  const ag = await buscarAgenteBase(solicitud.codigo, solicitud);
+  const nombreAgente = `${ag.apellidos} ${ag.nombres}`.trim();
+
+  const ejecutar = async () => {
+    const nombreCompleto = nombreAgente
+      ? `${ag.grado ? ag.grado + ' ' : ''}${nombreAgente}`.trim()
+      : `SIN DATOS (CÓD. ${ag.codigo})`;
+    const baseUsername = email.split('@')[0];
+    let username = baseUsername;
+    let counter = 1;
+    while (USERS.find(u => u.user === username)) {
+      username = `${baseUsername}${counter}`;
+      counter++;
+    }
+
+    const nuevoUsuario = {
+      user: username,
+      nombre: nombreCompleto,
+      rol: 'user',
+      email,
+      blocked: false,
+      area: ag.area,
+      codigo: ag.codigo,
+      grado: ag.grado,
+      apellidos: ag.apellidos,
+      nombres: ag.nombres,
+      creado: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    try {
+      await db.collection('users').doc(email).set(nuevoUsuario);
+      await docRef.update({ estado: 'aprobada', fechaAprobacion: firebase.firestore.FieldValue.serverTimestamp() });
+    } catch (err) {
+      console.error('Error aprobando solicitud:', err);
+      showToast('ERROR AL APROBAR. REVISE LA CONSOLA.', 'error');
+      return;
+    }
+
+    addLog(username, nombreCompleto, 'aprobacion', email,
+      `CUENTA APROBADA POR ADMINISTRADOR - ÁREA: ${ag.area || '—'}, CÓDIGO: ${ag.codigo}`);
+    showToast(`✅ USUARIO ${nombreCompleto} APROBADO CORRECTAMENTE.`, 'success');
   };
 
-  USERS.push(nuevoUsuario);
-  await saveUsers();
-  await docRef.update({ estado: 'aprobada', fechaAprobacion: firebase.firestore.FieldValue.serverTimestamp() });
-
-  addLog(username, nombreCompleto, 'aprobacion', solicitud.email,
-    `CUENTA APROBADA POR ADMINISTRADOR - ÁREA: ${solicitud.area}, CÓDIGO: ${solicitud.codigo}`);
-
-  if (currentUser && currentUser.rol === 'admin') renderAdmin();
-  showToast(`✅ USUARIO ${nombreCompleto} APROBADO CORRECTAMENTE.`, 'success');
+  if (!ag.completo) {
+    openModal('CÓDIGO NO ESTÁ EN LA BASE',
+      `EL CÓDIGO ${ag.codigo} NO FIGURA EN LA BASE DE PERSONAL. SE CREARÁ LA CUENTA SIN NOMBRE NI ÁREA. ¿APROBAR DE TODAS FORMAS?`,
+      ejecutar);
+  } else {
+    await ejecutar();
+  }
 }
 
 async function rechazarSolicitud(id) {
+  if (!currentUser || currentUser.rol !== 'admin') return;
   const docRef = db.collection('solicitudes').doc(id);
   const doc = await docRef.get();
+  if (!doc.exists) return;
   const solicitud = doc.data();
 
-  openModal('RECHAZAR SOLICITUD', `¿RECHAZAR LA SOLICITUD DE ${solicitud.nombreAgente || solicitud.area} (CÓD. ${solicitud.codigo})?`, async () => {
-    await docRef.update({ estado: 'rechazada', fechaRechazo: firebase.firestore.FieldValue.serverTimestamp() });
-    if (currentUser && currentUser.rol === 'admin') renderAdmin();
+  openModal('RECHAZAR SOLICITUD', `¿RECHAZAR LA SOLICITUD DE ${solicitud.email} (CÓD. ${solicitud.codigo})? SE ELIMINARÁ Y PODRÁ VOLVER A SOLICITAR.`, async () => {
+    try {
+      await docRef.delete();
+    } catch (err) {
+      console.error(err);
+      showToast('ERROR AL RECHAZAR', 'error');
+      return;
+    }
     showToast('❌ Solicitud rechazada', 'error');
   });
 }
@@ -587,14 +493,17 @@ async function renderSolicitudes() {
 
   container.innerHTML = '<div class="file-empty">⏳ CARGANDO SOLICITUDES...</div>';
 
-  const snapshot = await db.collection('solicitudes')
-    .where('estado', '==', 'pendiente')
-    .get();
+  let snapshot;
+  try {
+    snapshot = await db.collection('solicitudes').where('estado', '==', 'pendiente').get();
+  } catch (err) {
+    console.error(err);
+    container.innerHTML = '<div class="file-empty">❌ NO SE PUDIERON LEER LAS SOLICITUDES</div>';
+    return;
+  }
 
   const solicitudes = [];
-  snapshot.forEach(doc => {
-    solicitudes.push({ id: doc.id, ...doc.data() });
-  });
+  snapshot.forEach(doc => solicitudes.push({ id: doc.id, ...doc.data() }));
 
   solicitudes.sort((a, b) => {
     const ta = a.timestamp ? a.timestamp.seconds : 0;
@@ -607,23 +516,34 @@ async function renderSolicitudes() {
     return;
   }
 
+  // El admin ve a quién corresponde cada código según la base de personal
+  const agentes = await Promise.all(solicitudes.map(s => buscarAgenteBase(s.codigo, s)));
+
   container.innerHTML = `
     <div class="files-grid">
-      ${solicitudes.map(s => `
+      ${solicitudes.map((s, i) => {
+        const a = agentes[i];
+        const nombre = `${a.apellidos} ${a.nombres}`.trim();
+        const yaTiene = !!getUserByEmail(s.email || '');
+        const aviso = !a.completo
+          ? '<br><strong style="color:#c0392b">⚠ CÓDIGO NO ESTÁ EN LA BASE DE PERSONAL</strong>'
+          : '';
+        const aviso2 = yaTiene ? '<br><strong style="color:#c0392b">⚠ ESTE CORREO YA TIENE CUENTA</strong>' : '';
+        return `
         <div class="file-card">
           <div class="file-card-top">
             <div class="file-type-icon file-type-other">📧</div>
             <div>
-              <div class="file-card-name">${esc(s.nombreAgente || s.area)}</div>
-              <div class="file-card-meta">${s.grado ? esc(s.grado) + '<br>' : ''}ÁREA: ${esc(s.area)}<br>CÓDIGO: ${esc(s.codigo)}<br>CORREO: ${esc(s.email)}<br>SOLICITADO: ${s.fecha}</div>
+              <div class="file-card-name">${esc(nombre || 'SIN DATOS')}</div>
+              <div class="file-card-meta">${a.grado ? esc(a.grado) + '<br>' : ''}ÁREA: ${esc(a.area || '—')}<br>CÓDIGO: ${esc(s.codigo)}<br>CORREO: ${esc(s.email)}<br>SOLICITADO: ${esc(s.fecha)}${aviso}${aviso2}</div>
             </div>
           </div>
           <div class="file-card-actions">
-            <button class="file-card-btn file-card-btn-open btn-approve" onclick="aprobarSolicitud('${s.id}')">✓ APROBAR</button>
-            <button class="file-card-btn file-card-btn-del btn-reject" onclick="rechazarSolicitud('${s.id}')">✗ RECHAZAR</button>
+            <button class="file-card-btn file-card-btn-open btn-approve" data-id="${esc(s.id)}" onclick="aprobarSolicitud(this.dataset.id)">✓ APROBAR</button>
+            <button class="file-card-btn file-card-btn-del btn-reject" data-id="${esc(s.id)}" onclick="rechazarSolicitud(this.dataset.id)">✗ RECHAZAR</button>
           </div>
-        </div>
-      `).join('')}
+        </div>`;
+      }).join('')}
     </div>
   `;
 }
@@ -693,17 +613,34 @@ function downloadCSV(csv, filename) {
 }
 
 // ==================== ARCHIVOS ====================
-function getFiles(){
-  try{
-    const local = JSON.parse(localStorage.getItem('cte_files')||'[]');
-    const localIds = new Set(local.map(f=>f.id));
-    const base = FILES_BASE.filter(f=>!localIds.has(f.id));
-    return [...base, ...local];
-  }catch(e){ return [...FILES_BASE]; }
+// Archivos fijos (FILES_BASE) + archivos que agrega el admin (colección "archivos" en Firestore)
+let FILES_REMOTE = [];
+function getFiles(){ return [...FILES_BASE, ...FILES_REMOTE]; }
+
+function listenToArchivos(){
+  if (archivosUnsubscribe) archivosUnsubscribe();
+  archivosUnsubscribe = db.collection('archivos').onSnapshot((snap) => {
+    FILES_REMOTE = [];
+    snap.forEach(d => FILES_REMOTE.push(d.data()));
+    FILES_REMOTE.sort((a, b) => (a.id || 0) - (b.id || 0));
+    renderAllSectionFiles();
+    if (currentUser && currentUser.rol === 'admin') renderAdminFiles();
+  }, (error) => { console.error('Error escuchando archivos:', error); });
 }
-function saveFiles(f){
-  const baseIds = new Set(FILES_BASE.map(x=>x.id));
-  localStorage.setItem('cte_files', JSON.stringify(f.filter(x=>!baseIds.has(x.id))));
+
+// Pasa a Firestore los archivos que el admin había guardado antes solo en su navegador
+async function migrarArchivosLocales(){
+  try {
+    const local = JSON.parse(localStorage.getItem('cte_files') || '[]');
+    if (!local.length) return;
+    const baseIds = new Set(FILES_BASE.map(f => f.id));
+    const pendientes = local.filter(f => f && f.id && !baseIds.has(f.id));
+    for (const f of pendientes) {
+      await db.collection('archivos').doc(String(f.id)).set(f, { merge: true });
+    }
+    localStorage.removeItem('cte_files');
+    if (pendientes.length) showToast(`📁 ${pendientes.length} ARCHIVO(S) LOCALES PASADOS A LA NUBE`, 'success');
+  } catch (e) { console.error('No se pudieron migrar los archivos locales:', e); }
 }
 
 function extractDriveId(url){
@@ -749,91 +686,95 @@ function entrarAlSistema(found, foto){
   const rb = document.getElementById('display-role-badge');
   rb.textContent = found.rol === 'admin' ? 'ADMIN' : 'USUARIO';
   rb.className = 'badge ' + (found.rol==='admin' ? 'badge-admin' : 'badge-user');
-  
+
   const isAdmin = found.rol === 'admin';
   document.getElementById('nav-admin').style.display = isAdmin ? 'block' : 'none';
   document.getElementById('print-btn').style.display = isAdmin ? 'block' : 'none';
-  
+
+  listenToSelf(userDocId(found));
+  listenToArchivos();
   renderDashboard();
   renderAllSectionFiles();
   if (isAdmin) {
-    renderAdmin();
+    listenToUsers();
+    listenToSolicitudes();
+    migrarArchivosLocales();
   }
   resetInactivityTimer();
   showToast(`BIENVENIDO, ${found.nombre.split(' ')[0]}`, 'success', 3000);
 }
 
-function initGoogle(){
-  if(typeof google === 'undefined') { setTimeout(initGoogle, 300); return; }
-  google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: onGoogleToken, ux_mode: 'popup' });
-  const wrap = document.getElementById('google-btn-wrap');
-  if(wrap){
-    google.accounts.id.renderButton(wrap, { theme:'outline', size:'large', width: 320, text:'signin_with', shape:'rectangular', logo_alignment:'left' });
-    document.getElementById('btn-google-fallback').style.display = 'none';
-  }
-}
-window.addEventListener('load', initGoogle);
+// ==================== AUTENTICACIÓN (Firebase Auth + Google) ====================
+auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch(() => {});
 
 function loginConGoogle(){
-  if(typeof google === 'undefined'){ mostrarError('CARGANDO GOOGLE, INTENTA EN UN MOMENTO.'); return; }
-  google.accounts.id.prompt(notification => {
-    if(notification.isNotDisplayed() || notification.isSkippedMoment()){
-      const btn = document.querySelector('#google-btn-wrap div[role=button]');
-      if(btn) btn.click();
-    }
+  _loginInteractivo = true;
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  auth.signInWithPopup(provider).catch(err => {
+    _loginInteractivo = false;
+    const c = err && err.code;
+    if (c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request') return;
+    if (c === 'auth/popup-blocked') mostrarError('EL NAVEGADOR BLOQUEÓ LA VENTANA DE GOOGLE. PERMITA LAS VENTANAS EMERGENTES.');
+    else if (c === 'auth/unauthorized-domain') mostrarError('ESTE DOMINIO NO ESTÁ AUTORIZADO EN FIREBASE AUTHENTICATION.');
+    else { console.error(err); mostrarError('ERROR AL INICIAR SESIÓN CON GOOGLE.'); }
   });
 }
 
-function onGoogleToken(response){
-  try{
-    const payload = JSON.parse(atob(response.credential.split('.')[1]));
-    const email = payload.email.toLowerCase();
-    const nombre = payload.name;
-    const foto = payload.picture;
-    
-    const user = getUserByEmail(email);
-    
-    if (!user) {
+// Se ejecuta al iniciar sesión con Google (y al restaurar una sesión abierta en la misma pestaña)
+auth.onAuthStateChanged(async (fbUser) => {
+  if (!fbUser) return;
+  if (currentUser) return;
+  const email = String(fbUser.email || '').toLowerCase();
+  const interactivo = _loginInteractivo;
+  _loginInteractivo = false;
+  try {
+    const doc = await db.collection('users').doc(email).get();
+    if (!doc.exists) {
+      if (interactivo) await addLog(email.split('@')[0], fbUser.displayName || 'DESCONOCIDO', 'fail', email, 'CUENTA NO APROBADA');
       mostrarError('❌ NO TIENES UNA CUENTA APROBADA. SOLICITA REGISTRO PRIMERO Y ESPERA LA APROBACIÓN DEL ADMINISTRADOR.');
+      await auth.signOut();
       return;
     }
-    
-    if(user.blocked){ 
-      mostrarError('CUENTA BLOQUEADA. CONTACTE AL ADMINISTRADOR.'); 
-      addLog(user.user, user.nombre, 'fail', email);
-      return; 
+    const user = { id: doc.id, ...doc.data() };
+    if (user.blocked === true) {
+      if (interactivo) await addLog(user.user, user.nombre, 'fail', email, 'CUENTA BLOQUEADA');
+      mostrarError('CUENTA BLOQUEADA. CONTACTE AL ADMINISTRADOR.');
+      await auth.signOut();
+      return;
     }
-    
-    addLog(user.user, user.nombre, 'ok', email);
-    entrarAlSistema(user, foto);
-    
-  }catch(e){ 
-    console.error(e);
-    mostrarError('ERROR AL PROCESAR LA RESPUESTA DE GOOGLE.'); 
+    if (interactivo) await addLog(user.user, user.nombre, 'ok', email);
+    entrarAlSistema(user, fbUser.photoURL);
+  } catch (err) {
+    console.error(err);
+    mostrarError('NO SE PUDO VALIDAR SU CUENTA. INTENTE NUEVAMENTE.');
+    auth.signOut().catch(() => {});
   }
-}
+});
 
 function doLogout(){
+  detenerListeners();
+  clearTimeout(inactivityTimer);
   currentUser = null;
   document.getElementById('screen-main').style.display = 'none';
   document.getElementById('screen-login').style.display = 'flex';
   document.getElementById('nav-admin').style.display = 'none';
   document.getElementById('print-btn').style.display = 'none';
+  auth.signOut().catch(() => {});
 }
 
 // ==================== RENDERIZADO PRINCIPAL ====================
 async function renderDashboard(){
-  const logs = await getLogs();
+  const isAdmin = currentUser && currentUser.rol === 'admin';
+  const logs = isAdmin ? await getLogs() : [];
   const hoy = new Date().toLocaleDateString('es-EC');
   const hoyOk = logs.filter(l=>l.fecha===hoy && l.estado==='ok').length;
   const hoyFail = logs.filter(l=>l.fecha===hoy && l.estado==='fail').length;
   const last = logs.filter(l=>l.estado==='ok')[0];
-  document.getElementById('stat-total').textContent = USERS.length;
+  if (isAdmin) document.getElementById('stat-total').textContent = USERS.length;
   document.getElementById('stat-hoy').textContent = hoyOk;
   document.getElementById('stat-fail').textContent = hoyFail;
   if(last){ document.getElementById('stat-last').textContent = last.nombre.split(' ')[0]; document.getElementById('stat-last-time').textContent = last.fecha+' '+last.hora; }
-  
-  const isAdmin = currentUser && currentUser.rol === 'admin';
   // ── Solo admin ve las tarjetas de estadísticas ──
   document.getElementById('dashboard-stats').style.display = isAdmin ? '' : 'none';
   document.getElementById('dashboard-bitacora').style.display = isAdmin ? 'block' : 'none';
@@ -841,7 +782,7 @@ async function renderDashboard(){
   if(isAdmin){
     const recent = [...logs].slice(0,15);
     document.getElementById('log-count-label').textContent = logs.length+' REGISTROS';
-    document.getElementById('log-tbody').innerHTML = recent.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':'badge-fail'}">${l.estado==='ok'?'✓ EXITOSO':'✗ FALLIDO'}</span></td></tr>`).join('');
+    document.getElementById('log-tbody').innerHTML = recent.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${esc(l.fecha)} ${esc(l.hora)}</td><td>${esc(l.device)}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':'badge-fail'}">${l.estado==='ok'?'✓ EXITOSO':'✗ FALLIDO'}</span></td></tr>`).join('');
   }
 }
 
@@ -855,7 +796,7 @@ async function renderAdmin(){
   document.getElementById('admin-users-list').innerHTML = USERS.map(u => {
     const isSelf = u.user === currentUser.user;
     const isAdm  = u.rol === 'admin';
-    const datosExtra = u.area ? `<br><span style="font-size:.7rem">📍 ${u.area}${u.grado ? ' | ' + u.grado : ''} | CÓD: ${u.codigo}</span>` : '';
+    const datosExtra = u.area ? `<br><span style="font-size:.7rem">📍 ${esc(u.area)}${u.grado ? ' | ' + esc(u.grado) : ''} | CÓD: ${esc(u.codigo)}</span>` : '';
 
     const btnBlock = (!isSelf && !isAdm)
       ? (u.blocked
@@ -875,10 +816,10 @@ async function renderAdmin(){
 
     return `
       <div class="user-row">
-        <div class="avatar">${u.nombre.split(' ').map(x=>x[0]).slice(0,2).join('')}</div>
+        <div class="avatar">${esc(u.nombre.split(' ').map(x=>x[0]).slice(0,2).join(''))}</div>
         <div class="user-info">
           <strong>${esc(u.nombre)}${u.blocked ? '<span class="blocked-badge">● BLOQUEADO</span>' : ''}</strong>
-          <span>${esc(u.user)} · <span class="badge ${isAdm?'badge-admin':'badge-user'}">${u.rol}</span> · 📧 ${u.email || 'SIN CORREO'}${datosExtra}</span>
+          <span>${esc(u.user)} · <span class="badge ${isAdm?'badge-admin':'badge-user'}">${u.rol}</span> · 📧 ${esc(u.email || 'SIN CORREO')}${datosExtra}</span>
         </div>
         <div style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center">
           ${btnBlock}${btnAdmin}${btnDel}
@@ -906,7 +847,7 @@ function renderLogPage(logs, page){
   const pages = Math.ceil(total / LOG_PAGE_SIZE) || 1;
   const start = (page-1)*LOG_PAGE_SIZE;
   const slice = logs.slice(start, start+LOG_PAGE_SIZE);
-  document.getElementById('admin-log-tbody').innerHTML = slice.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':(l.estado==='aprobacion'?'badge-admin':'badge-fail')}">${l.estado==='ok'?'✓ EXITOSO':(l.estado==='aprobacion'?'✅ APROBACIÓN':'✗ FALLIDO')}</span>${l.details?`<br><small>${esc(l.details)}</small>`:''}</td></tr>`).join('');
+  document.getElementById('admin-log-tbody').innerHTML = slice.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${esc(l.fecha)} ${esc(l.hora)}</td><td>${esc(l.device)}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':(l.estado==='aprobacion'?'badge-admin':'badge-fail')}">${l.estado==='ok'?'✓ EXITOSO':(l.estado==='aprobacion'?'✅ APROBACIÓN':'✗ FALLIDO')}</span>${l.details?`<br><small>${esc(l.details)}</small>`:''}</td></tr>`).join('');
   const pag = document.getElementById('log-pagination');
   if(pages <= 1){ pag.innerHTML=''; return; }
   let btns = '';
@@ -980,7 +921,7 @@ function renderFilesGrid(el, files){
   el.innerHTML = `<div class="files-grid">${files.map(f=>{
     const viewUrl = driveViewUrl(f.urlOriginal, f.tipo);
     const dlUrl = driveDownloadUrl(f.urlOriginal);
-    return `<div class="file-card"><div class="file-card-top"><div class="file-type-icon ${TIPO_CSS[f.tipo]}">${TIPO_ICONS[f.tipo]}</div><div><div class="file-card-name">${esc(f.nombre)}</div><div class="file-card-meta">${f.desc?esc(f.desc)+'<br>':''}${f.fecha}</div></div></div><div class="file-card-actions"><a class="file-card-btn file-card-btn-open" href="${viewUrl}" target="_blank">👁️ VER</a><a class="file-card-btn file-card-btn-open" href="${dlUrl}" target="_blank">⬇️ BAJAR</a>${currentUser?.rol==='admin' ? `<button class="file-card-btn file-card-btn-del" onclick="deleteFile(${f.id})">🗑</button>` : ''}</div></div>`;
+    return `<div class="file-card"><div class="file-card-top"><div class="file-type-icon ${TIPO_CSS[f.tipo]}">${TIPO_ICONS[f.tipo]}</div><div><div class="file-card-name">${esc(f.nombre)}</div><div class="file-card-meta">${f.desc?esc(f.desc)+'<br>':''}${esc(f.fecha)}</div></div></div><div class="file-card-actions"><a class="file-card-btn file-card-btn-open" href="${viewUrl}" target="_blank">👁️ VER</a><a class="file-card-btn file-card-btn-open" href="${dlUrl}" target="_blank">⬇️ BAJAR</a>${currentUser?.rol==='admin' ? `<button class="file-card-btn file-card-btn-del" onclick="deleteFile(${f.id})">🗑</button>` : ''}</div></div>`;
   }).join('')}</div>`;
 }
 function renderAllSectionFiles(){ Object.keys(SECCIONES).forEach(s=>renderSectionFiles(s)); }
@@ -989,67 +930,48 @@ function renderAdminFiles(){
   if(!files.length){ document.getElementById('admin-files-list').innerHTML = '<div class="file-empty">SIN ARCHIVOS.</div>'; return; }
   const bySection = {};
   files.forEach(f=>{ if(!bySection[f.seccion]) bySection[f.seccion]=[]; bySection[f.seccion].push(f); });
-  document.getElementById('admin-files-list').innerHTML = Object.keys(bySection).map(s=>`<div style="margin-bottom:1rem"><div class="section-badge" style="margin-bottom:.5rem">${SECCIONES[s]||s}</div><div class="files-grid">${bySection[s].map(f=>`<div class="file-card"><div class="file-card-top"><div class="file-type-icon ${TIPO_CSS[f.tipo]}">${TIPO_ICONS[f.tipo]}</div><div><div class="file-card-name">${esc(f.nombre)}</div><div class="file-card-meta">${f.fecha}</div></div></div><div class="file-card-actions"><button class="file-card-btn file-card-btn-del" onclick="deleteFile(${f.id})">🗑 ELIMINAR</button></div></div>`).join('')}</div></div>`).join('');
+  document.getElementById('admin-files-list').innerHTML = Object.keys(bySection).map(s=>`<div style="margin-bottom:1rem"><div class="section-badge" style="margin-bottom:.5rem">${SECCIONES[s]||s}</div><div class="files-grid">${bySection[s].map(f=>`<div class="file-card"><div class="file-card-top"><div class="file-type-icon ${TIPO_CSS[f.tipo]}">${TIPO_ICONS[f.tipo]}</div><div><div class="file-card-name">${esc(f.nombre)}</div><div class="file-card-meta">${esc(f.fecha)}</div></div></div><div class="file-card-actions"><button class="file-card-btn file-card-btn-del" onclick="deleteFile(${f.id})">🗑 ELIMINAR</button></div></div>`).join('')}</div></div>`).join('');
 }
 function deleteFile(id){
   const file = getFiles().find(f=>f.id===id);
-  openModal('ELIMINAR ARCHIVO', `¿ELIMINAR "${file?.nombre}"?`, ()=>{
-    const newFiles = getFiles().filter(f=>f.id!==id);
-    saveFiles(newFiles);
-    if (currentUser && currentUser.rol === 'admin') {
-      renderAdmin();
-      renderAllSectionFiles();
+  if (!file) return;
+  if (FILES_BASE.some(f=>f.id===id)) {
+    showToast('ESTE ARCHIVO ESTÁ FIJO EN EL CÓDIGO (FILES_BASE) Y NO SE ELIMINA DESDE AQUÍ.', 'error');
+    return;
+  }
+  openModal('ELIMINAR ARCHIVO', `¿ELIMINAR "${file.nombre}"?`, async ()=>{
+    try {
+      await db.collection('archivos').doc(String(id)).delete();
+      showToast('ARCHIVO ELIMINADO', 'success');
+    } catch (e) {
+      console.error(e);
+      showToast('NO SE PUDO ELIMINAR EL ARCHIVO', 'error');
     }
   });
 }
 async function addFile(){
+  if (!currentUser || currentUser.rol !== 'admin') return;
   const nombre = document.getElementById('af-nombre').value.trim().toUpperCase();
   const seccion = document.getElementById('af-seccion').value;
   const url = document.getElementById('af-url').value.trim();
   const tipo = document.getElementById('af-tipo').value;
   const desc = document.getElementById('af-desc').value.trim().toUpperCase();
   if(!nombre || !url){ showToast('COMPLETA NOMBRE Y ENLACE.', 'error'); return; }
+  if(!/^https?:\/\//i.test(url)){ showToast('EL ENLACE DEBE COMENZAR CON HTTP:// O HTTPS://', 'error'); return; }
   const newId = Date.now();
   const fecha = new Date().toLocaleDateString('es-EC');
   const entry = { id:newId, nombre, seccion, urlOriginal: url, tipo, desc, fecha, subidoPor: currentUser ? currentUser.nombre : 'ADMIN' };
-  const files = getFiles();
-  files.push(entry);
-  saveFiles(files);
+  try {
+    await db.collection('archivos').doc(String(newId)).set(entry);
+  } catch (e) {
+    console.error(e);
+    showToast('NO SE PUDO GUARDAR EL ARCHIVO', 'error');
+    return;
+  }
   document.getElementById('af-nombre').value = '';
   document.getElementById('af-url').value = '';
   document.getElementById('af-desc').value = '';
-  const linea = `  { id:${newId}, nombre:'${nombre.replace(/'/g,"\\'")}', seccion:'${seccion}', tipo:'${tipo}', desc:'${desc.replace(/'/g,"\\'")}', fecha:'${fecha}', urlOriginal:'${url}' },`;
-  document.getElementById('af-code-text').textContent = linea;
-  document.getElementById('af-code-box').style.display = 'block';
-
-  try {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      await navigator.clipboard.writeText(linea);
-      showToast('✅ ARCHIVO AGREGADO — CÓDIGO COPIADO AUTOMÁTICAMENTE AL PORTAPAPELES', 'success');
-    } else {
-      const ta = document.createElement('textarea');
-      ta.value = linea;
-      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
-      document.body.appendChild(ta);
-      ta.focus();
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      showToast('✅ ARCHIVO AGREGADO — CÓDIGO COPIADO AUTOMÁTICAMENTE', 'success');
-    }
-  } catch(e) {
-    showToast('⚠️ ARCHIVO AGREGADO. COPIA EL CÓDIGO MANUALMENTE.', 'info');
-  }
-
-  if (currentUser && currentUser.rol === 'admin') {
-    renderAdmin();
-    renderSectionFiles(seccion);
-  }
-}
-function copiarCodigo(){
-  const txt = document.getElementById('af-code-text').textContent;
-  navigator.clipboard.writeText(txt);
-  showToast('CÓDIGO COPIADO. PÉGALO EN FILES_BASE DEL APP.JS.', 'success');
+  showToast('✅ ARCHIVO AGREGADO Y VISIBLE PARA TODOS LOS USUARIOS', 'success');
 }
 
 function globalSearchFiles(){
@@ -1078,7 +1000,7 @@ function toggleDarkMode(){
   const isDark = document.body.classList.contains('dark-mode');
   localStorage.setItem('darkMode', isDark);
   updateThemeIcon(isDark);
-  if(_accesosChart) renderChart(getLogs());
+  if(_accesosChart && currentUser && currentUser.rol === 'admin') getLogs().then(renderChart);
 }
 function updateThemeIcon(isDark){
   const btn = document.getElementById('btn-theme-toggle');
@@ -1118,12 +1040,10 @@ function showTab(id){
   if(id === 'admin' && currentUser && currentUser.rol === 'admin') renderAdmin();
   if(SECCIONES[id]) renderSectionFiles(id);
 }
-function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function esc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
 // ==================== INICIALIZACIÓN ====================
-(async function init(){
-  await initializeUsers();
-  listenToSolicitudes();
+(function init(){
   const savedDark = localStorage.getItem('darkMode') === 'true';
   if(savedDark){ document.body.classList.add('dark-mode'); }
   updateThemeIcon(savedDark);
