@@ -60,6 +60,7 @@ async function hashPass(pass) {
 
 // ==================== FIRESTORE CONFIGURACIÓN ====================
 let USERS = [];
+let _usersHuerfanos = [];
 let solicitudesUnsubscribe = null;
 
 // Cargar usuarios desde Firestore con escucha en tiempo real
@@ -67,10 +68,20 @@ async function initializeUsers() {
   showToast('Conectando a la nube...', 'info', 2000);
   
   db.collection('users').onSnapshot(async (snapshot) => {
-    const usersFromFirestore = [];
+    // Un usuario = un documento. Si hay duplicados (mismo campo "user"), se conserva
+    // el documento cuyo id coincide con el usuario y los demás se ignoran (NO se borran de Firestore).
+    const porUser = {};
+    _usersHuerfanos = [];
     snapshot.forEach(doc => {
-      usersFromFirestore.push({ id: doc.id, ...doc.data() });
+      const data = doc.data();
+      const key = data.user || doc.id;
+      const entry = { id: doc.id, ...data };
+      const actual = porUser[key];
+      if (!actual) porUser[key] = entry;
+      else if (doc.id === key && actual.id !== key) { _usersHuerfanos.push(actual.id); porUser[key] = entry; }
+      else _usersHuerfanos.push(doc.id);
     });
+    const usersFromFirestore = Object.values(porUser);
     
     if (usersFromFirestore.length > 0) {
       USERS = usersFromFirestore;
@@ -86,6 +97,7 @@ async function initializeUsers() {
       }
       if (needsSave) await saveUsers();
       
+      if (_usersHuerfanos.length) console.warn('Documentos de usuarios duplicados ignorados (no se borran):', _usersHuerfanos);
       if (currentUser && currentUser.rol === 'admin') renderAdmin();
       if (currentUser) {
         document.getElementById('stat-total').textContent = USERS.length;
@@ -117,6 +129,12 @@ async function saveUsers() {
   localStorage.setItem('cte_users_cache', JSON.stringify(USERS));
 }
 
+// Guarda solo los campos indicados de UN usuario (evita reescribir toda la lista)
+async function saveUserFields(username, campos) {
+  await db.collection('users').doc(username).set(campos, { merge: true });
+  localStorage.setItem('cte_users_cache', JSON.stringify(USERS));
+}
+
 function getUserByEmail(email) {
   return USERS.find(u => u.email && u.email.toLowerCase() === email.toLowerCase());
 }
@@ -129,7 +147,7 @@ function toggleBlockUser(username, block) {
   const user = USERS.find(u => u.user === username);
   if (!user || user.rol === 'admin') return;
   user.blocked = block;
-  saveUsers();
+  saveUserFields(user.user, { blocked: block });
   if (currentUser && currentUser.rol === 'admin') {
     renderAdmin();
   }
@@ -188,7 +206,7 @@ async function toggleAdminRole(username) {
   const label = nuevoRol === 'admin' ? 'ADMINISTRADOR' : 'USUARIO';
   openModal('CAMBIAR ROL', `¿CAMBIAR ROL DE ${user.nombre} A ${label}?`, async () => {
     user.rol = nuevoRol;
-    await saveUsers();
+    await saveUserFields(user.user, { rol: nuevoRol });
     renderAdmin();
     showToast(`ROL DE ${user.nombre} CAMBIADO A ${label}`, 'success');
   });
