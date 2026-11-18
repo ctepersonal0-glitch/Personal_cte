@@ -62,6 +62,9 @@ async function hashPass(pass) {
 let USERS = [];
 let _usersHuerfanos = [];
 let _docIdsPorUser = {};
+let _rolReciente = null;
+const APP_VERSION = 'v6.1';
+console.info('Personal CTE', APP_VERSION);
 let solicitudesUnsubscribe = null;
 
 // Cargar usuarios desde Firestore con escucha en tiempo real
@@ -85,6 +88,14 @@ async function initializeUsers() {
       else _usersHuerfanos.push(doc.id);
     });
     const usersFromFirestore = Object.values(porUser);
+    if (_rolReciente && Date.now() - _rolReciente.t < 120000) {
+      const x = porUser[_rolReciente.user];
+      if (x && x.rol !== _rolReciente.rol) {
+        console.warn('ROL REVERTIDO EN SERVIDOR', _rolReciente, x, 'docs:', _docIdsPorUser[_rolReciente.user]);
+        showToast(`⚠️ EL ROL DE ${_rolReciente.user} FUE REVERTIDO A "${x.rol}" EN EL SERVIDOR POR OTRO PROCESO (doc: ${x.id})`, 'error', 12000);
+        _rolReciente = null;
+      }
+    }
     
     if (usersFromFirestore.length > 0) {
       USERS = usersFromFirestore;
@@ -275,9 +286,21 @@ async function cambiarRol(username, nuevoRol) {
       showToast('NO SE PUDO GUARDAR EL ROL: ' + (err && err.message ? err.message : 'ERROR'), 'error', 6000);
       return;
     }
+    // Verificación: leer de nuevo desde el servidor
+    try {
+      const ids = _docIdsPorUser[user.user] && _docIdsPorUser[user.user].length ? _docIdsPorUser[user.user] : [user.user];
+      const lecturas = await Promise.all(ids.map(id => db.collection('users').doc(id).get({ source: 'server' })));
+      const malos = lecturas.filter(d => !d.exists || d.data().rol !== nuevoRol).map(d => d.id);
+      if (malos.length) {
+        showToast(`⚠️ EL SERVIDOR NO CONSERVÓ EL ROL (doc: ${malos.join(', ')})`, 'error', 10000);
+      } else {
+        _rolReciente = { user: user.user, rol: nuevoRol, t: Date.now() };
+        console.info(APP_VERSION, 'rol verificado en servidor, docs:', ids);
+      }
+    } catch (e) { console.warn('verificación', e); }
     auditar('ACCION_ADMIN', `CAMBIÓ EL ROL DE ${user.user}: ${ROL_LABEL[anterior] || anterior} → ${ROL_LABEL[nuevoRol]}`);
     renderAdmin();
-    showToast(`ROL DE ${user.nombre} CAMBIADO A ${ROL_LABEL[nuevoRol]}`, 'success');
+    showToast(`ROL DE ${user.nombre} CAMBIADO A ${ROL_LABEL[nuevoRol]} (${APP_VERSION})`, 'success');
   });
 }
 function toggleAdminRole(username) {
