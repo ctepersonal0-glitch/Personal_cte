@@ -1116,9 +1116,375 @@ function showTab(id){
   const lnk = [...document.querySelectorAll('nav a')].find(a=>a.getAttribute('onclick')===`showTab('${id}')`);
   if(lnk) lnk.classList.add('active');
   if(id === 'admin' && currentUser && currentUser.rol === 'admin') renderAdmin();
+  if(id === 'vacaciones') renderVacaciones();
   if(SECCIONES[id]) renderSectionFiles(id);
 }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ==================== VACACIONES 2027 ====================
+// Colección: vacaciones_2027/{codigo}. La cédula NO se guarda en texto plano: solo su huella (SHA-256 con sal).
+// - Administrador: carga el Excel y consulta a todo el personal.
+// - Usuario: solo consulta su propio código, y debe indicar su cédula.
+const VAC_COL = 'vacaciones_2027';
+const VAC_META = { col: 'config', doc: 'vacaciones_2027' };
+const VAC_SALT = 'cte-vac-2027|';
+const VAC_MESES = ['ENERO','FEBRERO','MARZO','ABRIL','MAYO','JUNIO','JULIO','AGOSTO','SEPTIEMBRE','OCTUBRE','NOVIEMBRE','DICIEMBRE'];
+const VAC_MAX_INTENTOS = 5;
+const VAC_BLOQUEO_MIN = 10;
+const VAC_POR_PAGINA = 50;
+
+let _vacDatos = null;       // caché del listado (solo administrador)
+let _vacFiltrados = [];
+let _vacPagina = 1;
+let _vacTimer = null;
+let _vacSeq = 0;
+
+// Cédula a 10 dígitos (Excel suele quitar el cero inicial)
+function normalizarCedula(v){
+  let s = String(v == null ? '' : v).replace(/[^0-9]/g, '');
+  if (s.length >= 7 && s.length < 10) s = s.padStart(10, '0');
+  return s;
+}
+function vacHashCedula(ced){ return hashPass(VAC_SALT + ced); }
+
+// ---- Control de intentos fallidos (por usuario, en este navegador) ----
+function _vacKey(){ return 'vac_int_' + (currentUser ? currentUser.user : ''); }
+function vacMinutosBloqueo(){
+  try {
+    const r = JSON.parse(localStorage.getItem(_vacKey()) || 'null');
+    if (r && r.hasta && Date.now() < r.hasta) return Math.ceil((r.hasta - Date.now()) / 60000);
+  } catch (e) {}
+  return 0;
+}
+function vacRegistrarFallo(){
+  let r = { n: 0, hasta: 0 };
+  try { r = JSON.parse(localStorage.getItem(_vacKey()) || 'null') || r; } catch (e) {}
+  if (r.hasta && Date.now() >= r.hasta) r = { n: 0, hasta: 0 };
+  r.n = (r.n || 0) + 1;
+  let quedan = VAC_MAX_INTENTOS - r.n;
+  if (r.n >= VAC_MAX_INTENTOS) { r.hasta = Date.now() + VAC_BLOQUEO_MIN * 60000; r.n = 0; quedan = 0; }
+  try { localStorage.setItem(_vacKey(), JSON.stringify(r)); } catch (e) {}
+  return quedan;
+}
+function vacLimpiarFallos(){ try { localStorage.removeItem(_vacKey()); } catch (e) {} }
+
+function renderVacaciones(){
+  if (!currentUser) return;
+  const isAdmin = currentUser.rol === 'admin';
+  document.getElementById('vac-admin').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('vac-user').style.display = isAdmin ? 'none' : 'block';
+  if (isAdmin) {
+    renderVacMeta();
+    if (!_vacDatos) cargarVacacionesAdmin(false);
+    else vacAplicarFiltros();
+  } else {
+    const inp = document.getElementById('vac-codigo');
+    const nota = document.getElementById('vac-user-nota');
+    const vinc = normalizarCodigo(currentUser.codigo);
+    document.getElementById('vac-cedula').value = '';
+    document.getElementById('vac-resultado').innerHTML = '';
+    if (vinc) {
+      inp.value = vinc; inp.readOnly = true;
+      nota.textContent = 'SOLO PUEDE CONSULTAR LA INFORMACIÓN DEL CÓDIGO DE SU CUENTA. INGRESE SU NÚMERO DE CÉDULA.';
+    } else {
+      inp.value = ''; inp.readOnly = false;
+      nota.textContent = 'INGRESE SU CÓDIGO Y SU NÚMERO DE CÉDULA. LA PRIMERA CONSULTA EXITOSA VINCULA ESE CÓDIGO A SU CUENTA Y NO PODRÁ CONSULTAR OTRO.';
+    }
+  }
+}
+
+// ---------------- USUARIO ----------------
+async function consultarVacaciones(){
+  const res = document.getElementById('vac-resultado');
+  if (!currentUser || currentUser.rol === 'admin') return;
+
+  const bloq = vacMinutosBloqueo();
+  if (bloq) { res.innerHTML = `<div style="color:#c0392b;font-size:.88rem">⛔ DEMASIADOS INTENTOS FALLIDOS. INTENTE NUEVAMENTE EN ${bloq} MINUTO(S).</div>`; return; }
+
+  const vinc = normalizarCodigo(currentUser.codigo);
+  const codigo = vinc || normalizarCodigo(document.getElementById('vac-codigo').value);
+  const ced = normalizarCedula(document.getElementById('vac-cedula').value);
+
+  if (!codigo || ced.length !== 10) {
+    res.innerHTML = '<div style="color:#c0392b;font-size:.88rem">❌ INGRESE SU CÓDIGO Y SU CÉDULA (10 DÍGITOS).</div>';
+    return;
+  }
+
+  res.innerHTML = '<div style="font-size:.88rem">CONSULTANDO...</div>';
+  try {
+    const [doc, hash] = await Promise.all([
+      db.collection(VAC_COL).doc(codigo).get(),
+      vacHashCedula(ced)
+    ]);
+    if (!doc.exists || doc.data().cedHash !== hash) {
+      const quedan = vacRegistrarFallo();
+      res.innerHTML = '<div style="color:#c0392b;font-size:.88rem">❌ EL CÓDIGO Y LA CÉDULA NO COINCIDEN CON NINGÚN REGISTRO.'
+        + (quedan > 0 ? ` LE QUEDAN ${quedan} INTENTO(S).` : ` CONSULTA BLOQUEADA POR ${VAC_BLOQUEO_MIN} MINUTOS.`) + '</div>';
+      document.getElementById('vac-cedula').value = '';
+      return;
+    }
+    vacLimpiarFallos();
+
+    if (!vinc) {
+      await db.collection('users').doc(currentUser.user).set({ codigo: codigo }, { merge: true });
+      currentUser.codigo = codigo;
+      const u = USERS.find(x => x.user === currentUser.user);
+      if (u) u.codigo = codigo;
+      const inp = document.getElementById('vac-codigo');
+      inp.value = codigo; inp.readOnly = true;
+    }
+
+    const d = doc.data();
+    const fila = (k, v) => `<tr><td style="font-weight:600;color:var(--muted);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;padding:.6rem 1rem;border-bottom:1px solid #f0f2f6;width:40%">${k}</td><td style="padding:.6rem 1rem;border-bottom:1px solid #f0f2f6;font-size:.95rem">${v}</td></tr>`;
+    res.innerHTML = `<table style="width:100%;border-collapse:collapse;border:1px solid #dde0e8;border-radius:6px">`
+      + fila('Código', esc(codigo))
+      + fila('Cédula', esc(ced))
+      + fila('Grado', esc(d.grado || '—'))
+      + fila('Nombre y Apellidos', esc(`${d.apellidos || ''} ${d.nombres || ''}`.trim() || '—'))
+      + fila('Mes de Vacaciones', `<strong>${esc(d.mes || '—')}</strong>`)
+      + `</table>`;
+    document.getElementById('vac-cedula').value = '';
+  } catch (err) {
+    console.error(err);
+    res.innerHTML = '<div style="color:#c0392b;font-size:.88rem">⚠ NO SE PUDO REALIZAR LA CONSULTA. INTENTE NUEVAMENTE.</div>';
+  }
+}
+
+// ---------------- ADMINISTRADOR: carga del Excel ----------------
+// Función pura: recibe las filas de la hoja (matriz) y devuelve registros + resumen
+function vacParsearFilas(filas){
+  const norm = r => (r || []).map(_normHeader);
+  const hIdx = filas.findIndex(r => { const n = norm(r); return n.includes('CODIGO') && n.includes('CEDULA'); });
+  if (hIdx < 0) return { error: 'NO SE ENCONTRÓ LA FILA DE ENCABEZADOS (CODIGO, CEDULA).' };
+
+  const h = norm(filas[hIdx]);
+  const col = nombre => h.indexOf(nombre);
+  const colLike = pref => h.findIndex(x => x.startsWith(pref));
+  const c = {
+    cod: col('CODIGO'), ced: col('CEDULA'), grado: col('GRADO'), ape: col('APELLIDOS'),
+    nom: col('NOMBRE') >= 0 ? col('NOMBRE') : col('NOMBRES'),
+    area: col('AREA ACTUAL') >= 0 ? col('AREA ACTUAL') : col('AREA'),
+    mes: colLike('MES QUE SE PROGRAMO'), gozados: colLike('DIAS GOZADOS'), prov: col('PROVINCIA')
+  };
+  const cMeses = VAC_MESES.map(m => col(m));
+  if (c.mes < 0 && cMeses.every(i => i < 0)) return { error: 'NO SE ENCONTRÓ LA COLUMNA DEL MES DE VACACIONES.' };
+
+  const txt = (r, i) => i >= 0 ? String(r[i] == null ? '' : r[i]).trim().toUpperCase() : '';
+  const registros = [];
+  const vistos = new Set();
+  let duplicados = 0, sinCedula = 0, sinMes = 0;
+
+  for (let i = hIdx + 1; i < filas.length; i++) {
+    const r = filas[i];
+    const codigo = normalizarCodigo(r[c.cod]);
+    if (!codigo) continue;
+    if (vistos.has(codigo)) { duplicados++; continue; }
+    vistos.add(codigo);
+
+    const cedula = normalizarCedula(r[c.ced]);
+    if (cedula.length !== 10) sinCedula++;
+
+    let mes = txt(r, c.mes);
+    let dias = 0;
+    cMeses.forEach((ci, k) => {
+      if (ci >= 0 && r[ci] !== '' && r[ci] != null && Number(r[ci]) > 0) {
+        dias = Number(r[ci]);
+        if (!VAC_MESES.includes(mes)) mes = VAC_MESES[k];
+      }
+    });
+    if (!VAC_MESES.includes(mes)) { mes = ''; sinMes++; }
+
+    registros.push({
+      codigo, cedula,
+      grado: txt(r, c.grado), apellidos: txt(r, c.ape), nombres: txt(r, c.nom),
+      area: txt(r, c.area), provincia: txt(r, c.prov), mes, dias,
+      diasGozados: Number(r[c.gozados]) || 0
+    });
+  }
+  return { registros, duplicados, sinCedula, sinMes };
+}
+
+async function renderVacMeta(){
+  const el = document.getElementById('vac-meta');
+  if (!el) return;
+  try {
+    const doc = await db.collection(VAC_META.col).doc(VAC_META.doc).get();
+    if (!doc.exists) { el.textContent = 'BASE DE VACACIONES AÚN NO CARGADA.'; return; }
+    const d = doc.data();
+    el.innerHTML = `📄 <strong>${d.total || 0}</strong> REGISTROS · ÚLTIMA ACTUALIZACIÓN: ${esc(d.fecha || '—')} · POR: ${esc(d.actualizadoPor || '—')}`;
+  } catch (err) { el.textContent = 'NO SE PUDO LEER LA INFORMACIÓN DE LA BASE.'; }
+}
+
+async function subirVacaciones(){
+  if (!currentUser || currentUser.rol !== 'admin') { showToast('SOLO EL ADMINISTRADOR PUEDE ACTUALIZAR LAS VACACIONES', 'error'); return; }
+  const input = document.getElementById('vac-file');
+  const estado = document.getElementById('vac-estado');
+  const file = input && input.files ? input.files[0] : null;
+  if (!file) { showToast('SELECCIONE EL ARCHIVO EXCEL', 'error'); return; }
+  if (typeof XLSX === 'undefined') { showToast('NO SE CARGÓ LA LIBRERÍA DE EXCEL. RECARGUE LA PÁGINA.', 'error'); return; }
+
+  estado.textContent = 'LEYENDO ARCHIVO...';
+  let parsed;
+  try {
+    const buffer = await file.arrayBuffer();
+    const wb = XLSX.read(new Uint8Array(buffer), { type: 'array' });
+    const nombreHoja = wb.SheetNames.find(n => _normHeader(n).includes('VACACIONES')) || wb.SheetNames[0];
+    const filas = XLSX.utils.sheet_to_json(wb.Sheets[nombreHoja], { header: 1, defval: '', raw: true });
+    parsed = vacParsearFilas(filas);
+  } catch (err) {
+    console.error(err);
+    estado.textContent = '❌ NO SE PUDO LEER EL ARCHIVO: ' + err.message;
+    return;
+  }
+  if (parsed.error) { estado.textContent = '❌ ' + parsed.error; return; }
+  const registros = parsed.registros;
+  if (!registros.length) { estado.textContent = '❌ NO SE ENCONTRARON REGISTROS VÁLIDOS.'; return; }
+
+  estado.textContent = 'PROCESANDO CÉDULAS...';
+  for (const r of registros) r.cedHash = r.cedula.length === 10 ? await vacHashCedula(r.cedula) : '';
+
+  const avisos = [];
+  if (parsed.duplicados) avisos.push(`${parsed.duplicados} CÓDIGOS REPETIDOS (SE USÓ EL PRIMERO)`);
+  if (parsed.sinCedula) avisos.push(`${parsed.sinCedula} SIN CÉDULA VÁLIDA (NO PODRÁN CONSULTAR)`);
+  if (parsed.sinMes) avisos.push(`${parsed.sinMes} SIN MES`);
+
+  openModal(
+    'ACTUALIZAR VACACIONES 2027',
+    `SE REEMPLAZARÁ TODA LA BASE DE VACACIONES POR ${registros.length} REGISTROS DEL ARCHIVO "${file.name}".` + (avisos.length ? ' AVISOS: ' + avisos.join('; ') + '.' : '') + ' ¿CONTINUAR?',
+    async () => {
+      try {
+        const nuevos = new Set(registros.map(r => r.codigo));
+        for (let i = 0; i < registros.length; i += BASE_LOTE) {
+          const batch = db.batch();
+          registros.slice(i, i + BASE_LOTE).forEach(r => {
+            batch.set(db.collection(VAC_COL).doc(r.codigo), {
+              grado: r.grado, apellidos: r.apellidos, nombres: r.nombres, area: r.area,
+              provincia: r.provincia, mes: r.mes, dias: r.dias, diasGozados: r.diasGozados, cedHash: r.cedHash
+            });
+          });
+          await batch.commit();
+          estado.textContent = `SUBIENDO REGISTROS... ${Math.min(i + BASE_LOTE, registros.length)}/${registros.length}`;
+        }
+
+        // Eliminar los códigos que ya no están en el archivo (después de subir, para no dejar la base vacía si algo falla)
+        estado.textContent = 'DEPURANDO REGISTROS ANTERIORES...';
+        const snap = await db.collection(VAC_COL).get();
+        const sobrantes = snap.docs.filter(d => !nuevos.has(d.id));
+        for (let i = 0; i < sobrantes.length; i += BASE_LOTE) {
+          const batch = db.batch();
+          sobrantes.slice(i, i + BASE_LOTE).forEach(d => batch.delete(d.ref));
+          await batch.commit();
+        }
+
+        await db.collection(VAC_META.col).doc(VAC_META.doc).set({
+          total: registros.length,
+          fecha: new Date().toLocaleString('es-EC'),
+          actualizadoPor: currentUser.nombre || currentUser.user,
+          archivo: file.name
+        });
+
+        estado.textContent = `✅ VACACIONES ACTUALIZADAS: ${registros.length} REGISTROS` + (sobrantes.length ? ` (${sobrantes.length} ANTERIORES ELIMINADOS)` : '') + '.';
+        input.value = '';
+        addLog(currentUser.user, currentUser.nombre, 'aprobacion', currentUser.email || '',
+          `BASE DE VACACIONES 2027 ACTUALIZADA - ${registros.length} REGISTROS (${file.name})`);
+        showToast(`✅ VACACIONES ACTUALIZADAS (${registros.length} REGISTROS)`, 'success');
+        renderVacMeta();
+        cargarVacacionesAdmin(true);
+      } catch (err) {
+        console.error(err);
+        estado.textContent = '❌ ERROR AL ACTUALIZAR: ' + err.message;
+        showToast('ERROR AL ACTUALIZAR LAS VACACIONES', 'error');
+      }
+    }
+  );
+}
+
+// ---------------- ADMINISTRADOR: consulta general ----------------
+async function cargarVacacionesAdmin(forzar){
+  if (!currentUser || currentUser.rol !== 'admin') return;
+  if (_vacDatos && !forzar) { vacAplicarFiltros(); return; }
+  const resumen = document.getElementById('vac-resumen');
+  resumen.textContent = 'CARGANDO LISTADO...';
+  try {
+    const snap = await db.collection(VAC_COL).get();
+    _vacDatos = snap.docs.map(d => ({ codigo: d.id, ...d.data() }));
+    _vacDatos.sort((a, b) => (a.apellidos + a.nombres).localeCompare(b.apellidos + b.nombres, 'es'));
+
+    const sel = (id, titulo, valores) => {
+      const el = document.getElementById(id);
+      const actual = el.value;
+      el.innerHTML = `<option value="">${titulo}</option>` + valores.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+      el.value = valores.includes(actual) ? actual : '';
+    };
+    sel('vac-f-mes', 'TODOS LOS MESES', VAC_MESES);
+    sel('vac-f-prov', 'TODAS LAS PROVINCIAS', [...new Set(_vacDatos.map(d => d.provincia).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es')));
+    vacAplicarFiltros();
+  } catch (err) {
+    console.error(err);
+    resumen.textContent = '⚠ NO SE PUDO CARGAR EL LISTADO.';
+  }
+}
+
+function vacProgramarFiltro(){ clearTimeout(_vacTimer); _vacTimer = setTimeout(vacAplicarFiltros, 250); }
+
+async function vacAplicarFiltros(){
+  if (!_vacDatos) return;
+  const seq = ++_vacSeq;
+  const q = document.getElementById('vac-q').value.trim().toUpperCase();
+  const mes = document.getElementById('vac-f-mes').value;
+  const prov = document.getElementById('vac-f-prov').value;
+
+  const soloDigitos = q.replace(/[^0-9]/g, '');
+  let hashQ = '';
+  if (q && /^[0-9\s]+$/.test(q) && soloDigitos.length >= 9 && soloDigitos.length <= 10) {
+    hashQ = await vacHashCedula(normalizarCedula(soloDigitos));
+    if (seq !== _vacSeq) return;
+  }
+  const qCod = normalizarCodigo(q);
+
+  _vacFiltrados = _vacDatos.filter(d => {
+    if (mes && d.mes !== mes) return false;
+    if (prov && d.provincia !== prov) return false;
+    if (!q) return true;
+    if (hashQ && d.cedHash === hashQ) return true;
+    if (qCod && /^[0-9]+$/.test(q) && d.codigo === qCod) return true;
+    return `${d.apellidos} ${d.nombres} ${d.area} ${d.grado}`.includes(q);
+  });
+  _vacPagina = 1;
+  renderVacTabla();
+}
+
+function renderVacTabla(){
+  const total = _vacFiltrados.length;
+  const paginas = Math.max(1, Math.ceil(total / VAC_POR_PAGINA));
+  if (_vacPagina > paginas) _vacPagina = paginas;
+  const slice = _vacFiltrados.slice((_vacPagina - 1) * VAC_POR_PAGINA, _vacPagina * VAC_POR_PAGINA);
+
+  document.getElementById('vac-resumen').innerHTML = `<strong>${total}</strong> DE ${_vacDatos.length} REGISTROS`;
+  document.getElementById('vac-tbody').innerHTML = slice.length
+    ? slice.map(d => `<tr><td>${esc(d.codigo)}</td><td>${esc(d.grado || '')}</td><td>${esc(`${d.apellidos || ''} ${d.nombres || ''}`.trim())}</td><td>${esc(d.area || '')}</td><td>${esc(d.provincia || '')}</td><td>${esc(d.mes || '')}</td><td>${d.dias || 0}</td><td>${d.diasGozados || 0}</td></tr>`).join('')
+    : '<tr><td colspan="8" style="text-align:center;padding:1.2rem">SIN RESULTADOS</td></tr>';
+
+  document.getElementById('vac-paginacion').innerHTML = paginas > 1
+    ? `<button class="btn-add-file" ${_vacPagina <= 1 ? 'disabled' : ''} onclick="vacIrPagina(${_vacPagina - 1})">◀</button>
+       <span style="font-size:.82rem">PÁGINA ${_vacPagina} DE ${paginas}</span>
+       <button class="btn-add-file" ${_vacPagina >= paginas ? 'disabled' : ''} onclick="vacIrPagina(${_vacPagina + 1})">▶</button>`
+    : '';
+}
+function vacIrPagina(n){ _vacPagina = n; renderVacTabla(); }
+
+function exportarVacaciones(){
+  if (!currentUser || currentUser.rol !== 'admin') return;
+  if (!_vacFiltrados.length) { showToast('NO HAY REGISTROS PARA EXPORTAR', 'error'); return; }
+  if (typeof XLSX === 'undefined') { showToast('NO SE CARGÓ LA LIBRERÍA DE EXCEL', 'error'); return; }
+  const filas = _vacFiltrados.map(d => ({
+    CODIGO: d.codigo, GRADO: d.grado, APELLIDOS: d.apellidos, NOMBRES: d.nombres, 'AREA ACTUAL': d.area,
+    PROVINCIA: d.provincia, 'MES DE VACACIONES': d.mes, DIAS: d.dias, 'DIAS GOZADOS': d.diasGozados
+  }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(filas), 'VACACIONES 2027');
+  XLSX.writeFile(wb, 'vacaciones_2027.xlsx');
+}
 
 // ==================== INICIALIZACIÓN ====================
 (async function init(){

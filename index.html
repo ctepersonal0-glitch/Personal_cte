@@ -89,6 +89,7 @@
     <a onclick="showTab('orden')">ORDEN</a>
     <a onclick="showTab('parametros')">PARÁMETROS</a>
     <a onclick="showTab('reportes')">REPORTES</a>
+    <a onclick="showTab('vacaciones')">VACACIONES</a>
     <a id="nav-admin" onclick="showTab('admin')" style="display:none">⚙ ADMIN</a>
   </div></nav>
 
@@ -128,6 +129,52 @@
     </iframe>
   </div>
 </div>
+    <div class="tab" id="tab-vacaciones">
+      <div class="section-title">VACACIONES 2027</div>
+
+      <!-- VISTA USUARIO: solo consulta lo propio -->
+      <div id="vac-user" style="display:none">
+        <div class="admin-card" style="max-width:560px">
+          <div class="admin-card-head"><h3>CONSULTE SUS VACACIONES</h3></div>
+          <div class="admin-card-body">
+            <p id="vac-user-nota" style="font-size:.82rem;margin-bottom:1rem"></p>
+            <div class="form-field"><label>CÓDIGO</label><input type="text" id="vac-codigo" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="SU CÓDIGO"/></div>
+            <div class="form-field"><label>NÚMERO DE CÉDULA</label><input type="text" id="vac-cedula" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="10 DÍGITOS" onkeydown="if(event.key==='Enter')consultarVacaciones()"/></div>
+            <button class="btn-register" style="margin-top:.2rem" onclick="consultarVacaciones()">🔍 CONSULTAR</button>
+            <div id="vac-resultado" style="margin-top:1.2rem"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VISTA ADMINISTRADOR -->
+      <div id="vac-admin" style="display:none">
+        <div class="admin-card">
+          <div class="admin-card-head"><h3>ACTUALIZAR BASE DE VACACIONES DESDE EXCEL</h3></div>
+          <div class="admin-card-body">
+            <p style="font-size:.82rem;margin-bottom:.8rem">EL ARCHIVO DEBE TENER LAS COLUMNAS: <strong>CODIGO, CEDULA, GRADO, APELLIDOS, NOMBRE, AREA ACTUAL, MES QUE SE PROGRAMO VACACIONES, DIAS GOZADOS, PROVINCIA</strong> Y LOS MESES. AL SUBIRLO SE <strong>REEMPLAZA TODA LA BASE DE VACACIONES</strong>. LA CÉDULA SE GUARDA CIFRADA.</p>
+            <div id="vac-meta" style="font-size:.82rem;margin-bottom:.8rem">—</div>
+            <input type="file" id="vac-file" accept=".xlsx,.xls"/>
+            <button class="btn-register" style="margin-top:.8rem" onclick="subirVacaciones()">⬆ ACTUALIZAR VACACIONES</button>
+            <div id="vac-estado" style="font-size:.82rem;margin-top:.8rem"></div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <div class="admin-card-head"><h3>CONSULTA GENERAL DE VACACIONES</h3><button class="btn-excel" style="margin-left:auto" onclick="exportarVacaciones()">📊 EXPORTAR EXCEL</button></div>
+          <div class="admin-card-body">
+            <div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:.8rem">
+              <input type="text" id="vac-q" class="files-search" placeholder="BUSCAR POR CÓDIGO, CÉDULA, NOMBRE O ÁREA..." oninput="vacProgramarFiltro()"/>
+              <select id="vac-f-mes" class="files-search" style="flex:0 0 170px" onchange="vacAplicarFiltros()"></select>
+              <select id="vac-f-prov" class="files-search" style="flex:0 0 190px" onchange="vacAplicarFiltros()"></select>
+              <button class="btn-add-file" onclick="cargarVacacionesAdmin(true)">↻ RECARGAR</button>
+            </div>
+            <div id="vac-resumen" style="font-size:.82rem;margin-bottom:.8rem"></div>
+            <div style="overflow-x:auto"><table class="log-table"><thead><tr><th>CÓDIGO</th><th>GRADO</th><th>APELLIDOS Y NOMBRES</th><th>ÁREA</th><th>PROVINCIA</th><th>MES</th><th>DÍAS</th><th>GOZADOS</th></tr></thead><tbody id="vac-tbody"></tbody></table></div>
+            <div id="vac-paginacion" class="pagination"></div>
+          </div>
+        </div>
+      </div>
+    </div>
     <div class="tab" id="tab-reportes"><div class="section-title">REPORTES DIARIOS</div><div id="files-toolbar-reportes"></div><div id="files-grid-reportes"></div></div>
     
 
