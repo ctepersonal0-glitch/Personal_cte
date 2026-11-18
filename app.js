@@ -61,6 +61,7 @@ async function hashPass(pass) {
 // ==================== FIRESTORE CONFIGURACIÓN ====================
 let USERS = [];
 let _usersHuerfanos = [];
+let _docIdsPorUser = {};
 let solicitudesUnsubscribe = null;
 
 // Cargar usuarios desde Firestore con escucha en tiempo real
@@ -72,9 +73,11 @@ async function initializeUsers() {
     // el documento cuyo id coincide con el usuario y los demás se ignoran (NO se borran de Firestore).
     const porUser = {};
     _usersHuerfanos = [];
+    _docIdsPorUser = {};
     snapshot.forEach(doc => {
       const data = doc.data();
       const key = data.user || doc.id;
+      (_docIdsPorUser[key] = _docIdsPorUser[key] || []).push(doc.id);
       const entry = { id: doc.id, ...data };
       const actual = porUser[key];
       if (!actual) porUser[key] = entry;
@@ -87,15 +90,13 @@ async function initializeUsers() {
       USERS = usersFromFirestore;
       localStorage.setItem('cte_users_cache', JSON.stringify(USERS));
       
-      let needsSave = false;
       for (let u of USERS) {
         if (!u.passHash) {
           const defaultPass = u.user === 'admin' ? '@dmin2026' : 'cte2026';
           u.passHash = await hashPass(defaultPass);
-          needsSave = true;
+          try { await saveUserFields(u.user, { passHash: u.passHash }); } catch (e) { console.error('No se pudo guardar clave inicial de', u.user, e); }
         }
       }
-      if (needsSave) await saveUsers();
       
       if (_usersHuerfanos.length) console.warn('Documentos de usuarios duplicados ignorados (no se borran):', _usersHuerfanos);
       sincronizarSesion();
@@ -132,7 +133,10 @@ async function saveUsers() {
 
 // Guarda solo los campos indicados de UN usuario (evita reescribir toda la lista)
 async function saveUserFields(username, campos) {
-  await db.collection('users').doc(username).set(campos, { merge: true });
+  // Se escribe en TODOS los documentos que representan a este usuario (id = usuario, id = correo, etc.)
+  // para que, sin importar cuál se lea, el valor sea el mismo.
+  const ids = new Set(_docIdsPorUser[username] && _docIdsPorUser[username].length ? _docIdsPorUser[username] : [username]);
+  await Promise.all([...ids].map(id => db.collection('users').doc(id).set(campos, { merge: true })));
   localStorage.setItem('cte_users_cache', JSON.stringify(USERS));
 }
 
@@ -262,7 +266,15 @@ async function cambiarRol(username, nuevoRol) {
   openModal('CAMBIAR ROL', `¿CAMBIAR ROL DE ${user.nombre} A ${ROL_LABEL[nuevoRol]}?`, async () => {
     const anterior = user.rol;
     user.rol = nuevoRol;
-    await saveUserFields(user.user, { rol: nuevoRol });
+    try {
+      await saveUserFields(user.user, { rol: nuevoRol });
+    } catch (err) {
+      console.error('Error guardando rol:', err);
+      user.rol = anterior;
+      renderAdmin();
+      showToast('NO SE PUDO GUARDAR EL ROL: ' + (err && err.message ? err.message : 'ERROR'), 'error', 6000);
+      return;
+    }
     auditar('ACCION_ADMIN', `CAMBIÓ EL ROL DE ${user.user}: ${ROL_LABEL[anterior] || anterior} → ${ROL_LABEL[nuevoRol]}`);
     renderAdmin();
     showToast(`ROL DE ${user.nombre} CAMBIADO A ${ROL_LABEL[nuevoRol]}`, 'success');
@@ -278,6 +290,7 @@ async function toggleTabUsuario(username, tab, activo) {
   if (!soloAdmin()) return;
   const user = USERS.find(u => u.user === username);
   if (!user || !TABS_OPCIONALES[tab]) return;
+  const tabsAnterior = user.tabs;
   const set = new Set(user.tabs || []);
   if (activo) set.add(tab); else set.delete(tab);
   user.tabs = [...set];
@@ -287,7 +300,9 @@ async function toggleTabUsuario(username, tab, activo) {
     showToast(`${activo ? 'HABILITADO' : 'QUITADO'}: ${TABS_OPCIONALES[tab]}`, 'success', 2000);
   } catch (err) {
     console.error(err);
-    showToast('NO SE PUDO GUARDAR EL CAMBIO', 'error');
+    user.tabs = tabsAnterior;
+    renderAdmin();
+    showToast('NO SE PUDO GUARDAR EL CAMBIO: ' + (err && err.message ? err.message : 'ERROR'), 'error', 6000);
   }
 }
 
@@ -658,7 +673,7 @@ async function aprobarSolicitud(id) {
   };
 
   USERS.push(nuevoUsuario);
-  await saveUsers();
+  { const d = { ...nuevoUsuario }; delete d.id; await db.collection('users').doc(username).set(d, { merge: true }); }
   await docRef.update({ estado: 'aprobada', fechaAprobacion: firebase.firestore.FieldValue.serverTimestamp() });
 
   addLog(username, nombreCompleto, 'aprobacion', solicitud.email,
@@ -688,9 +703,14 @@ async function renderSolicitudes() {
 
   container.innerHTML = '<div class="file-empty">⏳ CARGANDO SOLICITUDES...</div>';
 
-  const snapshot = await db.collection('solicitudes')
-    .where('estado', '==', 'pendiente')
-    .get();
+  let snapshot;
+  try {
+    snapshot = await db.collection('solicitudes').where('estado', '==', 'pendiente').get();
+  } catch (err) {
+    console.error('Error leyendo solicitudes:', err);
+    container.innerHTML = '<div class="file-empty">⚠️ NO SE PUDIERON CARGAR LAS SOLICITUDES: ' + esc(err && err.message ? err.message : 'ERROR') + '</div>';
+    return;
+  }
 
   const solicitudes = [];
   snapshot.forEach(doc => {
@@ -951,11 +971,10 @@ async function renderDashboard(){
 async function renderAdmin(){
   if(!puedeVerPanel()) return;
   const w = esAdmin();
-  const logs = await getLogs();
-  
-  await renderSolicitudes();
-  await renderBasePersonalInfo();
-  
+  // Primero solicitudes y usuarios (lo que el admin necesita ver), sin depender de la bitácora
+  try { await renderSolicitudes(); } catch (e) { console.error('renderSolicitudes', e); }
+  try { await renderBasePersonalInfo(); } catch (e) { console.error('renderBasePersonalInfo', e); }
+
   document.getElementById('admin-users-list').innerHTML = USERS.map(u => {
     const isSelf = u.user === currentUser.user;
     const isAdm  = u.rol === 'admin';
@@ -982,7 +1001,7 @@ async function renderAdmin(){
 
     return `
       <div class="user-row">
-        <div class="avatar">${u.nombre.split(' ').map(x=>x[0]).slice(0,2).join('')}</div>
+        <div class="avatar">${(u.nombre || u.user || '?').split(' ').map(x=>x[0]).slice(0,2).join('')}</div>
         <div class="user-info">
           <strong>${esc(u.nombre)}${u.blocked ? '<span class="blocked-badge">● BLOQUEADO</span>' : ''}</strong>
           <span>${esc(u.user)} · <span class="badge ${isAdm?'badge-admin':(u.rol==='supervisor'?'badge-supervisor':'badge-user')}">${u.rol}</span> · 📧 ${u.email || 'SIN CORREO'}${datosExtra}</span>
@@ -993,6 +1012,9 @@ async function renderAdmin(){
         </div>
       </div>`;
   }).join('');
+
+  let logs = [];
+  try { logs = await getLogs(); } catch (e) { console.error('getLogs', e); }
   
   const byUser={};
   USERS.forEach(u=>{ byUser[u.user]={ok:0,fail:0,last:'NUNCA'}; });
