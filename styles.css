@@ -392,3 +392,9 @@ body.dark-mode .login-tab-btn:hover:not(.active){background:#1e3a5f;}
 body.dark-mode .login-panel input{background:#0a1628;border-color:#2d3a52;color:var(--text);}
 body.dark-mode .login-wrap{background:rgba(0,0,0,.4);}
 body.dark-mode #screen-login{background:linear-gradient(135deg,#050d1a 0%,#0a1628 50%,#050d1a 100%);}
+
+/* Rol supervisor (solo lectura) */
+.badge-supervisor{background:#dff0f7;color:#0b5a78}
+body.dark-mode .badge-supervisor{background:#10303d;color:#7dd3fc}
+body.rol-supervisor .solo-admin{display:none!important}
+.btn-add-file[disabled]{opacity:.45;cursor:default}

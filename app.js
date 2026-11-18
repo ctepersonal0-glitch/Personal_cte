@@ -98,7 +98,8 @@ async function initializeUsers() {
       if (needsSave) await saveUsers();
       
       if (_usersHuerfanos.length) console.warn('Documentos de usuarios duplicados ignorados (no se borran):', _usersHuerfanos);
-      if (currentUser && currentUser.rol === 'admin') renderAdmin();
+      sincronizarSesion();
+      if (puedeVerPanel()) renderAdmin();
       if (currentUser) {
         document.getElementById('stat-total').textContent = USERS.length;
       }
@@ -143,11 +144,63 @@ function isBlocked(userObj) {
   return userObj.blocked === true;
 }
 
+// ==================== ROLES Y PERMISOS ====================
+// Roles: admin (todo), supervisor (todo en solo lectura), user (INICIO, ORDEN, VACACIONES + botones que el admin habilite)
+const TABS_BASE = ['inicio', 'orden', 'vacaciones'];
+const TABS_OPCIONALES = { organico: 'ORGÁNICO', parametros: 'PARÁMETROS', reportes: 'REPORTES' };
+const ROL_LABEL = { admin: 'ADMINISTRADOR', supervisor: 'SUPERVISOR', user: 'USUARIO' };
+
+function esAdmin() { return !!currentUser && currentUser.rol === 'admin'; }
+function esSupervisor() { return !!currentUser && currentUser.rol === 'supervisor'; }
+function puedeVerPanel() { return esAdmin() || esSupervisor(); }
+function tabPermitida(id) {
+  if (!currentUser) return false;
+  if (puedeVerPanel()) return true;
+  if (id === 'admin' || id === 'auditoria') return false;
+  if (TABS_BASE.includes(id)) return true;
+  return Array.isArray(currentUser.tabs) && currentUser.tabs.includes(id);
+}
+function soloAdmin() {
+  if (!esAdmin()) { showToast('ESTA ACCIÓN ES SOLO PARA EL ADMINISTRADOR', 'error'); return false; }
+  return true;
+}
+
+function aplicarSesionUI() {
+  if (!currentUser) return;
+  const rb = document.getElementById('display-role-badge');
+  rb.textContent = esAdmin() ? 'ADMIN' : (esSupervisor() ? 'SUPERVISOR' : 'USUARIO');
+  rb.className = 'badge ' + (esAdmin() ? 'badge-admin' : (esSupervisor() ? 'badge-supervisor' : 'badge-user'));
+  document.getElementById('print-btn').style.display = puedeVerPanel() ? 'block' : 'none';
+  document.body.classList.toggle('rol-supervisor', esSupervisor());
+  document.body.classList.toggle('rol-admin', esAdmin());
+  const idDe = el => { const m = (el.getAttribute('onclick') || '').match(/showTab\('(\w+)'\)/); return m ? m[1] : null; };
+  document.querySelectorAll('nav a').forEach(a => { const id = idDe(a); if (id) a.style.display = tabPermitida(id) ? '' : 'none'; });
+  document.querySelectorAll('.grid .card[onclick]').forEach(c => { const id = idDe(c); if (id) c.style.display = tabPermitida(id) ? '' : 'none'; });
+}
+
+// Mantiene la sesión al día si el administrador cambia el rol, los botones o bloquea la cuenta
+function sincronizarSesion() {
+  if (!currentUser) return;
+  const me = USERS.find(u => u.user === currentUser.user);
+  if (!me) return;
+  if (me.blocked) { showToast('SU CUENTA FUE BLOQUEADA', 'error'); doLogout(); return; }
+  const cambio = me.rol !== currentUser.rol || JSON.stringify(me.tabs || []) !== JSON.stringify(currentUser.tabs || []);
+  currentUser.rol = me.rol;
+  currentUser.tabs = me.tabs;
+  if (cambio) {
+    aplicarSesionUI();
+    const act = document.querySelector('.tab.active');
+    if (act && !tabPermitida(act.id.replace('tab-', ''))) showTab('inicio', true);
+  }
+}
+
 function toggleBlockUser(username, block) {
+  if (!soloAdmin()) return;
   const user = USERS.find(u => u.user === username);
   if (!user || user.rol === 'admin') return;
   user.blocked = block;
   saveUserFields(user.user, { blocked: block });
+  auditar('ACCION_ADMIN', `${block ? 'BLOQUEÓ' : 'DESBLOQUEÓ'} AL USUARIO ${user.user}`);
   if (currentUser && currentUser.rol === 'admin') {
     renderAdmin();
   }
@@ -156,6 +209,7 @@ function toggleBlockUser(username, block) {
 // ==================== ACCIONES INLINE DE USUARIOS ====================
 
 async function deleteUser(username) {
+  if (!soloAdmin()) return;
   const user = USERS.find(u => u.user === username);
   if (!user) return;
   if (user.rol === 'admin') { 
@@ -189,6 +243,7 @@ async function deleteUser(username) {
       // 4. Limpiar del array local y caché
       USERS = USERS.filter(u => u.user !== username);
       localStorage.setItem('cte_users_cache', JSON.stringify(USERS));
+      auditar('ACCION_ADMIN', `ELIMINÓ AL USUARIO ${username}`);
 
       renderAdmin();
       showToast(`USUARIO ${user.nombre} ELIMINADO COMPLETAMENTE`, 'success');
@@ -199,17 +254,41 @@ async function deleteUser(username) {
     }
   });
 }
-async function toggleAdminRole(username) {
+async function cambiarRol(username, nuevoRol) {
+  if (!soloAdmin()) return;
   const user = USERS.find(u => u.user === username);
   if (!user || user.user === currentUser.user) { showToast('NO PUEDES MODIFICAR TU PROPIO ROL', 'error'); return; }
-  const nuevoRol = user.rol === 'admin' ? 'user' : 'admin';
-  const label = nuevoRol === 'admin' ? 'ADMINISTRADOR' : 'USUARIO';
-  openModal('CAMBIAR ROL', `¿CAMBIAR ROL DE ${user.nombre} A ${label}?`, async () => {
+  if (!ROL_LABEL[nuevoRol]) return;
+  openModal('CAMBIAR ROL', `¿CAMBIAR ROL DE ${user.nombre} A ${ROL_LABEL[nuevoRol]}?`, async () => {
+    const anterior = user.rol;
     user.rol = nuevoRol;
     await saveUserFields(user.user, { rol: nuevoRol });
+    auditar('ACCION_ADMIN', `CAMBIÓ EL ROL DE ${user.user}: ${ROL_LABEL[anterior] || anterior} → ${ROL_LABEL[nuevoRol]}`);
     renderAdmin();
-    showToast(`ROL DE ${user.nombre} CAMBIADO A ${label}`, 'success');
+    showToast(`ROL DE ${user.nombre} CAMBIADO A ${ROL_LABEL[nuevoRol]}`, 'success');
   });
+}
+function toggleAdminRole(username) {
+  const u = USERS.find(x => x.user === username);
+  if (u) cambiarRol(username, u.rol === 'admin' ? 'user' : 'admin');
+}
+
+// Botones adicionales (ORGÁNICO, PARÁMETROS, REPORTES) que el administrador habilita a un usuario
+async function toggleTabUsuario(username, tab, activo) {
+  if (!soloAdmin()) return;
+  const user = USERS.find(u => u.user === username);
+  if (!user || !TABS_OPCIONALES[tab]) return;
+  const set = new Set(user.tabs || []);
+  if (activo) set.add(tab); else set.delete(tab);
+  user.tabs = [...set];
+  try {
+    await saveUserFields(user.user, { tabs: user.tabs });
+    auditar('ACCION_ADMIN', `${activo ? 'HABILITÓ' : 'QUITÓ'} EL BOTÓN ${TABS_OPCIONALES[tab]} A ${user.user}`);
+    showToast(`${activo ? 'HABILITADO' : 'QUITADO'}: ${TABS_OPCIONALES[tab]}`, 'success', 2000);
+  } catch (err) {
+    console.error(err);
+    showToast('NO SE PUDO GUARDAR EL CAMBIO', 'error');
+  }
 }
 
 // ==================== SOLICITUDES DE REGISTRO ====================
@@ -233,8 +312,9 @@ function listenToSolicitudes() {
       
       window._solicitudesCache = solicitudes;
       
-      if (currentUser && currentUser.rol === 'admin') {
+      if (puedeVerPanel()) {
         renderSolicitudes();
+        if (document.getElementById('tab-auditoria').classList.contains('active')) renderAuditoriaResumen();
         
         const existingToast = document.querySelector('.toast-real-time');
         if (!existingToast && solicitudes.length > 0) {
@@ -542,6 +622,7 @@ async function solicitarRegistro() {
 }
 
 async function aprobarSolicitud(id) {
+  if (!soloAdmin()) return;
   const docRef = db.collection('solicitudes').doc(id);
   const doc = await docRef.get();
   
@@ -588,12 +669,14 @@ async function aprobarSolicitud(id) {
 }
 
 async function rechazarSolicitud(id) {
+  if (!soloAdmin()) return;
   const docRef = db.collection('solicitudes').doc(id);
   const doc = await docRef.get();
   const solicitud = doc.data();
 
   openModal('RECHAZAR SOLICITUD', `¿RECHAZAR LA SOLICITUD DE ${solicitud.nombreAgente || solicitud.area} (CÓD. ${solicitud.codigo})?`, async () => {
     await docRef.update({ estado: 'rechazada', fechaRechazo: firebase.firestore.FieldValue.serverTimestamp() });
+    auditar('ACCION_ADMIN', `RECHAZÓ LA SOLICITUD DE ${solicitud.nombreAgente || solicitud.area} (CÓD. ${solicitud.codigo})`);
     if (currentUser && currentUser.rol === 'admin') renderAdmin();
     showToast('❌ Solicitud rechazada', 'error');
   });
@@ -636,10 +719,10 @@ async function renderSolicitudes() {
               <div class="file-card-meta">${s.grado ? esc(s.grado) + '<br>' : ''}ÁREA: ${esc(s.area)}<br>CÓDIGO: ${esc(s.codigo)}<br>CORREO: ${esc(s.email)}<br>SOLICITADO: ${s.fecha}</div>
             </div>
           </div>
-          <div class="file-card-actions">
+          ${esAdmin() ? `<div class="file-card-actions">
             <button class="file-card-btn file-card-btn-open btn-approve" onclick="aprobarSolicitud('${s.id}')">✓ APROBAR</button>
             <button class="file-card-btn file-card-btn-del btn-reject" onclick="rechazarSolicitud('${s.id}')">✗ RECHAZAR</button>
-          </div>
+          </div>` : ''}
         </div>
       `).join('')}
     </div>
@@ -655,6 +738,7 @@ async function addLog(usuario, nombre, estado, email='', details=''){
     usuario,
     nombre,
     estado,
+    tipo: estado === 'ok' ? 'LOGIN' : (estado === 'fail' ? 'LOGIN_FALLIDO' : 'ACCION_ADMIN'),
     email,
     details,
     fecha: now.toLocaleDateString('es-EC'),
@@ -681,14 +765,16 @@ async function getLogs() {
 
 // ==================== EXPORTAR A EXCEL ====================
 function exportUsersToExcel() {
+  auditar('EXPORTACION', 'EXPORTÓ EL LISTADO DE USUARIOS');
   let csv = "NOMBRE,USUARIO,ROL,EMAIL,GRADO,ÁREA,CÓDIGO INSTITUCIONAL,ESTADO\n";
   USERS.forEach(u => {
-    csv += `"${u.nombre}","${u.user}","${u.rol === 'admin' ? 'ADMINISTRADOR' : 'USUARIO'}","${u.email || ''}","${u.grado || ''}","${u.area || ''}","${u.codigo || ''}","${u.blocked ? 'BLOQUEADO' : 'ACTIVO'}"\n`;
+    csv += `"${u.nombre}","${u.user}","${ROL_LABEL[u.rol] || 'USUARIO'}","${u.email || ''}","${u.grado || ''}","${u.area || ''}","${u.codigo || ''}","${u.blocked ? 'BLOQUEADO' : 'ACTIVO'}"\n`;
   });
   downloadCSV(csv, `usuarios_cte_${new Date().toISOString().slice(0,19)}.csv`);
 }
 
 async function exportLogsToExcel() {
+  auditar('EXPORTACION', 'EXPORTÓ LA BITÁCORA DE INGRESOS (CSV)');
   const logs = await getLogs();
   let csv = "USUARIO,NOMBRE,EMAIL,FECHA,HORA,DISPOSITIVO,ESTADO,DETALLES\n";
   logs.forEach(l => {
@@ -754,7 +840,7 @@ let inactivityTimer;
 
 function resetInactivityTimer() {
   clearTimeout(inactivityTimer);
-  inactivityTimer = setTimeout(() => { if (currentUser) doLogout(); }, 30 * 60 * 1000);
+  inactivityTimer = setTimeout(() => { if (currentUser) doLogout('INACTIVIDAD'); }, 30 * 60 * 1000);
 }
 document.body.addEventListener('click', resetInactivityTimer);
 document.body.addEventListener('keypress', resetInactivityTimer);
@@ -764,17 +850,12 @@ function entrarAlSistema(found, foto){
   document.getElementById('screen-login').style.display = 'none';
   document.getElementById('screen-main').style.display  = 'block';
   document.getElementById('display-user').textContent = found.nombre + ' (' + found.user + ')';
-  const rb = document.getElementById('display-role-badge');
-  rb.textContent = found.rol === 'admin' ? 'ADMIN' : 'USUARIO';
-  rb.className = 'badge ' + (found.rol==='admin' ? 'badge-admin' : 'badge-user');
-  
-  const isAdmin = found.rol === 'admin';
-  document.getElementById('nav-admin').style.display = isAdmin ? 'block' : 'none';
-  document.getElementById('print-btn').style.display = isAdmin ? 'block' : 'none';
-  
+  aplicarSesionUI();
+  showTab('inicio', true);
+
   renderDashboard();
   renderAllSectionFiles();
-  if (isAdmin) {
+  if (puedeVerPanel()) {
     renderAdmin();
   }
   resetInactivityTimer();
@@ -831,8 +912,11 @@ function onGoogleToken(response){
   }
 }
 
-function doLogout(){
+function doLogout(motivo){
+  if (currentUser) auditar('LOGOUT', motivo === 'INACTIVIDAD' ? 'SESIÓN CERRADA POR INACTIVIDAD' : 'CERRÓ SESIÓN');
   currentUser = null;
+  _ultimaPestana = null;
+  document.body.classList.remove('rol-supervisor', 'rol-admin');
   document.getElementById('screen-main').style.display = 'none';
   document.getElementById('screen-login').style.display = 'flex';
   document.getElementById('nav-admin').style.display = 'none';
@@ -841,6 +925,14 @@ function doLogout(){
 
 // ==================== RENDERIZADO PRINCIPAL ====================
 async function renderDashboard(){
+  // La bitácora de accesos solo existe para administrador y supervisor: el usuario normal no ve ni el título
+  const panel = puedeVerPanel();
+  document.getElementById('dashboard-stats').style.display = panel ? '' : 'none';
+  document.getElementById('dashboard-bitacora-titulo').style.display = panel ? '' : 'none';
+  document.getElementById('dashboard-bitacora').style.display = panel ? 'block' : 'none';
+  document.getElementById('dashboard-no-admin').style.display = 'none';
+  if(!panel) return;   // además se evita leer 500 registros por cada ingreso de un usuario normal
+
   const logs = await getLogs();
   const hoy = new Date().toLocaleDateString('es-EC');
   const hoyOk = logs.filter(l=>l.fecha===hoy && l.estado==='ok').length;
@@ -849,22 +941,16 @@ async function renderDashboard(){
   document.getElementById('stat-total').textContent = USERS.length;
   document.getElementById('stat-hoy').textContent = hoyOk;
   document.getElementById('stat-fail').textContent = hoyFail;
-  if(last){ document.getElementById('stat-last').textContent = last.nombre.split(' ')[0]; document.getElementById('stat-last-time').textContent = last.fecha+' '+last.hora; }
-  
-  const isAdmin = currentUser && currentUser.rol === 'admin';
-  // ── Solo admin ve las tarjetas de estadísticas ──
-  document.getElementById('dashboard-stats').style.display = isAdmin ? '' : 'none';
-  document.getElementById('dashboard-bitacora').style.display = isAdmin ? 'block' : 'none';
-  document.getElementById('dashboard-no-admin').style.display = isAdmin ? 'none' : 'block';
-  if(isAdmin){
-    const recent = [...logs].slice(0,15);
-    document.getElementById('log-count-label').textContent = logs.length+' REGISTROS';
-    document.getElementById('log-tbody').innerHTML = recent.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':'badge-fail'}">${l.estado==='ok'?'✓ EXITOSO':'✗ FALLIDO'}</span></td></tr>`).join('');
-  }
+  if(last){ document.getElementById('stat-last').textContent = (last.nombre||'').split(' ')[0]; document.getElementById('stat-last-time').textContent = last.fecha+' '+last.hora; }
+
+  const recent = [...logs].slice(0,15);
+  document.getElementById('log-count-label').textContent = logs.length+' REGISTROS';
+  document.getElementById('log-tbody').innerHTML = recent.map(l=>`<tr><td>${esc(l.usuario)}</td><td>${esc(l.nombre)}</td><td>${l.fecha} ${l.hora}</td><td>${l.device}</td><td><span class="badge ${l.estado==='ok'?'badge-ok':'badge-fail'}">${l.estado==='ok'?'✓ EXITOSO':'✗ FALLIDO'}</span></td></tr>`).join('');
 }
 
 async function renderAdmin(){
-  if(!currentUser||currentUser.rol!=='admin') return;
+  if(!puedeVerPanel()) return;
+  const w = esAdmin();
   const logs = await getLogs();
   
   await renderSolicitudes();
@@ -875,19 +961,22 @@ async function renderAdmin(){
     const isAdm  = u.rol === 'admin';
     const datosExtra = u.area ? `<br><span style="font-size:.7rem">📍 ${u.area}${u.grado ? ' | ' + u.grado : ''} | CÓD: ${u.codigo}</span>` : '';
 
-    const btnBlock = (!isSelf && !isAdm)
+    const btnBlock = (w && !isSelf && !isAdm)
       ? (u.blocked
           ? `<button class="btn-unblock" onclick="toggleBlockUser('${u.user}',false)" title="Desbloquear">✓ DESBLOQUEAR</button>`
           : `<button class="btn-block"   onclick="toggleBlockUser('${u.user}',true)"  title="Bloquear">⊘ BLOQUEAR</button>`)
       : '';
 
-    const btnAdmin = !isSelf
+    const btnAdmin = (w && !isSelf)
       ? (isAdm
-          ? `<button class="btn-block"   onclick="toggleAdminRole('${u.user}')" title="Quitar admin">👤 QUITAR ADMIN</button>`
-          : `<button class="btn-unblock" onclick="toggleAdminRole('${u.user}')" title="Hacer admin">🛡 HACER ADMIN</button>`)
+          ? `<button class="btn-block"   onclick="cambiarRol('${u.user}','user')" title="Quitar admin">👤 QUITAR ADMIN</button>`
+          : (u.rol === 'supervisor'
+              ? `<button class="btn-block" onclick="cambiarRol('${u.user}','user')" title="Quitar supervisor">👤 QUITAR SUPERVISOR</button>`
+              : `<button class="btn-unblock" onclick="cambiarRol('${u.user}','supervisor')" title="Hacer supervisor">👁 HACER SUPERVISOR</button>`)
+            + `<button class="btn-unblock" onclick="cambiarRol('${u.user}','admin')" title="Hacer admin">🛡 HACER ADMIN</button>`)
       : '';
 
-    const btnDel = (!isSelf && !isAdm)
+    const btnDel = (w && !isSelf && !isAdm)
       ? `<button class="btn-block" style="background:var(--danger,#c0392b);color:#fff" onclick="deleteUser('${u.user}')" title="Eliminar">🗑 ELIMINAR</button>`
       : '';
 
@@ -896,7 +985,8 @@ async function renderAdmin(){
         <div class="avatar">${u.nombre.split(' ').map(x=>x[0]).slice(0,2).join('')}</div>
         <div class="user-info">
           <strong>${esc(u.nombre)}${u.blocked ? '<span class="blocked-badge">● BLOQUEADO</span>' : ''}</strong>
-          <span>${esc(u.user)} · <span class="badge ${isAdm?'badge-admin':'badge-user'}">${u.rol}</span> · 📧 ${u.email || 'SIN CORREO'}${datosExtra}</span>
+          <span>${esc(u.user)} · <span class="badge ${isAdm?'badge-admin':(u.rol==='supervisor'?'badge-supervisor':'badge-user')}">${u.rol}</span> · 📧 ${u.email || 'SIN CORREO'}${datosExtra}</span>
+          ${u.rol === 'user' ? `<div style="margin-top:.45rem;font-size:.72rem;letter-spacing:.04em">BOTONES ADICIONALES: ${Object.entries(TABS_OPCIONALES).map(([id, n]) => `<label style="margin-right:.9rem;cursor:${w?'pointer':'default'}"><input type="checkbox" ${(u.tabs||[]).includes(id)?'checked':''} ${w?'':'disabled'} onchange="toggleTabUsuario('${u.user}','${id}',this.checked)"/> ${n}</label>`).join('')}</div>` : ''}
         </div>
         <div style="display:flex;gap:.4rem;flex-wrap:wrap;align-items:center">
           ${btnBlock}${btnAdmin}${btnDel}
@@ -1007,13 +1097,15 @@ function renderAdminFiles(){
   if(!files.length){ document.getElementById('admin-files-list').innerHTML = '<div class="file-empty">SIN ARCHIVOS.</div>'; return; }
   const bySection = {};
   files.forEach(f=>{ if(!bySection[f.seccion]) bySection[f.seccion]=[]; bySection[f.seccion].push(f); });
-  document.getElementById('admin-files-list').innerHTML = Object.keys(bySection).map(s=>`<div style="margin-bottom:1rem"><div class="section-badge" style="margin-bottom:.5rem">${SECCIONES[s]||s}</div><div class="files-grid">${bySection[s].map(f=>`<div class="file-card"><div class="file-card-top"><div class="file-type-icon ${TIPO_CSS[f.tipo]}">${TIPO_ICONS[f.tipo]}</div><div><div class="file-card-name">${esc(f.nombre)}</div><div class="file-card-meta">${f.fecha}</div></div></div><div class="file-card-actions"><button class="file-card-btn file-card-btn-del" onclick="deleteFile(${f.id})">🗑 ELIMINAR</button></div></div>`).join('')}</div></div>`).join('');
+  document.getElementById('admin-files-list').innerHTML = Object.keys(bySection).map(s=>`<div style="margin-bottom:1rem"><div class="section-badge" style="margin-bottom:.5rem">${SECCIONES[s]||s}</div><div class="files-grid">${bySection[s].map(f=>`<div class="file-card"><div class="file-card-top"><div class="file-type-icon ${TIPO_CSS[f.tipo]}">${TIPO_ICONS[f.tipo]}</div><div><div class="file-card-name">${esc(f.nombre)}</div><div class="file-card-meta">${f.fecha}</div></div></div>${esAdmin() ? `<div class="file-card-actions"><button class="file-card-btn file-card-btn-del" onclick="deleteFile(${f.id})">🗑 ELIMINAR</button></div>` : ''}</div>`).join('')}</div></div>`).join('');
 }
 function deleteFile(id){
+  if (!soloAdmin()) return;
   const file = getFiles().find(f=>f.id===id);
   openModal('ELIMINAR ARCHIVO', `¿ELIMINAR "${file?.nombre}"?`, ()=>{
     const newFiles = getFiles().filter(f=>f.id!==id);
     saveFiles(newFiles);
+    auditar('ARCHIVO', `ELIMINÓ EL ARCHIVO "${file?.nombre}" (${SECCIONES[file?.seccion] || file?.seccion || ''})`);
     if (currentUser && currentUser.rol === 'admin') {
       renderAdmin();
       renderAllSectionFiles();
@@ -1021,6 +1113,7 @@ function deleteFile(id){
   });
 }
 async function addFile(){
+  if (!soloAdmin()) return;
   const nombre = document.getElementById('af-nombre').value.trim().toUpperCase();
   const seccion = document.getElementById('af-seccion').value;
   const url = document.getElementById('af-url').value.trim();
@@ -1033,6 +1126,7 @@ async function addFile(){
   const files = getFiles();
   files.push(entry);
   saveFiles(files);
+  auditar('ARCHIVO', `AGREGÓ EL ARCHIVO "${nombre}" (${SECCIONES[seccion] || seccion})`);
   document.getElementById('af-nombre').value = '';
   document.getElementById('af-url').value = '';
   document.getElementById('af-desc').value = '';
@@ -1080,6 +1174,7 @@ function globalSearchFiles(){
 
 // ==================== EXTRAS ====================
 async function exportLogsToCSV(){
+  auditar('EXPORTACION', 'EXPORTÓ LA BITÁCORA DE INGRESOS (CSV)');
   const logs = await getLogs();
   let csv = "USUARIO,NOMBRE,EMAIL,FECHA,HORA,DISPOSITIVO,ESTADO\n";
   logs.forEach(l=>{ csv += `"${l.usuario}","${l.nombre}","${l.email||''}","${l.fecha}","${l.hora}","${l.device}","${l.estado}"\n`; });
@@ -1104,13 +1199,15 @@ function updateThemeIcon(isDark){
 }
 
 async function confirmClearLogs(){
-  openModal('🗑 BORRAR BITÁCORA', '¿ELIMINAR TODOS LOS REGISTROS?', async ()=>{ 
+  if (!soloAdmin()) return;
+  openModal('🗑 BORRAR BITÁCORA', '¿ELIMINAR TODOS LOS REGISTROS DE INGRESOS? (LA AUDITORÍA NO SE BORRA)', async ()=>{
+    auditar('ACCION_ADMIN', 'BORRÓ LA BITÁCORA DE INGRESOS');
     const snapshot = await db.collection('logs').get();
     const batch = db.batch();
     snapshot.forEach(doc => batch.delete(doc.ref));
     await batch.commit();
     renderDashboard(); 
-    if(currentUser && currentUser.rol === 'admin') { renderAdmin(); } 
+    if(puedeVerPanel()) { renderAdmin(); }
   });
 }
 
@@ -1127,15 +1224,19 @@ document.getElementById('modal-ok-btn').onclick = () => { if(_modalCallback) _mo
 document.getElementById('confirm-modal').addEventListener('click', e=>{ if(e.target === e.currentTarget) closeModal(); });
 function mostrarError(msg){ const el = document.getElementById('login-error'); el.textContent = msg; el.style.display = 'block'; showToast(msg,'error'); setTimeout(()=>el.style.display='none', 5000); }
 function mostrarExito(msg){ const el = document.getElementById('login-success'); el.textContent = msg; el.style.display = 'block'; showToast(msg,'success'); setTimeout(()=>el.style.display='none', 5000); }
-function showTab(id){
+function showTab(id, silencioso){
+  if (!tabPermitida(id)) { if (currentUser) showToast('NO TIENE ACCESO A ESTA SECCIÓN', 'error'); return; }
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
   document.querySelectorAll('nav a').forEach(a=>a.classList.remove('active'));
   const lnk = [...document.querySelectorAll('nav a')].find(a=>a.getAttribute('onclick')===`showTab('${id}')`);
   if(lnk) lnk.classList.add('active');
-  if(id === 'admin' && currentUser && currentUser.rol === 'admin') renderAdmin();
+  if(id === 'admin' && puedeVerPanel()) renderAdmin();
   if(id === 'vacaciones') renderVacaciones();
+  if(id === 'auditoria') renderAuditoria();
   if(SECCIONES[id]) renderSectionFiles(id);
+  if(!silencioso && id !== _ultimaPestana) auditar('PESTANA', 'ABRIÓ LA SECCIÓN ' + id.toUpperCase());
+  _ultimaPestana = id;
 }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
@@ -1188,7 +1289,7 @@ function vacLimpiarFallos(){ try { localStorage.removeItem(_vacKey()); } catch (
 
 function renderVacaciones(){
   if (!currentUser) return;
-  const isAdmin = currentUser.rol === 'admin';
+  const isAdmin = puedeVerPanel();
   document.getElementById('vac-admin').style.display = isAdmin ? 'block' : 'none';
   document.getElementById('vac-user').style.display = isAdmin ? 'none' : 'block';
   if (isAdmin) {
@@ -1214,10 +1315,10 @@ function renderVacaciones(){
 // ---------------- USUARIO ----------------
 async function consultarVacaciones(){
   const res = document.getElementById('vac-resultado');
-  if (!currentUser || currentUser.rol === 'admin') return;
+  if (!currentUser || puedeVerPanel()) return;
 
   const bloq = vacMinutosBloqueo();
-  if (bloq) { res.innerHTML = `<div style="color:#c0392b;font-size:.88rem">⛔ DEMASIADOS INTENTOS FALLIDOS. INTENTE NUEVAMENTE EN ${bloq} MINUTO(S).</div>`; return; }
+  if (bloq) { auditar('CONSULTA_FALLIDA', 'CONSULTA BLOQUEADA POR INTENTOS FALLIDOS'); res.innerHTML = `<div style="color:#c0392b;font-size:.88rem">⛔ DEMASIADOS INTENTOS FALLIDOS. INTENTE NUEVAMENTE EN ${bloq} MINUTO(S).</div>`; return; }
 
   const vinc = normalizarCodigo(currentUser.codigo);
   const codigo = vinc || normalizarCodigo(document.getElementById('vac-codigo').value);
@@ -1236,12 +1337,14 @@ async function consultarVacaciones(){
     ]);
     if (!doc.exists || doc.data().cedHash !== hash) {
       const quedan = vacRegistrarFallo();
+      auditar('CONSULTA_FALLIDA', `DATOS NO COINCIDEN - CÓDIGO ${codigo}`);
       res.innerHTML = '<div style="color:#c0392b;font-size:.88rem">❌ EL CÓDIGO Y LA CÉDULA NO COINCIDEN CON NINGÚN REGISTRO.'
         + (quedan > 0 ? ` LE QUEDAN ${quedan} INTENTO(S).` : ` CONSULTA BLOQUEADA POR ${VAC_BLOQUEO_MIN} MINUTOS.`) + '</div>';
       document.getElementById('vac-cedula').value = '';
       return;
     }
     vacLimpiarFallos();
+    auditar('CONSULTA_VACACIONES', `CONSULTÓ SUS VACACIONES - CÓDIGO ${codigo}` + (!vinc ? ' (CÓDIGO VINCULADO A LA CUENTA)' : ''));
 
     if (!vinc) {
       await db.collection('users').doc(currentUser.user).set({ codigo: codigo }, { merge: true });
@@ -1419,13 +1522,14 @@ async function subirVacaciones(){
 
 // ---------------- ADMINISTRADOR: consulta general ----------------
 async function cargarVacacionesAdmin(forzar){
-  if (!currentUser || currentUser.rol !== 'admin') return;
+  if (!puedeVerPanel()) return;
   if (_vacDatos && !forzar) { vacAplicarFiltros(); return; }
   const resumen = document.getElementById('vac-resumen');
   resumen.textContent = 'CARGANDO LISTADO...';
   try {
     const snap = await db.collection(VAC_COL).get();
     _vacDatos = snap.docs.map(d => ({ codigo: d.id, ...d.data() }));
+    auditar('CONSULTA_VACACIONES', `ABRIÓ EL LISTADO GENERAL DE VACACIONES (${_vacDatos.length} REGISTROS)`);
     _vacDatos.sort((a, b) => (a.apellidos + a.nombres).localeCompare(b.apellidos + b.nombres, 'es'));
 
     const sel = (id, titulo, valores) => {
@@ -1470,6 +1574,19 @@ async function vacAplicarFiltros(){
   });
   _vacPagina = 1;
   renderVacTabla();
+  vacAuditarBusqueda(q);
+}
+
+let _vacAudTimer = null;
+function vacAuditarBusqueda(q) {
+  clearTimeout(_vacAudTimer);
+  if (!q) return;
+  _vacAudTimer = setTimeout(() => {
+    let t;
+    if (/^[0-9\s]+$/.test(q)) { const d = q.replace(/\D/g, ''); t = d.length >= 9 ? 'POR CÉDULA' : 'POR CÓDIGO ' + d; }
+    else t = 'POR TEXTO "' + q.slice(0, 40) + '"';
+    auditar('CONSULTA_VACACIONES', 'BÚSQUEDA EN EL LISTADO GENERAL ' + t);
+  }, 1500);
 }
 
 function renderVacTabla(){
@@ -1491,17 +1608,205 @@ function renderVacTabla(){
 }
 function vacIrPagina(n){ _vacPagina = n; renderVacTabla(); }
 
-function exportarVacaciones(){
-  if (!currentUser || currentUser.rol !== 'admin') return;
-  if (!_vacFiltrados.length) { showToast('NO HAY REGISTROS PARA EXPORTAR', 'error'); return; }
+// modo: 'todo' = todo el archivo; 'filtrado' = lo que está filtrado en pantalla
+function exportarVacaciones(modo){
+  if (!puedeVerPanel()) return;
   if (typeof XLSX === 'undefined') { showToast('NO SE CARGÓ LA LIBRERÍA DE EXCEL', 'error'); return; }
-  const filas = _vacFiltrados.map(d => ({
-    CODIGO: d.codigo, GRADO: d.grado, APELLIDOS: d.apellidos, NOMBRES: d.nombres, 'AREA ACTUAL': d.area,
-    PROVINCIA: d.provincia, 'MES DE VACACIONES': d.mes, DIAS: d.dias, 'DIAS GOZADOS': d.diasGozados
-  }));
+  const base = modo === 'todo' ? _vacDatos : _vacFiltrados;
+  if (!base || !base.length) { showToast('NO HAY REGISTROS PARA EXPORTAR', 'error'); return; }
+  const lista = [...base].sort((a, b) => (VAC_MESES.indexOf(a.mes) - VAC_MESES.indexOf(b.mes)) || (Number(a.codigo) - Number(b.codigo)));
+  // Mismas columnas del archivo original (la cédula no se exporta: solo se guarda cifrada)
+  const filas = lista.map(d => {
+    const f = {
+      GRADO: d.grado, CODIGO: d.codigo, APELLIDOS: d.apellidos, NOMBRE: d.nombres, 'AREA ACTUAL': d.area,
+      'MES QUE SE PROGRAMO VACACIONES EN EL 2027': d.mes, 'DIAS GOZADOS 2027': d.diasGozados || 0
+    };
+    VAC_MESES.forEach(m => { f[m] = d.mes === m ? (d.dias || 0) : ''; });
+    f.PROVINCIA = d.provincia;
+    return f;
+  });
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(filas), 'VACACIONES 2027');
-  XLSX.writeFile(wb, 'vacaciones_2027.xlsx');
+  XLSX.writeFile(wb, modo === 'todo' ? 'vacaciones_2027_completo.xlsx' : 'vacaciones_2027_filtrado.xlsx');
+  auditar('EXPORTACION', `EXPORTÓ VACACIONES 2027 (${modo === 'todo' ? 'ARCHIVO COMPLETO' : 'SOLO LO FILTRADO'}): ${lista.length} REGISTROS`);
+}
+
+// ==================== AUDITORÍA ====================
+// Eventos nuevos → colección "auditoria". Los ingresos históricos siguen en "logs" y se muestran junto a los nuevos.
+// Visible para administrador y supervisor.
+const AUD_COL = 'auditoria';
+const AUD_LIMITE = 5000;
+const AUD_POR_PAGINA = 25;
+const AUD_TIPOS = {
+  LOGIN: 'INGRESO',
+  LOGIN_FALLIDO: 'INGRESO FALLIDO',
+  LOGOUT: 'CIERRE DE SESIÓN',
+  CONSULTA_VACACIONES: 'CONSULTA DE VACACIONES',
+  CONSULTA_FALLIDA: 'CONSULTA FALLIDA',
+  ACCION_ADMIN: 'ACCIÓN ADMINISTRATIVA',
+  EXPORTACION: 'EXPORTACIÓN',
+  ARCHIVO: 'ARCHIVOS',
+  PESTANA: 'SECCIÓN VISITADA'
+};
+const AUD_BADGE = { LOGIN: 'badge-ok', LOGIN_FALLIDO: 'badge-fail', CONSULTA_FALLIDA: 'badge-fail', ACCION_ADMIN: 'badge-admin', EXPORTACION: 'badge-admin', ARCHIVO: 'badge-admin', LOGOUT: 'badge-user', CONSULTA_VACACIONES: 'badge-supervisor', PESTANA: 'badge-user' };
+
+let _ultimaPestana = null;
+let _audEventos = [];
+let _audFiltrados = [];
+let _audPagina = 1;
+
+// Registra un evento del usuario con sesión iniciada (no bloquea la pantalla si falla)
+function auditar(tipo, detalle) {
+  if (!currentUser) return;
+  const now = new Date();
+  const entry = {
+    usuario: currentUser.user,
+    nombre: currentUser.nombre || '',
+    rol: currentUser.rol || '',
+    email: currentUser.email || '',
+    tipo,
+    details: detalle || '',
+    fecha: now.toLocaleDateString('es-EC'),
+    hora: now.toLocaleTimeString('es-EC'),
+    device: /Mobi|Android/i.test(navigator.userAgent) ? 'MÓVIL' : 'COMPUTADORA',
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  try { db.collection(AUD_COL).add(entry).catch(err => console.error('Auditoría:', err)); } catch (err) { console.error('Auditoría:', err); }
+}
+
+function _audMs(t) { return t && t.toMillis ? t.toMillis() : (t && t.seconds ? t.seconds * 1000 : Date.now()); }
+function _audDia(ms) {
+  const d = new Date(ms);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function _audDiaTxt(key) { const [y, m, d] = key.split('-'); return `${d}/${m}/${y}`; }
+
+function audTipoDeLog(x) {
+  return x.tipo || (x.estado === 'ok' ? 'LOGIN' : (x.estado === 'fail' ? 'LOGIN_FALLIDO' : 'ACCION_ADMIN'));
+}
+
+async function renderAuditoria() {
+  if (!puedeVerPanel()) return;
+  const estado = document.getElementById('aud-estado');
+  estado.textContent = 'CARGANDO AUDITORÍA...';
+  const dias = Number(document.getElementById('aud-dias').value) || 30;
+  const desde = new Date(); desde.setDate(desde.getDate() - dias + 1); desde.setHours(0, 0, 0, 0);
+  const ts = firebase.firestore.Timestamp.fromDate(desde);
+
+  const consulta = col => db.collection(col).where('timestamp', '>=', ts).orderBy('timestamp', 'desc').limit(AUD_LIMITE).get();
+  const [rAud, rLogs] = await Promise.allSettled([consulta(AUD_COL), consulta('logs')]);
+
+  const ev = [];
+  let aviso = '';
+  if (rAud.status === 'fulfilled') {
+    rAud.value.docs.forEach(d => {
+      const x = d.data();
+      ev.push({ ms: _audMs(x.timestamp), usuario: x.usuario || '', nombre: x.nombre || '', tipo: x.tipo || 'PESTANA', detalle: x.details || '', device: x.device || '', fecha: x.fecha, hora: x.hora });
+    });
+  } else {
+    console.error(rAud.reason);
+    aviso = '⚠ NO SE PUDO LEER LA COLECCIÓN "auditoria". REVISE LAS REGLAS DE FIRESTORE. ';
+  }
+  if (rLogs.status === 'fulfilled') {
+    rLogs.value.docs.forEach(d => {
+      const x = d.data();
+      ev.push({ ms: _audMs(x.timestamp), usuario: x.usuario || '', nombre: x.nombre || '', tipo: audTipoDeLog(x), detalle: x.details || '', device: x.device || '', fecha: x.fecha, hora: x.hora });
+    });
+  } else {
+    console.error(rLogs.reason);
+    aviso += '⚠ NO SE PUDO LEER LA BITÁCORA DE INGRESOS. ';
+  }
+  ev.sort((a, b) => b.ms - a.ms);
+  _audEventos = ev;
+  estado.textContent = aviso;
+
+  // opciones del filtro de evento
+  const sel = document.getElementById('aud-f-tipo');
+  const actual = sel.value;
+  sel.innerHTML = '<option value="">TODOS LOS EVENTOS</option>' + Object.entries(AUD_TIPOS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+  sel.value = actual;
+
+  renderAuditoriaResumen();
+  audAplicar();
+}
+
+// Tarjetas del resumen y tabla "personas por día"
+function renderAuditoriaResumen() {
+  const hoy = _audDia(Date.now());
+  const ev = _audEventos;
+  const loginsHoy = ev.filter(e => e.tipo === 'LOGIN' && _audDia(e.ms) === hoy);
+  document.getElementById('aud-personas-hoy').textContent = new Set(loginsHoy.map(e => e.usuario)).size;
+  document.getElementById('aud-eventos-hoy').textContent = ev.filter(e => _audDia(e.ms) === hoy).length;
+  document.getElementById('aud-fallidos-hoy').textContent = ev.filter(e => e.tipo === 'LOGIN_FALLIDO' && _audDia(e.ms) === hoy).length;
+  document.getElementById('aud-pendientes').textContent = (window._solicitudesCache || []).length;
+
+  const porDia = {};
+  ev.filter(e => e.tipo === 'LOGIN').forEach(e => {
+    const k = _audDia(e.ms);
+    (porDia[k] = porDia[k] || { personas: new Set(), ingresos: 0 });
+    porDia[k].personas.add(e.usuario);
+    porDia[k].ingresos++;
+  });
+  // todos los días del rango, aunque no haya habido ingresos
+  const dias = Number(document.getElementById('aud-dias').value) || 30;
+  const filas = [];
+  for (let i = 0; i < dias; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const k = _audDia(d.getTime());
+    filas.push({ k, personas: porDia[k] ? porDia[k].personas.size : 0, ingresos: porDia[k] ? porDia[k].ingresos : 0 });
+  }
+  const max = Math.max(1, ...filas.map(f => f.personas));
+  document.getElementById('aud-dia-tbody').innerHTML = filas.map(f =>
+    `<tr><td>${_audDiaTxt(f.k)}</td><td style="width:55%"><div style="display:flex;align-items:center;gap:.6rem"><div style="height:10px;border-radius:5px;background:var(--gold);width:${Math.round(f.personas / max * 100)}%;min-width:${f.personas ? 4 : 0}px"></div><strong>${f.personas}</strong></div></td><td>${f.ingresos}</td></tr>`
+  ).join('');
+}
+
+function audAplicar() {
+  const tipo = document.getElementById('aud-f-tipo').value;
+  const q = document.getElementById('aud-q').value.trim().toUpperCase();
+  const desde = document.getElementById('aud-desde').value;
+  const hasta = document.getElementById('aud-hasta').value;
+  _audFiltrados = _audEventos.filter(e => {
+    if (tipo && e.tipo !== tipo) return false;
+    const dk = _audDia(e.ms);
+    if (desde && dk < desde) return false;
+    if (hasta && dk > hasta) return false;
+    if (q && !`${e.usuario} ${e.nombre} ${e.detalle}`.toUpperCase().includes(q)) return false;
+    return true;
+  });
+  _audPagina = 1;
+  renderAuditoriaTabla();
+}
+
+function renderAuditoriaTabla() {
+  const total = _audFiltrados.length;
+  const paginas = Math.max(1, Math.ceil(total / AUD_POR_PAGINA));
+  if (_audPagina > paginas) _audPagina = paginas;
+  const slice = _audFiltrados.slice((_audPagina - 1) * AUD_POR_PAGINA, _audPagina * AUD_POR_PAGINA);
+  document.getElementById('aud-resumen').innerHTML = `<strong>${total}</strong> EVENTOS`;
+  document.getElementById('aud-tbody').innerHTML = slice.length
+    ? slice.map(e => `<tr><td>${esc(e.fecha || _audDiaTxt(_audDia(e.ms)))} ${esc(e.hora || '')}</td><td>${esc(e.usuario)}</td><td>${esc(e.nombre)}</td><td><span class="badge ${AUD_BADGE[e.tipo] || 'badge-user'}">${esc(AUD_TIPOS[e.tipo] || e.tipo)}</span></td><td>${esc(e.detalle)}</td><td>${esc(e.device)}</td></tr>`).join('')
+    : '<tr><td colspan="6" style="text-align:center;padding:1.2rem">SIN EVENTOS</td></tr>';
+  document.getElementById('aud-paginacion').innerHTML = paginas > 1
+    ? `<button class="btn-add-file" ${_audPagina <= 1 ? 'disabled' : ''} onclick="audIrPagina(${_audPagina - 1})">◀</button>
+       <span style="font-size:.82rem">PÁGINA ${_audPagina} DE ${paginas}</span>
+       <button class="btn-add-file" ${_audPagina >= paginas ? 'disabled' : ''} onclick="audIrPagina(${_audPagina + 1})">▶</button>`
+    : '';
+}
+function audIrPagina(n) { _audPagina = n; renderAuditoriaTabla(); }
+
+function exportarAuditoria() {
+  if (!puedeVerPanel()) return;
+  if (typeof XLSX === 'undefined') { showToast('NO SE CARGÓ LA LIBRERÍA DE EXCEL', 'error'); return; }
+  if (!_audFiltrados.length) { showToast('NO HAY EVENTOS PARA EXPORTAR', 'error'); return; }
+  const filas = _audFiltrados.map(e => ({
+    FECHA: e.fecha || _audDiaTxt(_audDia(e.ms)), HORA: e.hora || '', USUARIO: e.usuario, NOMBRE: e.nombre,
+    EVENTO: AUD_TIPOS[e.tipo] || e.tipo, DETALLE: e.detalle, DISPOSITIVO: e.device
+  }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(filas), 'AUDITORIA');
+  XLSX.writeFile(wb, 'auditoria_cte.xlsx');
+  auditar('EXPORTACION', `EXPORTÓ LA AUDITORÍA (${filas.length} EVENTOS)`);
 }
 
 // ==================== INICIALIZACIÓN ====================
